@@ -1,20 +1,5 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 2.8.3)
 project(uuv_world_plugins)
-find_package(gazebo_msgs REQUIRED)
-find_package(ament_cmake REQUIRED)
-find_package(gazebo_dev REQUIRED)
-
-set(INCLUDE_DIRS include ${gazebo_msgs_INCLUDE_DIRS} ${ament_cmake_INCLUDE_DIRS}
-  ${gazebo_dev_INCLUDE_DIRS})
-include_directories(${INCLUDE_DIRS})
-
-set(LIBRARY_DIRS ${gazebo_msgs_LIBRARY_DIRS} ${ament_cmake_LIBRARY_DIRS}
-  ${gazebo_dev_LIBRARY_DIRS})
-
-link_directories(${LIBRARY_DIRS})
-
-set(LIBS ${gazebo_msgs_LIBRARIES} ${ament_cmake_LIBRARIES}
-  ${gazebo_dev_LIBRARIES})
 
 # Specify C++11 standard
 add_definitions(-std=c++11)
@@ -22,35 +7,58 @@ add_definitions(-std=c++11)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+find_package(catkin REQUIRED COMPONENTS
+	gazebo_dev
+	gazebo_msgs)
 find_package(Boost REQUIRED)
+
+catkin_package(
+	INCLUDE_DIRS include
+	LIBRARIES uuv_underwater_current_plugin
+	CATKIN_DEPENDS
+		gazebo_msgs
+		gazebo_dev
+)
+
+include_directories(
+	include
+  ${catkin_INCLUDE_DIRS}
+	${Boost_INCLUDE_DIRS}
+)
+
+link_directories(
+	${CMAKE_CURRENT_BINARY_DIR}/msgs
+)
 
 ###########
 ## Build ##
 ###########
 
-add_library(uuv_underwater_current_plugin src/UnderwaterCurrentPlugin.cc
+add_library(uuv_underwater_current_plugin
+  src/UnderwaterCurrentPlugin.cc
   src/GaussMarkovProcess.cc)
-target_link_libraries(uuv_underwater_current_plugin ${GAZEBO_LIBRARIES}
-  ${Boost_LIBRARIES} ${LIBS})
+target_link_libraries(uuv_underwater_current_plugin
+  ${GAZEBO_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${catkin_LIBRARIES})
 
 #############
 ## Install ##
 #############
 
 ## Mark executables and/or libraries for installation
-install(TARGETS uuv_underwater_current_plugin
-  ARCHIVE
-  DESTINATION lib
-  LIBRARY
-  DESTINATION lib
-  RUNTIME
-  DESTINATION lib/${PROJECT_NAME})
+install(TARGETS
+		uuv_underwater_current_plugin
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION include/${PROJECT_NAME}
-  FILES_MATCHING
-  PATTERN "*.hh")
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.hh"
+)
 
 #############
 ## Testing ##
@@ -64,11 +72,3 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
-ament_export_dependencies(gazebo_msgs)
-ament_export_dependencies(ament_cmake)
-ament_export_dependencies(gazebo_dev)
-ament_export_include_directories(${INCLUDE_DIRS})
-ament_export_libraries(uuv_underwater_current_plugin ${LIBS})
-
-ament_package()

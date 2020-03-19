@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0"?>
 <package format="2">
   <name>uuv_gazebo_worlds</name>
   <version>0.6.13</version>
@@ -12,12 +12,12 @@
 
   <license>Apache-2.0</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>catkin</buildtool_depend>
 
   <depend>gazebo_ros</depend>
 
   <export>
-    <gazebo_ros gazebo_media_path="${prefix}" gazebo_model_path="${prefix}/models" />
-    <build_type>ament_cmake</build_type>
+    <gazebo_ros gazebo_media_path="${prefix}"
+                gazebo_model_path="${prefix}/models"/>
   </export>
 </package>

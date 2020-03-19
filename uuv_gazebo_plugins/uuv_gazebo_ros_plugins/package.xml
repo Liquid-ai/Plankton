@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0"?>
 <package format="2">
   <name>uuv_gazebo_ros_plugins</name>
   <version>0.6.13</version>
@@ -31,9 +31,5 @@
   <test_depend>rostest</test_depend>
   <test_depend>xacro</test_depend>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
-
-  <export>
-    <build_type>ament_cmake</build_type>
-  </export>
+  <buildtool_depend>catkin</buildtool_depend>
 </package>

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(uuv_world_ros_plugins_msgs)
 
-find_package(ament_cmake REQUIRED COMPONENTS
+find_package(catkin REQUIRED COMPONENTS
   message_generation
   std_msgs
   geometry_msgs)
@@ -25,9 +25,9 @@ generate_messages(
   geometry_msgs
 )
 
-ament_package(
+catkin_package(
 #  INCLUDE_DIRS
 #  LIBRARIES
-   AMENT_DEPENDS std_msgs geometry_msgs message_runtime
+   CATKIN_DEPENDS std_msgs geometry_msgs message_runtime
 #  DEPENDS
 )

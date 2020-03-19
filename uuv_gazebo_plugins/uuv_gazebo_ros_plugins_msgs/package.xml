@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0"?>
 <package format="2">
   <name>uuv_gazebo_ros_plugins_msgs</name>
   <version>0.6.13</version>
@@ -14,7 +14,9 @@
 
   <license>Apache-2.0</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
 
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
@@ -22,9 +24,6 @@
   <exec_depend>message_runtime</exec_depend>
 
   <export>
-  <build_type>ament_cmake</build_type>
   </export>
 
-  <buildtool_depend>rosidl_default_generators</buildtool_depend>
-  <exec_depend>rosidl_default_runtime</exec_depend>
-  </package>
+</package>

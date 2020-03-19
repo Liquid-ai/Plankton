@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0"?>
 <package format="2">
   <name>uuv_control_cascaded_pid</name>
   <version>0.6.13</version>
@@ -14,7 +14,7 @@
 
   <license>Apache-2.0</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>catkin</buildtool_depend>
 
   <depend>dynamic_reconfigure</depend>
 
@@ -23,8 +23,4 @@
   <exec_depend>tf</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>python-numpy</exec_depend>
-
-  <export>
-    <build_type>ament_cmake</build_type>
-  </export>
 </package>

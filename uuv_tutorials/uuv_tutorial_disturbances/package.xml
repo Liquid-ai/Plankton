@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0"?>
 <package format="2">
   <name>uuv_tutorial_disturbances</name>
   <version>0.6.13</version>
@@ -13,7 +13,7 @@
 
   <license>Apache-2.0</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>catkin</buildtool_depend>
 
   <exec_depend>uuv_control_utils</exec_depend>
   <exec_depend>uuv_trajectory_control</exec_depend>
@@ -21,10 +21,9 @@
   <exec_depend>uuv_thruster_manager</exec_depend>
   <exec_depend>uuv_gazebo</exec_depend>
 
-  
+  <!-- The export tag contains other, unspecified, tags -->
   <export>
-    
+    <!-- Other tools can request additional information be placed here -->
 
-  <build_type>ament_cmake</build_type>
   </export>
-    </package>
+</package>
