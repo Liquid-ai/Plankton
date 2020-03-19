@@ -1,34 +1,36 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(uuv_sensor_ros_plugins_msgs)
 
-find_package(catkin REQUIRED COMPONENTS
-    geometry_msgs
-    message_generation)
+# Add support for C++11
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+endif()
 
-add_message_files(
-  FILES
-  DVL.msg
-  DVLBeam.msg
-  PositionWithCovariance.msg
-  PositionWithCovarianceStamped.msg
-  ChemicalParticleConcentration.msg
-  Salinity.msg
-)
+find_package(ament_cmake REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
-add_service_files(
-  FILES
-  ChangeSensorState.srv
-)
+rosidl_generate_interfaces(${PROJECT_NAME} "msg/DVL.msg" "msg/DVLBeam.msg"
+  "msg/PositionWithCovariance.msg" "msg/PositionWithCovarianceStamped.msg"
+  "msg/ChemicalParticleConcentration.msg" "msg/Salinity.msg"
+  "srv/ChangeSensorState.srv"
+  DEPENDENCIES builtin_interfaces geometry_msgs)
 
+set(INCLUDE_DIRS ${ament_cmake_INCLUDE_DIRS} ${geometry_msgs_INCLUDE_DIRS}
+  ${rosidl_default_generators_INCLUDE_DIRS})
+include_directories(${INCLUDE_DIRS})
 
-generate_messages(
-  DEPENDENCIES
-  geometry_msgs
-)
+set(LIBRARY_DIRS ${ament_cmake_LIBRARY_DIRS} ${geometry_msgs_LIBRARY_DIRS}
+  ${rosidl_default_generators_LIBRARY_DIRS})
 
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES
-  CATKIN_DEPENDS geometry_msgs message_runtime
-# DEPENDS
-)
+link_directories(${LIBRARY_DIRS})
+
+set(LIBS ${ament_cmake_LIBRARIES} ${geometry_msgs_LIBRARIES}
+  ${rosidl_default_generators_LIBRARIES})
+
+ament_export_dependencies(ament_cmake)
+ament_export_dependencies(geometry_msgs)
+ament_export_dependencies(rosidl_default_generators)
+ament_export_include_directories(${INCLUDE_DIRS})
+
+ament_package()

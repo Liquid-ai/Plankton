@@ -1,48 +1,53 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(uuv_thruster_manager)
 
-find_package(catkin REQUIRED COMPONENTS
-  message_generation
-  std_msgs)
+# Add support for C++11
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+endif()
 
-catkin_python_setup()
+find_package(std_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(ament_cmake REQUIRED)
 
-## Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  GetThrusterCurve.srv
-  ThrusterManagerInfo.srv
-  SetThrusterManagerConfig.srv
-  GetThrusterManagerConfig.srv
-)
+rosidl_generate_interfaces(${PROJECT_NAME} "srv/GetThrusterCurve.srv"
+  "srv/ThrusterManagerInfo.srv" "srv/SetThrusterManagerConfig.srv"
+  "srv/GetThrusterManagerConfig.srv"
+  DEPENDENCIES builtin_interfaces std_msgs)
 
-## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
+set(INCLUDE_DIRS ${std_msgs_INCLUDE_DIRS}
+  ${rosidl_default_generators_INCLUDE_DIRS} ${ament_cmake_INCLUDE_DIRS})
+include_directories(${INCLUDE_DIRS})
 
-catkin_package(
-  CATKIN_DEPENDS 
-    std_msgs 
-    message_runtime)
+set(LIBRARY_DIRS ${std_msgs_LIBRARY_DIRS}
+  ${rosidl_default_generators_LIBRARY_DIRS} ${ament_cmake_LIBRARY_DIRS})
+
+link_directories(${LIBRARY_DIRS})
+
+set(LIBS ${std_msgs_LIBRARIES} ${rosidl_default_generators_LIBRARIES}
+  ${ament_cmake_LIBRARIES})
 
 catkin_install_python(PROGRAMS scripts/thruster_allocator.py
-                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+  DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-        PATTERN "*~" EXCLUDE)
+  DESTINATION share/${PROJECT_NAME}
+  PATTERN "*~"
+  EXCLUDE)
 
-if (CATKIN_ENABLE_TESTING)
+if(BUILD_TESTING)
   find_package(rostest REQUIRED)
-  foreach(T
-      test/test_thrusters.test
-      test/test_thruster_allocator_x_axis.test
-      test/test_thruster_allocator_y_axis.test
-      test/test_thruster_allocator_z_axis.test
-      test/test_thruster_manager_proportional_correct.test
-      )
-     add_rostest(${T})
+  foreach(T test/test_thrusters.test test/test_thruster_allocator_x_axis.test
+    test/test_thruster_allocator_y_axis.test
+    test/test_thruster_allocator_z_axis.test
+    test/test_thruster_manager_proportional_correct.test)
+    add_rostest(${T})
   endforeach()
 endif()
+
+ament_export_dependencies(std_msgs)
+ament_export_dependencies(rosidl_default_generators)
+ament_export_dependencies(ament_cmake)
+ament_export_include_directories(${INCLUDE_DIRS})
+
+ament_package()

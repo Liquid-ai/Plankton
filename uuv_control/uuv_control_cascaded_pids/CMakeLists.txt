@@ -1,32 +1,35 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(uuv_control_cascaded_pid)
 
-find_package(catkin REQUIRED COMPONENTS
-  dynamic_reconfigure)
+# Add support for C++11
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+endif()
 
-catkin_python_setup()
+find_package(ament_cmake REQUIRED)
 
-generate_dynamic_reconfigure_options(
-  cfg/AccelerationControl.cfg
-  cfg/PositionControl.cfg
-  cfg/VelocityControl.cfg
-)
+set(INCLUDE_DIRS ${ament_cmake_INCLUDE_DIRS})
+include_directories(${INCLUDE_DIRS})
 
-# make sure configure headers are built before any node using them
-#add_dependencies(example_node ${PROJECT_NAME}_gencfg)
+set(LIBRARY_DIRS ${ament_cmake_LIBRARY_DIRS})
 
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES uuv_control
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
-)
+link_directories(${LIBRARY_DIRS})
+
+set(LIBS ${ament_cmake_LIBRARIES})
+
+generate_dynamic_reconfigure_options(cfg/AccelerationControl.cfg
+  cfg/PositionControl.cfg cfg/VelocityControl.cfg)
 
 catkin_install_python(PROGRAMS scripts/AccelerationControl.py
-                               scripts/PositionControl.py
-                               scripts/VelocityControl.py
-                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+  scripts/PositionControl.py scripts/VelocityControl.py
+  DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config cfg
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-        PATTERN "*~" EXCLUDE)
+  DESTINATION share/${PROJECT_NAME}
+  PATTERN "*~"
+  EXCLUDE)
+
+ament_export_dependencies(ament_cmake)
+ament_export_include_directories(${INCLUDE_DIRS})
+
+ament_package()

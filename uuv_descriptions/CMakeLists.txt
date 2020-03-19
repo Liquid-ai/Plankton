@@ -1,34 +1,40 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(uuv_descriptions)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
+# Add support for C++11
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+endif()
 
-find_package(catkin REQUIRED)
+find_package(ament_cmake REQUIRED)
 
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES uuv_descriptions
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
-)
+set(INCLUDE_DIRS ${ament_cmake_INCLUDE_DIRS})
+include_directories(${INCLUDE_DIRS})
 
-# Install python scripts
+set(LIBRARY_DIRS ${ament_cmake_LIBRARY_DIRS})
+
+link_directories(${LIBRARY_DIRS})
+
+set(LIBS ${ament_cmake_LIBRARIES})
+
 catkin_install_python(PROGRAMS scripts/spawn_model
-                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+  DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch meshes robots urdf
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-        PATTERN "*~" EXCLUDE)
+  DESTINATION share/${PROJECT_NAME}
+  PATTERN "*~"
+  EXCLUDE)
 
-if(CATKIN_ENABLE_TESTING)
+if(BUILD_TESTING)
   find_package(rostest REQUIRED)
   find_package(xacro REQUIRED)
   find_package(rosunit REQUIRED)
-  foreach(T
-      test/test_urdf_files.test
-      )
-     add_rostest(${T})
+  foreach(T test/test_urdf_files.test)
+    add_rostest(${T})
   endforeach()
 endif()
+
+ament_export_dependencies(ament_cmake)
+ament_export_include_directories(${INCLUDE_DIRS})
+
+ament_package()
