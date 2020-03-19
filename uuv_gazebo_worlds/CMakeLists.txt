@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(uuv_gazebo_worlds)
 
-find_package(catkin REQUIRED COMPONENTS gazebo_ros)
+find_package(ament_cmake REQUIRED COMPONENTS gazebo_ros)
 
-catkin_package(
+ament_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES uuv_gazebo_worlds
 #  CATKIN_DEPENDS other_catkin_pkg

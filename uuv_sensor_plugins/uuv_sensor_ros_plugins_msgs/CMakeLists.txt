@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(uuv_sensor_ros_plugins_msgs)
 
-find_package(catkin REQUIRED COMPONENTS
+find_package(ament_cmake REQUIRED COMPONENTS
     geometry_msgs
     message_generation)
 
@@ -26,9 +26,9 @@ generate_messages(
   geometry_msgs
 )
 
-catkin_package(
+ament_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES
-  CATKIN_DEPENDS geometry_msgs message_runtime
+  AMENT_DEPENDS geometry_msgs message_runtime
 # DEPENDS
 )
