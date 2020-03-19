@@ -33,8 +33,6 @@
 #include <tf/transform_listener.h> // for tf::getPrefixParam()
 #include <tf/transform_datatypes.h>
 
-#include <topic_tools/shape_shifter.h>
-
 std::string g_odometry_topic;
 std::string g_pose_topic;
 std::string g_imu_topic;
@@ -201,33 +199,7 @@ void imuCallback(sensor_msgs::Imu const &imu) {
   }
 }
 
-void multiCallback(topic_tools::ShapeShifter const &input) {
-  if (input.getDataType() == "nav_msgs/Odometry") {
-    nav_msgs::Odometry::ConstPtr odom = input.instantiate<nav_msgs::Odometry>();
-    odomCallback(*odom);
-    return;
-  }
-
-  if (input.getDataType() == "geometry_msgs/PoseStamped") {
-    geometry_msgs::PoseStamped::ConstPtr pose = input.instantiate<geometry_msgs::PoseStamped>();
-    poseCallback(*pose);
-    return;
-  }
-
-  if (input.getDataType() == "sensor_msgs/Imu") {
-    sensor_msgs::Imu::ConstPtr imu = input.instantiate<sensor_msgs::Imu>();
-    imuCallback(*imu);
-    return;
-  }
-
-  if (input.getDataType() == "geometry_msgs/TransformStamped") {
-    geometry_msgs::TransformStamped::ConstPtr tf = input.instantiate<geometry_msgs::TransformStamped>();
-    tfCallback(*tf);
-    return;
-  }
-
-  ROS_ERROR_THROTTLE(1.0, "message_to_tf received a %s message. Supported message types: nav_msgs/Odometry geometry_msgs/PoseStamped geometry_msgs/TransformStamped sensor_msgs/Imu", input.getDataType().c_str());
-}
+// Disabled multicallback as this is not seemingly possible easily with ros2
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "message_to_tf");
@@ -241,7 +213,7 @@ int main(int argc, char** argv) {
   priv_nh.getParam("odometry_topic", g_odometry_topic);
   priv_nh.getParam("pose_topic", g_pose_topic);
   priv_nh.getParam("imu_topic", g_imu_topic);
-  priv_nh.getParam("topic", g_topic);
+  //priv_nh.getParam("topic", g_topic); // Not possible anymore
   priv_nh.getParam("frame_id", g_frame_id);
   priv_nh.getParam("footprint_frame_id", g_footprint_frame_id);
   priv_nh.getParam("position_frame_id", g_position_frame_id);
@@ -278,6 +250,7 @@ int main(int argc, char** argv) {
       subscribers++;
   }
   if (!g_topic.empty()) {
+      ROS_FATAL("Not working anymore, I broke it.");
       sub4 = node.subscribe(g_topic, 10, &multiCallback);
       subscribers++;
   }
