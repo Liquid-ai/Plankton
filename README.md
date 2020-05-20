@@ -1,3 +1,22 @@
+# [Plankton](https://www.liquid-tech.ai/)
+Maritime environment simulator for robotics researchers
+
+Plankton is an open source intiative to provide maritime robotics researchers a state of the art simulation tool suited to multi robots use cases in the aeromaritime environment.
+
+Our project guideline is that Sim2Real* does not need accuracy. *Sim2Real refers to a concept of transferring robot skills acquired in simulation to the real robotic system*
+
+We are developing the first easy to use simulator of aeromaritime environment that:
+ - can handle swarms of drones
+ - support use cases over very large areas
+ - is suited to deep learning & reinforcement learning use cases 
+ - is deterministic 
+ - integrate state of the art domain randomisation capabilities
+
+The first step is to develop a simulator suited to ROS 2 middleware for underwater robotics.
+
+This project benefits from great open source advances in the simulation domain, mainly ROS, gazebo and its plugin uuvsimulator.
+
+
 # `uuv_simulator`: Unmanned Underwater Vehicle (UUV) simulation with Gazebo
 
 [![Build Status](https://travis-ci.org/uuvsimulator/uuv_simulator.svg?branch=dev%2Ftravis_integration)](https://travis-ci.org/uuvsimulator/uuv_simulator)
