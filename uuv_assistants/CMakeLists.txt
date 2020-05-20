@@ -32,11 +32,11 @@ add_executable(uuv_message_to_tf src/message_to_tf.cc)
 
 target_link_libraries(uuv_message_to_tf ${LIBS})
 
-catkin_install_python(PROGRAMS scripts/publish_footprints.py
-  scripts/set_simulation_timer.py scripts/publish_world_models.py
-  scripts/publish_vehicle_footprint.py scripts/unpause_simulation.py
-  scripts/create_new_robot_model scripts/create_thruster_manager_configuration
-  DESTINATION lib/${PROJECT_NAME})
+# catkin_install_python(PROGRAMS scripts/publish_footprints.py
+#   scripts/set_simulation_timer.py scripts/publish_world_models.py
+#   scripts/publish_vehicle_footprint.py scripts/unpause_simulation.py
+#   scripts/create_new_robot_model scripts/create_thruster_manager_configuration
+#   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}

@@ -39,7 +39,6 @@
   <exec_depend>uuv_world_ros_plugins_msgs</exec_depend>
 
   <export>
-    <metapackage />
     <build_type>ament_cmake</build_type>
   </export>
 </package>
