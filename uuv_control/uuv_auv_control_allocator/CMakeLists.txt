@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(uuv_auv_control_allocator)
 
-# Add support for C++11
+# Add support for C++14
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD 14)
 endif()
 
 find_package(geometry_msgs REQUIRED)

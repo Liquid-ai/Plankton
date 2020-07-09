@@ -13,6 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-std_msgs/Header header
+std_msgs/msg/Header header
 float64 surge_speed
-geometry_msgs/Wrench command
+geometry_msgs/msg/Wrench command

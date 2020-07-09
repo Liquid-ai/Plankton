@@ -24,6 +24,7 @@
   <depend>tf2_ros</depend>
   <depend>tf2_geometry_msgs</depend>
 
+  <!--TODO Check the dependencies-->
   <exec_depend>rospy</exec_depend>
   <exec_depend>rostopic</exec_depend>
   <exec_depend>rosgraph</exec_depend>
