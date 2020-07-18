@@ -33,6 +33,14 @@ ament_target_dependencies(
   rclcpp
 )
 
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+  PATTERN "*~"
+  EXCLUDE)
+
+install(TARGETS uuv_message_to_tf
+  DESTINATION bin/${PROJECT_NAME})
+
 # catkin_install_python(PROGRAMS scripts/publish_footprints.py
 #   scripts/set_simulation_timer.py scripts/publish_world_models.py
 #   scripts/publish_vehicle_footprint.py scripts/unpause_simulation.py
