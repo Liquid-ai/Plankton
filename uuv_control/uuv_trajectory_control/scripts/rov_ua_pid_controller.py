@@ -88,9 +88,9 @@ class ROVUnderActuatedPIDController(DPControllerBase):
         self._int = np.zeros(4)
 
     def set_pid_params_callback(self, request):
-        kp = request.Kp
-        kd = request.Kd
-        ki = request.Ki
+        kp = request.kp
+        kd = request.kd
+        ki = request.ki
         if len(kp) != 4 or len(kd) != 4 or len(ki) != 4:
             return SetPIDParamsResponse(False)
         self._Kp = np.diag(kp)

@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-float64[] K
-float64[] Kd
-float64[] Ki
+float64[] k
+float64[] kd
+float64[] ki
 float64[] slope
 ---
 bool success

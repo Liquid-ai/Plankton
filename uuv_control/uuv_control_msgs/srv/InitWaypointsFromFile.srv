@@ -18,7 +18,7 @@ string CUBIC='cubic'
 string DUBINS='dubins'
 string LINEAR='linear'
 
-std_msgs/Time start_time
+builtin_interfaces/Time start_time
 bool start_now
 std_msgs/String filename
 std_msgs/String interpolator

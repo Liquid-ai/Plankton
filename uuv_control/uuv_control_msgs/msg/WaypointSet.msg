@@ -14,5 +14,5 @@
 # limitations under the License.
 
 std_msgs/Header header
-std_msgs/Time start_time
+builtin_interfaces/Time start_time
 uuv_control_msgs/Waypoint[] waypoints

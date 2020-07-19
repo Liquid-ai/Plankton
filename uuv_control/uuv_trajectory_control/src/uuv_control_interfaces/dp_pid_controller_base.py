@@ -90,9 +90,9 @@ class DPPIDControllerBase(DPControllerBase):
         """Service callback function to set the 
         PID's parameters
         """
-        kp = request.Kp
-        kd = request.Kd
-        ki = request.Ki
+        kp = request.kp
+        kd = request.kd
+        ki = request.ki
         if len(kp) != 6 or len(kd) != 6 or len(ki) != 6:
             return SetPIDParamsResponse(False)
         self._Kp = np.diag(kp)
