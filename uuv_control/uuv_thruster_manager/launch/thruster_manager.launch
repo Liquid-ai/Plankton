@@ -8,7 +8,8 @@
   <arg name="config_file" default="$(find uuv_thruster_manager)/config/$(arg model_name)/thruster_manager.yaml"/>
   <arg name="tam_file" default="$(find uuv_thruster_manager)/config/$(arg model_name)/TAM.yaml"/>
 
-  <group ns="$(arg uuv_name)">
+  <group>
+    <push-ros-namespace namespace="$(arg uuv_name)"/>
     <rosparam file="$(arg config_file)" command="load"/>
 
     <rosparam param="thruster_manager/tf_prefix" subst_value="true">
@@ -21,7 +22,7 @@
 
     <group if="$(arg reset_tam)">
       <node pkg="uuv_thruster_manager"
-            type="thruster_allocator.py"
+            exec="thruster_allocator.py"
             name="thruster_allocator"
             output="screen">
         <!-- Output directory to store the thruster allocation matrix -->

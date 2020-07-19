@@ -1,19 +1,25 @@
 cmake_minimum_required(VERSION 3.5)
 project(uuv_thruster_manager)
 
-# Add support for C++11
+# Add support for C++14
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD 14)
 endif()
 
 find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(ament_cmake REQUIRED)
 
-rosidl_generate_interfaces(${PROJECT_NAME} "srv/GetThrusterCurve.srv"
-  "srv/ThrusterManagerInfo.srv" "srv/SetThrusterManagerConfig.srv"
+rosidl_generate_interfaces(
+  ${PROJECT_NAME} 
+  "srv/GetThrusterCurve.srv"
+  "srv/ThrusterManagerInfo.srv" 
+  "srv/SetThrusterManagerConfig.srv"
   "srv/GetThrusterManagerConfig.srv"
-  DEPENDENCIES builtin_interfaces std_msgs)
+  DEPENDENCIES 
+  builtin_interfaces 
+  std_msgs
+)
 
 set(INCLUDE_DIRS ${std_msgs_INCLUDE_DIRS}
   ${rosidl_default_generators_INCLUDE_DIRS} ${ament_cmake_INCLUDE_DIRS})
