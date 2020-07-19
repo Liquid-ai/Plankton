@@ -11,7 +11,7 @@
   <group ns="$(arg uuv_name)">
     <node name="set_scalar_parameter_$(arg service_name)"
       pkg="uuv_control_utils"
-      type="set_scalar_parameter.py"
+      exec="set_scalar_parameter.py"
       output="screen">
       <rosparam subst_value="true">
         service_name: $(arg service_name)

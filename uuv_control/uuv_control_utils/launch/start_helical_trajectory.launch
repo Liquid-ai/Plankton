@@ -13,9 +13,10 @@
   <arg name="duration" default="150"/>
   <arg name="max_forward_speed" default="0.3"/>
 
-  <group ns="$(arg uuv_name)">
+  <group>
+    <push-ros-namespace namespace="$(arg uuv_name)"/>
     <node pkg="uuv_control_utils"
-      type="start_helical_trajectory.py"
+      exec="start_helical_trajectory.py"
       name="start_helical_trajectory"
       output="screen">
       <rosparam subst_value="true">

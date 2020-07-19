@@ -6,7 +6,7 @@
 
   <group ns="$(arg uuv_name)">
     <node pkg="uuv_control_utils"
-          type="send_waypoint_file.py"
+          exec="send_waypoint_file.py"
           name="send_waypoint_file"
           output="screen">
           <rosparam subst_value="true">

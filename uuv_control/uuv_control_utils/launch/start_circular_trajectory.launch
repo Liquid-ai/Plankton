@@ -13,7 +13,7 @@
 
   <group ns="$(arg uuv_name)">
     <node pkg="uuv_control_utils"
-      type="start_circular_trajectory.py"
+      exec="start_circular_trajectory.py"
       name="start_circular_trajectory"
       output="screen">
       <rosparam subst_value="true">

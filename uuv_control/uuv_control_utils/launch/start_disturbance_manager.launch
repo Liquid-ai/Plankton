@@ -26,10 +26,11 @@
   <arg name="wrench_starting_time" default="30"/>
   <arg name="wrench_duration" default="20"/>
 
-  <group ns="$(arg uuv_name)">
+  <group>
+    <push-ros-namespace namespace="$(arg uuv_name)"/>
     <group if="$(arg use_file)">
         <node pkg="uuv_control_utils"
-          type="disturbance_manager.py"
+          exec="disturbance_manager.py"
           name="disturbance_manager"
           output="screen">
           <!-- Load  parameters -->
@@ -39,7 +40,7 @@
 
     <group unless="$(arg use_file)">
       <node pkg="uuv_control_utils"
-        type="disturbance_manager.py"
+        exec="disturbance_manager.py"
         name="disturbance_manager"
         output="screen">
         <rosparam subst_value="true">

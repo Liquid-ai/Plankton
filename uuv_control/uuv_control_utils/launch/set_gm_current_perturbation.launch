@@ -7,7 +7,7 @@
   <arg name="mu" default="0.0"/>
 
   <node pkg="uuv_control_utils"
-    type="set_gm_current_perturbation.py"
+    exec="set_gm_current_perturbation.py"
     name="set_gm_current_perturbation"
     output="screen">
     <rosparam subst_value="true">
