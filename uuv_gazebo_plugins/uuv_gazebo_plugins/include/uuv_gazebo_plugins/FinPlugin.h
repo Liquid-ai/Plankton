@@ -19,13 +19,14 @@
 #ifndef __UUV_GAZEBO_PLUGINS_FIN_PLUGIN_HH__
 #define __UUV_GAZEBO_PLUGINS_FIN_PLUGIN_HH__
 
+//TODO remove boost dependence
 #include <boost/scoped_ptr.hpp>
 #include <gazebo/gazebo.hh>
 #include <sdf/sdf.hh>
 
 #include <gazebo/msgs/msgs.hh>
-#include <uuv_gazebo_plugins/Dynamics.hh>
-#include <uuv_gazebo_plugins/LiftDragModel.hh>
+#include <uuv_gazebo_plugins/Dynamics.h>
+#include <uuv_gazebo_plugins/LiftDragModel.h>
 
 #include "Double.pb.h"
 

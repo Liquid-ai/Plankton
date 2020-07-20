@@ -16,7 +16,7 @@
 #include <string>
 #include <memory>
 #include <gtest/gtest.h>
-#include <uuv_gazebo_plugins/ThrusterConversionFcn.hh>
+#include <uuv_gazebo_plugins/ThrusterConversionFcn.h>
 
 std::shared_ptr<gazebo::ConversionFunction> ConversionFromString(
     const std::string& description)

@@ -58,26 +58,26 @@ add_library(uuv_gazebo_plugins_msgs SHARED ${PROTO_SRCS})
 target_link_libraries(uuv_gazebo_plugins_msgs ${PROTOBUF_LIBRARY})
 list(APPEND UUV_GAZEBO_PLUGINS_LIST uuv_gazebo_plugins_msgs)
 
-add_library(uuv_dynamics SHARED src/Dynamics.cc)
+add_library(uuv_dynamics SHARED src/Dynamics.cpp)
 list(APPEND UUV_GAZEBO_PLUGINS_LIST uuv_dynamics)
 
-add_library(uuv_fin_plugin src/LiftDragModel.cc src/FinPlugin.cc)
+add_library(uuv_fin_plugin src/LiftDragModel.cpp src/FinPlugin.cpp)
 target_link_libraries(uuv_fin_plugin uuv_dynamics uuv_gazebo_plugins_msgs
   ${LIBS} ${Boost_LIBRARIES})
 list(APPEND UUV_GAZEBO_PLUGINS_LIST uuv_fin_plugin)
 
-add_library(uuv_underwater_object_plugin src/HydrodynamicModel.cc
-  src/BuoyantObject.cc src/UnderwaterObjectPlugin.cc)
+add_library(uuv_underwater_object_plugin src/HydrodynamicModel.cpp
+  src/BuoyantObject.cpp src/UnderwaterObjectPlugin.cpp)
 target_link_libraries(uuv_underwater_object_plugin ${LIBS} ${EIGEN3_LIBRARIES})
 list(APPEND UUV_GAZEBO_PLUGINS_LIST uuv_underwater_object_plugin)
 
-add_library(uuv_thruster_plugin src/ThrusterConversionFcn.cc
-  src/ThrusterPlugin.cc)
+add_library(uuv_thruster_plugin src/ThrusterConversionFcn.cpp
+  src/ThrusterPlugin.cpp)
 target_link_libraries(uuv_thruster_plugin uuv_dynamics uuv_gazebo_plugins_msgs
   ${LIBS} ${Boost_LIBRARIES})
 list(APPEND UUV_GAZEBO_PLUGINS_LIST uuv_thruster_plugin)
 
-add_library(umbilical_plugin src/UmbilicalModel.cc src/UmbilicalPlugin.cc)
+add_library(umbilical_plugin src/UmbilicalModel.cpp src/UmbilicalPlugin.cpp)
 target_link_libraries(umbilical_plugin ${LIBS} ${Boost_LIBRARIES})
 list(APPEND UUV_GAZEBO_PLUGINS_LIST umbilical_plugin)
 
@@ -92,14 +92,14 @@ install(TARGETS ${UUV_GAZEBO_PLUGINS_LIST}
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION include/${PROJECT_NAME}
   FILES_MATCHING
-  PATTERN "*.hh"
+  PATTERN "*.h"
   PATTERN "*~"
   EXCLUDE)
 
 install(DIRECTORY include/
   DESTINATION include
   FILES_MATCHING
-  PATTERN ".hh")
+  PATTERN ".h")
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
   DESTINATION include/${PROJECT_NAME}
@@ -111,11 +111,11 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   ament_add_gtest(UNIT_ThrusterConversionFcn_TEST
-    src/ThrusterConversionFcn_TEST.cc)
+    src/ThrusterConversionFcn_TEST.cpp)
   target_link_libraries(UNIT_ThrusterConversionFcn_TEST uuv_thruster_plugin
     ${LIBS})
 
-  ament_add_gtest(UNIT_ThrusterDynamics_TEST src/ThrusterDynamics_TEST.cc)
+  ament_add_gtest(UNIT_ThrusterDynamics_TEST src/ThrusterDynamics_TEST.cpp)
   target_link_libraries(UNIT_ThrusterDynamics_TEST uuv_dynamics ${LIBS})
 endif()
 

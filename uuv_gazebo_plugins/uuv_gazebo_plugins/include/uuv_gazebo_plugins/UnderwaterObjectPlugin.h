@@ -26,8 +26,8 @@
 #include <gazebo/gazebo.hh>
 #include <gazebo/msgs/msgs.hh>
 
-#include <uuv_gazebo_plugins/HydrodynamicModel.hh>
-#include <uuv_gazebo_plugins/Def.hh>
+#include <uuv_gazebo_plugins/HydrodynamicModel.h>
+#include <uuv_gazebo_plugins/Def.h>
 
 namespace gazebo
 {

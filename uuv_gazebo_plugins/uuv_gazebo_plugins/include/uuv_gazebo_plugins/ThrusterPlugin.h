@@ -30,8 +30,8 @@
 
 #include <sdf/sdf.hh>
 
-#include <uuv_gazebo_plugins/ThrusterConversionFcn.hh>
-#include <uuv_gazebo_plugins/Dynamics.hh>
+#include <uuv_gazebo_plugins/ThrusterConversionFcn.h>
+#include <uuv_gazebo_plugins/Dynamics.h>
 
 #include "Double.pb.h"
 

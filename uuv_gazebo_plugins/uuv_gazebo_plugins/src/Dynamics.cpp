@@ -15,7 +15,7 @@
 
 #include <gazebo/gazebo.hh>
 
-#include <uuv_gazebo_plugins/Dynamics.hh>
+#include <uuv_gazebo_plugins/Dynamics.h>
 
 namespace gazebo {
 

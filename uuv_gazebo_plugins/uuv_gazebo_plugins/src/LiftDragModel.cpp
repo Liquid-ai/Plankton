@@ -15,7 +15,7 @@
 
 #include <gazebo/gazebo.hh>
 
-#include <uuv_gazebo_plugins/LiftDragModel.hh>
+#include <uuv_gazebo_plugins/LiftDragModel.h>
 
 namespace gazebo {
 

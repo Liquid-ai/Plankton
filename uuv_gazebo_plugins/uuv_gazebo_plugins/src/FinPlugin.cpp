@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <uuv_gazebo_plugins/FinPlugin.hh>
-#include <uuv_gazebo_plugins/Def.hh>
+#include <uuv_gazebo_plugins/FinPlugin.h>
+#include <uuv_gazebo_plugins/Def.h>
 
 #include <gazebo/gazebo.hh>
 #include <gazebo/physics/Link.hh>

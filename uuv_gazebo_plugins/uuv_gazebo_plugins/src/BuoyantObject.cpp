@@ -16,7 +16,7 @@
 #include <cmath>
 
 #include <gazebo/gazebo.hh>
-#include <uuv_gazebo_plugins/BuoyantObject.hh>
+#include <uuv_gazebo_plugins/BuoyantObject.h>
 
 namespace gazebo {
 

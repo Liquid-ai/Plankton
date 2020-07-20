@@ -30,8 +30,8 @@
 
 #include <math.h>
 
-#include <uuv_gazebo_plugins/ThrusterPlugin.hh>
-#include <uuv_gazebo_plugins/Def.hh>
+#include <uuv_gazebo_plugins/ThrusterPlugin.h>
+#include <uuv_gazebo_plugins/Def.h>
 
 
 GZ_REGISTER_MODEL_PLUGIN(gazebo::ThrusterPlugin)

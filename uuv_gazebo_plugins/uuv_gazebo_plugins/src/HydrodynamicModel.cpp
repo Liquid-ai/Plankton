@@ -14,7 +14,7 @@
 // limitations under the License.
 
 #include <gazebo/gazebo.hh>
-#include <uuv_gazebo_plugins/HydrodynamicModel.hh>
+#include <uuv_gazebo_plugins/HydrodynamicModel.h>
 
 namespace gazebo
 {

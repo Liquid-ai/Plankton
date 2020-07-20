@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <uuv_gazebo_plugins/UmbilicalModel.hh>
+#include <uuv_gazebo_plugins/UmbilicalModel.h>
 
 namespace gazebo
 {

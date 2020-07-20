@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include <uuv_gazebo_plugins/Dynamics.hh>
+#include <uuv_gazebo_plugins/Dynamics.h>
 
 std::shared_ptr<gazebo::Dynamics> DynamicsFromString(
     const std::string& description)

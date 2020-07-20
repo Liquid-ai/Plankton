@@ -28,7 +28,7 @@
 #include <gazebo/physics/World.hh>
 #include <gazebo/transport/TransportTypes.hh>
 
-#include <uuv_gazebo_plugins/UmbilicalModel.hh>
+#include <uuv_gazebo_plugins/UmbilicalModel.h>
 
 namespace gazebo
 {

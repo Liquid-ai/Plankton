@@ -33,8 +33,8 @@
 #include <vector>
 #include <map>
 
-#include <uuv_gazebo_plugins/Def.hh>
-#include <uuv_gazebo_plugins/BuoyantObject.hh>
+#include <uuv_gazebo_plugins/Def.h>
+#include <uuv_gazebo_plugins/BuoyantObject.h>
 
 
 namespace gazebo

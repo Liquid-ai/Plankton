@@ -23,8 +23,8 @@
 #include <gazebo/transport/TransportTypes.hh>
 #include <gazebo/transport/transport.hh>
 
-#include <uuv_gazebo_plugins/UnderwaterObjectPlugin.hh>
-#include <uuv_gazebo_plugins/Def.hh>
+#include <uuv_gazebo_plugins/UnderwaterObjectPlugin.h>
+#include <uuv_gazebo_plugins/Def.h>
 
 namespace gazebo {
 
