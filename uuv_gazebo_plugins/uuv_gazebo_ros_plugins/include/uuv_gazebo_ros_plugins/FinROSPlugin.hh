@@ -16,14 +16,14 @@
 #ifndef __FIN_ROS_PLUGIN_HH__
 #define __FIN_ROS_PLUGIN_HH__
 
-#include <uuv_gazebo_plugins/FinPlugin.hh>
+#include <uuv_gazebo_plugins/FinPlugin.h>
 
 #include <boost/scoped_ptr.hpp>
 #include <gazebo/common/Plugin.hh>
-#include <ros/ros.h>
-#include <uuv_gazebo_ros_plugins_msgs/FloatStamped.h>
-#include <uuv_gazebo_ros_plugins_msgs/GetListParam.h>
-#include <geometry_msgs/WrenchStamped.h>
+#include <rclcpp/rclcpp.hpp>
+#include <uuv_gazebo_ros_plugins_msgs/msg/float_stamped.hpp>
+#include <uuv_gazebo_ros_plugins_msgs/srv/get_list_param.hpp>
+#include <geometry_msgs/msg/wrench_stamped.hpp>
 #include <map>
 
 namespace uuv_simulator_ros

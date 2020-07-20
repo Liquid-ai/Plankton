@@ -220,7 +220,7 @@ void UnderwaterObjectROSPlugin::InitDebug(gazebo::physics::LinkPtr _link,
     it != this->hydroPub.end(); ++it)
   {
     this->rosHydroPub[it->first] =
-      this->rosNode->advertise<geometry_msgs::WrenchStamped>(
+      this->rosNode->advertise<geometry_msgs::msg::WrenchStamped>(
         it->second->GetTopic(), 10);
       gzmsg << "ROS TOPIC: " << it->second->GetTopic() << std::endl;
   }
@@ -254,7 +254,7 @@ void UnderwaterObjectROSPlugin::PublishIsSubmerged()
 {
   if (this->baseLinkName.empty())
     gzwarn << "Base link name string is empty" << std::endl;
-  std_msgs::Bool isSubmerged;
+  std_msgs::msg::Bool isSubmerged;
   isSubmerged.data = this->models[this->model->GetLink(this->baseLinkName)]->IsSubmerged();
   this->rosHydroPub["is_submerged"].publish(isSubmerged);
 }
@@ -262,17 +262,17 @@ void UnderwaterObjectROSPlugin::PublishIsSubmerged()
 /////////////////////////////////////////////////
 void UnderwaterObjectROSPlugin::PublishCurrentVelocityMarker()
 {
-  visualization_msgs::Marker marker;
+  visualization_msgs::msg::Marker marker;
   marker.header.frame_id = "world";
   marker.header.stamp = ros::Time();
   marker.ns = this->model->GetName() + "/current_velocity_marker";
   marker.id = 0;
-  marker.type = visualization_msgs::Marker::ARROW;
+  marker.type = visualization_msgs::msg::Marker::ARROW;
   // Creating the arrow marker for the current velocity information
   // (orientation only, magnitude has to be read from the topic)
   if (this->flowVelocity.Length() > 0)
   {
-    marker.action = visualization_msgs::Marker::ADD;
+    marker.action = visualization_msgs::msg::Marker::ADD;
     ignition::math::Pose3d pose;
 #if GAZEBO_MAJOR_VERSION >= 8
     pose = this->model->WorldPose();
@@ -303,12 +303,12 @@ void UnderwaterObjectROSPlugin::PublishCurrentVelocityMarker()
   }
   else
   {
-    marker.action = visualization_msgs::Marker::DELETE;
+    marker.action = visualization_msgs::msg::Marker::DELETE;
   }
   // Publish current velocity RViz marker
   this->rosHydroPub["current_velocity_marker"].publish(marker);
   // Publishing flag for usage of global current velocity
-  std_msgs::Bool useGlobalMsg;
+  std_msgs::msg::Bool useGlobalMsg;
   useGlobalMsg.data = this->useGlobalCurrent;
   this->rosHydroPub["using_global_current_velocity"].publish(useGlobalMsg);
 }
@@ -372,7 +372,7 @@ void UnderwaterObjectROSPlugin::GenWrenchMsg(
 
 /////////////////////////////////////////////////
 void UnderwaterObjectROSPlugin::UpdateLocalCurrentVelocity(
-  const geometry_msgs::Vector3::ConstPtr &_msg)
+  const geometry_msgs::msg::Vector3::SharedPtr &_msg)
 {
   if (!this->useGlobalCurrent)
   {

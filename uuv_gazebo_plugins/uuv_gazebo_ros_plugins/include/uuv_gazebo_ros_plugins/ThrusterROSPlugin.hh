@@ -20,21 +20,21 @@
 #include <string>
 #include <vector>
 
-#include <uuv_gazebo_plugins/ThrusterPlugin.hh>
+#include <uuv_gazebo_plugins/ThrusterPlugin.h>
 
 #include <boost/scoped_ptr.hpp>
 #include <gazebo/common/Plugin.hh>
-#include <ros/ros.h>
-#include <uuv_gazebo_ros_plugins_msgs/FloatStamped.h>
-#include <geometry_msgs/WrenchStamped.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Float64.h>
+#include <rclcpp/rclcpp.hpp>
+#include <uuv_gazebo_ros_plugins_msgs/msg/float_stamped.hpp>
+#include <geometry_msgs/msg/wrench_stamped.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/float64.hpp>
 
-#include <uuv_gazebo_ros_plugins_msgs/SetThrusterState.h>
-#include <uuv_gazebo_ros_plugins_msgs/GetThrusterState.h>
-#include <uuv_gazebo_ros_plugins_msgs/SetThrusterEfficiency.h>
-#include <uuv_gazebo_ros_plugins_msgs/GetThrusterEfficiency.h>
-#include <uuv_gazebo_ros_plugins_msgs/GetThrusterConversionFcn.h>
+#include <uuv_gazebo_ros_plugins_msgs/srv/set_thruster_state.hpp>
+#include <uuv_gazebo_ros_plugins_msgs/srv/get_thruster_state.hpp>
+#include <uuv_gazebo_ros_plugins_msgs/srv/set_thruster_efficiency.hpp>
+#include <uuv_gazebo_ros_plugins_msgs/srv/get_thruster_efficiency.hpp>
+#include <uuv_gazebo_ros_plugins_msgs/srv/get_thruster_conversion_fcn.hpp>
 
 namespace uuv_simulator_ros
 {
