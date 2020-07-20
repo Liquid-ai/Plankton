@@ -3,6 +3,10 @@ project(uuv_gazebo_plugins)
 find_package(ament_cmake REQUIRED)
 find_package(gazebo_dev REQUIRED)
 
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
 set(INCLUDE_DIRS include ${ament_cmake_INCLUDE_DIRS} ${gazebo_dev_INCLUDE_DIRS})
 include_directories(${INCLUDE_DIRS})
 
@@ -12,7 +16,7 @@ link_directories(${LIBRARY_DIRS})
 
 set(LIBS ${ament_cmake_LIBRARIES} ${gazebo_dev_LIBRARIES})
 
-add_definitions(-std=c++11)
+#add_definitions(-std=c++11)
 
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)
@@ -39,6 +43,13 @@ foreach(ITR ${GAZEBO_INCLUDE_DIRS})
 endforeach()
 
 message(STATUS "GAZEBO_MSG_INCLUDE_DIRS = " ${GAZEBO_MSG_INCLUDE_DIRS})
+
+include_directories(
+  ${INCLUDE_DIRS} 
+  ${GAZEBO_MSG_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_BINARY_DIR} # for generated messages
+)
 
 file(GLOB msgs msgs/*.proto)
 
@@ -98,6 +109,7 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
   EXCLUDE)
 
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
   ament_add_gtest(UNIT_ThrusterConversionFcn_TEST
     src/ThrusterConversionFcn_TEST.cc)
   target_link_libraries(UNIT_ThrusterConversionFcn_TEST uuv_thruster_plugin

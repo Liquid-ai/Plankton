@@ -25,12 +25,12 @@
   <depend>tf2_geometry_msgs</depend>
 
   <!--TODO Check the dependencies-->
-  <exec_depend>rospy</exec_depend>
-  <exec_depend>rostopic</exec_depend>
-  <exec_depend>rosgraph</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>ros2topic</exec_depend>
+  <exec_depend>rosgraph</exec_depend> <!--not sure -->
   <exec_depend>gazebo_msgs</exec_depend>
   <exec_depend>visualization_msgs</exec_depend>
-  <exec_depend>python-numpy</exec_depend>
+  <exec_depend>python-numpy</exec_depend> <!-- check -->
 
   <export>
     <build_type>ament_cmake</build_type>
