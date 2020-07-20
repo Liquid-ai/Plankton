@@ -13,5 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-Header header
+std_msgs/Header header
 float64 data
