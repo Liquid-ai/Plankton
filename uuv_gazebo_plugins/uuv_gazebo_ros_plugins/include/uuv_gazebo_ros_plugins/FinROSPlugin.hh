@@ -32,7 +32,7 @@ namespace uuv_simulator_ros
   class FinROSPlugin : public gazebo::FinPlugin
   {
     using GetListParam = uuv_gazebo_ros_plugins_msgs::srv::GetListParam;
-    using uuv_gazebo_ros_plugins_msgs::msg::FloatStamped;
+    using FloatStamped = uuv_gazebo_ros_plugins_msgs::msg::FloatStamped;
 
     /// \brief Constrcutor.
     public: FinROSPlugin();
@@ -48,7 +48,7 @@ namespace uuv_simulator_ros
 
     /// \brief Set new set point.
     public: void SetReference(
-        uuv_gazebo_ros_plugins_msgs::msg::FloatStamped::ConstSharedPtr _msg);
+        const uuv_gazebo_ros_plugins_msgs::msg::FloatStamped::SharedPtr _msg);
 
     /// \brief Return the list of paramaters of the lift and drag model
     public: void GetLiftDragParams(

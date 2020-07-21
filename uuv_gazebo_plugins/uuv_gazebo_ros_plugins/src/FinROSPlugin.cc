@@ -49,7 +49,7 @@ FinROSPlugin::~FinROSPlugin()
 //=============================================================================
 ///////////////////////////////////////////////////////////////////////////////
 void FinROSPlugin::SetReference(
-    uuv_gazebo_ros_plugins_msgs::msg::FloatStamped::ConstSharedPtr _msg)
+    const uuv_gazebo_ros_plugins_msgs::msg::FloatStamped::SharedPtr _msg)
 {
   if (std::isnan(_msg->data))
   {
@@ -113,13 +113,13 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
     return;
   }
 
-  myRosNode = rclcpp::Node::make_unique();
+  myRosNode = rclcpp::Node::make_unique("");
   //this->rosNode.reset(new ros::NodeHandle(""));
 
   mySubReference = myRosNode->create_subscription<
     uuv_gazebo_ros_plugins_msgs::msg::FloatStamped
     >(this->commandSubscriber->GetTopic(), 10,
-      std::bind(&FinROSPlugin::SetReference, this, _1));
+      std::bind(&FinROSPlugin::SetReference, this, std::placeholders::_1));
 
   myPubState = myRosNode->create_publisher<
     uuv_gazebo_ros_plugins_msgs::msg::FloatStamped
@@ -182,7 +182,7 @@ void FinROSPlugin::RosPublishStates()
 
 /////////////////////////////////////////////////
 void FinROSPlugin::GetLiftDragParams(
-  const uuv_gazebo_ros_plugins_msgs::srv::GetListParam::Request::SharedPtr _req,
+  const uuv_gazebo_ros_plugins_msgs::srv::GetListParam::Request::SharedPtr /*_req*/,
   uuv_gazebo_ros_plugins_msgs::srv::GetListParam::Response::SharedPtr _res)
 {
   _res->description = this->liftdrag->GetType();

@@ -19,28 +19,30 @@
 #ifndef __UNDERWATER_OBJECT_ROS_PLUGIN_HH__
 #define __UNDERWATER_OBJECT_ROS_PLUGIN_HH__
 
+#include <map>
 #include <string>
 
-#include <uuv_gazebo_plugins/UnderwaterObjectPlugin.h>
-
-#include <boost/scoped_ptr.hpp>
 #include <gazebo/gazebo.hh>
 #include <gazebo/common/Plugin.hh>
+
 #include <rclcpp/rclcpp.hpp>
-#include <geometry_msgs/msg/wrench_stamped.h>
+#include <geometry_msgs/msg/wrench_stamped.hpp>
 #include <geometry_msgs/msg/vector3.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <visualization_msgs/msg/marker.hpp>
-#include <uuv_gazebo_ros_plugins_msgs/srv/set_use_global_current_vel.h>
-#include <uuv_gazebo_ros_plugins_msgs/msg/underwater_object_model.hpp>
-#include <uuv_gazebo_ros_plugins_msgs/srv/get_model_properties.h>
-#include <uuv_gazebo_ros_plugins_msgs/srv/set_float.h>
-#include <uuv_gazebo_ros_plugins_msgs/srv/get_float.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
+
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/LinearMath/Quaternion.h>
 
-#include <map>
+#include <uuv_gazebo_plugins/UnderwaterObjectPlugin.h>
+
+#include <uuv_gazebo_ros_plugins_msgs/srv/set_use_global_current_vel.hpp>
+#include <uuv_gazebo_ros_plugins_msgs/msg/underwater_object_model.hpp>
+#include <uuv_gazebo_ros_plugins_msgs/srv/get_model_properties.hpp>
+#include <uuv_gazebo_ros_plugins_msgs/srv/set_float.hpp>
+#include <uuv_gazebo_ros_plugins_msgs/srv/get_float.hpp>
+
 
 namespace uuv_simulator_ros
 {
@@ -68,116 +70,116 @@ namespace uuv_simulator_ros
     /// \brief Update the local current velocity, this data will be used only
     /// if the useGlobalCurrent flag is set to false.
     public: void UpdateLocalCurrentVelocity(
-      const geometry_msgs::Vector3::ConstPtr &_msg);
+      const geometry_msgs::msg::Vector3::SharedPtr _msg);
 
     /// \brief Set flag to use the global current velocity topic input
-    public: bool SetUseGlobalCurrentVel(
-      uuv_gazebo_ros_plugins_msgs::SetUseGlobalCurrentVel::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetUseGlobalCurrentVel::Response& _res);
+    public: void SetUseGlobalCurrentVel(
+      const uuv_gazebo_ros_plugins_msgs::srv::SetUseGlobalCurrentVel::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetUseGlobalCurrentVel::Response::SharedPtr _res);
 
     /// \brief Return the model properties, along with parameters from the
     /// hydrodynamic and hydrostatic models
-    public: bool GetModelProperties(
-      uuv_gazebo_ros_plugins_msgs::GetModelProperties::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetModelProperties::Response& _res);
+    public: void GetModelProperties(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetModelProperties::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetModelProperties::Response::SharedPtr _res);
 
     /// \brief Set the scaling factor for the added-mass matrix
-    public: bool SetScalingAddedMass(
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Response& _res);
+    public: void SetScalingAddedMass(
+      const uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Response::SharedPtr _res);
 
     /// \brief Return current scaling factor for the added-mass matrix
-    public: bool GetScalingAddedMass(
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Response& _res);
+    public: void GetScalingAddedMass(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Response::SharedPtr _res);
 
     /// \brief Set a scaling factor for the overall damping matrix
-    public: bool SetScalingDamping(
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Response& _res);
+    public: void SetScalingDamping(
+      const uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Response::SharedPtr _res);
 
     /// \brief Return the scaling factor for the overall damping matrix
-    public: bool GetScalingDamping(
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Response& _res);
+    public: void GetScalingDamping(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Response::SharedPtr _res);
 
     /// \brief Set scaling factor for the model's volume used for buoyancy
     /// force computation
-    public: bool SetScalingVolume(
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Response& _res);
+    public: void SetScalingVolume(
+      const uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Response::SharedPtr _res);
 
     /// \brief Get scaling factor for the model's volume used for buoyancy
     /// force computation
-    public: bool GetScalingVolume(
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Response& _res);
+    public: void GetScalingVolume(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Response::SharedPtr _res);
 
     /// \brief Set new fluid density (this will alter the value for the
     /// buoyancy force)
-    public: bool SetFluidDensity(
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Response& _res);
+    public: void SetFluidDensity(
+      const uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Response::SharedPtr _res);
 
     /// \brief Get current value for the fluid density
-    public: bool GetFluidDensity(
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Response& _res);
+    public: void GetFluidDensity(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Response::SharedPtr _res);
 
     /// \brief Set offset factor for the model's volume (this will alter the
     /// value for the buoyancy force)
-    public: bool SetOffsetVolume(
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Response& _res);
+    public: void SetOffsetVolume(
+      const uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Response::SharedPtr _res);
 
     /// \brief Return the offset factor for the model's volume
-    public: bool GetOffsetVolume(
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Response& _res);
+    public: void GetOffsetVolume(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Response::SharedPtr _res);
 
     /// \brief Set the offset factor for the added-mass matrix
-    public: bool SetOffsetAddedMass(
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Response& _res);
+    public: void SetOffsetAddedMass(
+      const uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Response::SharedPtr _res);
 
     /// \brief Return the offset factor for the added-mass matrix
-    public: bool GetOffsetAddedMass(
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Response& _res);
+    public: void GetOffsetAddedMass(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Response::SharedPtr _res);
 
     /// \brief Set the offset factor for the linear damping matrix
-    public: bool SetOffsetLinearDamping(
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Response& _res);
+    public: void SetOffsetLinearDamping(
+      const uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Response::SharedPtr _res);
 
     /// \brief Return the offset factor for the linear damping matrix
-    public: bool GetOffsetLinearDamping(
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Response& _res);
+    public: void GetOffsetLinearDamping(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Response::SharedPtr _res);
 
     /// \brief Set the offset factor for the linear forward speed damping
     /// matrix
-    public: bool SetOffsetLinearForwardSpeedDamping(
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Response& _res);
+    public: void SetOffsetLinearForwardSpeedDamping(
+      const uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Response::SharedPtr _res);
 
     /// \brief Return the offset factor for the linear forward speed damping
     /// matrix
-    public: bool GetOffsetLinearForwardSpeedDamping(
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Response& _res);
+    public: void GetOffsetLinearForwardSpeedDamping(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Response::SharedPtr _res);
 
     /// \brief Set the offset factor for the nonlinear damping
     /// matrix
-    public: bool SetOffsetNonLinearDamping(
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetFloat::Response& _res);
+    public: void SetOffsetNonLinearDamping(
+      const uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetFloat::Response::SharedPtr _res);
 
     /// \brief Return the offset factor for the nonlinear damping
     /// matrix
-    public: bool GetOffsetNonLinearDamping(
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetFloat::Response& _res);
+    public: void GetOffsetNonLinearDamping(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetFloat::Response::SharedPtr _res);
 
     /// \brief Publish restoring force
     /// \param[in] _link Pointer to the link where the force information will
@@ -197,7 +199,7 @@ namespace uuv_simulator_ros
     /// \param[in] _output Stamped wrench message to be updated
     protected: virtual void GenWrenchMsg(
       ignition::math::Vector3d _force, ignition::math::Vector3d _torque,
-      geometry_msgs::WrenchStamped &_output);
+      geometry_msgs::msg::WrenchStamped &_output);
 
     /// \brief Sets the topics used for publishing the intermediate data during
     /// the simulation
@@ -213,20 +215,24 @@ namespace uuv_simulator_ros
     protected: virtual void PublishIsSubmerged();
 
     /// \brief Pointer to this ROS node's handle.
-    private: boost::scoped_ptr<ros::NodeHandle> rosNode;
+    private: rclcpp::Node::UniquePtr myRosNode;
 
     /// \brief Subscriber to locally calculated current velocity
-    private: ros::Subscriber subLocalCurVel;
+    private: rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr mySubLocalCurVel;
 
     /// \brief Publisher for current actual thrust.
-    private: std::map<std::string, ros::Publisher> rosHydroPub;
+    private: std::map<std::string, rclcpp::PublisherBase::SharedPtr> myRosHydroPub;
+    // private: rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr myCurrent_velocity_marker;
+    // private: rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr myUsing_global_current_velocity;
+    // private: rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr myIs_submerged;
 
     /// \brief Map of services
-    private: std::map<std::string, ros::ServiceServer> services;
+    // private: std::map<std::string, ros::ServiceServer> services;
+     private: std::map<std::string, rclcpp::ServiceBase::SharedPtr> services;
 
-    private: geometry_msgs::TransformStamped nedTransform;
+    private: geometry_msgs::msg::TransformStamped nedTransform;
 
-    private: tf2_ros::TransformBroadcaster tfBroadcaster;
+    private: std::unique_ptr<tf2_ros::TransformBroadcaster> tfBroadcaster;
   };
 }
 

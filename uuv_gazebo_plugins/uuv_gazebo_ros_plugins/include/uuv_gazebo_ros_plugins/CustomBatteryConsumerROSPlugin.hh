@@ -42,7 +42,7 @@ class CustomBatteryConsumerROSPlugin : public ModelPlugin
   public: void Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf);
 
   /// \brief Callback for the device state topic subscriber
-  protected: void UpdateDeviceState(std_msgs::msg::Bool::SharedPtr _msg);
+  protected: void UpdateDeviceState(const std_msgs::msg::Bool::SharedPtr _msg);
 
   /// \brief Update power load
   protected: void UpdatePowerLoad(double _powerLoad = 0.0);

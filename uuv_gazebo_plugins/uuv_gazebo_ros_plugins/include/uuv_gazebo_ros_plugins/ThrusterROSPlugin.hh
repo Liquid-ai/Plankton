@@ -100,8 +100,8 @@ namespace uuv_simulator_ros
 
     /// \brief Get thruster conversion function parameters
     public: void GetThrusterConversionFcn(
-      const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn::Response& _res);
+      const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn::Response::SharedPtr _res);
 
     /// \brief Map of thruster services
     //TODO Replace with map<string, ServiceBase::SharedPtr>

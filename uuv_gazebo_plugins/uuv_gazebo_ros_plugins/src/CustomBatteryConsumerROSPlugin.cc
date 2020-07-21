@@ -42,7 +42,7 @@ void CustomBatteryConsumerROSPlugin::Load(physics::ModelPtr _parent,
     return;
   }
 
-  myRosNode = rclcpp::Node::make_unique();// new ros::NodeHandle(""));
+  myRosNode = rclcpp::Node::make_unique("");// new ros::NodeHandle(""));
 
   GZ_ASSERT(_sdf->HasElement("link_name"), "Consumer link name is missing");
   this->linkName = _sdf->Get<std::string>("link_name");
@@ -69,7 +69,7 @@ void CustomBatteryConsumerROSPlugin::Load(physics::ModelPtr _parent,
         myDeviceStateSub = myRosNode->create_subscription<std_msgs::msg::Bool>(
           topicName, 1,
           std::bind(&CustomBatteryConsumerROSPlugin::UpdateDeviceState,
-          this, _1));
+          this, std::placeholders::_1));
   }
   else
   {
@@ -86,7 +86,7 @@ void CustomBatteryConsumerROSPlugin::Load(physics::ModelPtr _parent,
 
 /////////////////////////////////////////////////
 void CustomBatteryConsumerROSPlugin::UpdateDeviceState(
-  std_msgs::msg::Bool::SharedPtr _msg)
+  const std_msgs::msg::Bool::SharedPtr _msg)
 {
   this->isDeviceOn = _msg->data;
   if (this->isDeviceOn)
