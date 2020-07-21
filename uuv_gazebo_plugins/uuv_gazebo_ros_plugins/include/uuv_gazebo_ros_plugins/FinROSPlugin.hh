@@ -18,18 +18,22 @@
 
 #include <uuv_gazebo_plugins/FinPlugin.h>
 
-#include <boost/scoped_ptr.hpp>
 #include <gazebo/common/Plugin.hh>
 #include <rclcpp/rclcpp.hpp>
 #include <uuv_gazebo_ros_plugins_msgs/msg/float_stamped.hpp>
 #include <uuv_gazebo_ros_plugins_msgs/srv/get_list_param.hpp>
 #include <geometry_msgs/msg/wrench_stamped.hpp>
+
 #include <map>
+#include <memory>
 
 namespace uuv_simulator_ros
 {
   class FinROSPlugin : public gazebo::FinPlugin
   {
+    using GetListParam = uuv_gazebo_ros_plugins_msgs::srv::GetListParam;
+    using uuv_gazebo_ros_plugins_msgs::msg::FloatStamped;
+
     /// \brief Constrcutor.
     public: FinROSPlugin();
 
@@ -44,12 +48,12 @@ namespace uuv_simulator_ros
 
     /// \brief Set new set point.
     public: void SetReference(
-        const uuv_gazebo_ros_plugins_msgs::FloatStamped::ConstPtr &_msg);
+        uuv_gazebo_ros_plugins_msgs::msg::FloatStamped::ConstSharedPtr _msg);
 
     /// \brief Return the list of paramaters of the lift and drag model
-    public: bool GetLiftDragParams(
-      uuv_gazebo_ros_plugins_msgs::GetListParam::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetListParam::Response& _res);  
+    public: void GetLiftDragParams(
+      const GetListParam::Request::SharedPtr  _req,
+            GetListParam::Response::SharedPtr _res);  
 
     /// \brief Return the ROS publish period.
     public: gazebo::common::Time GetRosPublishPeriod();
@@ -64,16 +68,16 @@ namespace uuv_simulator_ros
     public: virtual void Reset();
 
     /// \brief Pointer to this ROS node's handle.
-    private: boost::scoped_ptr<ros::NodeHandle> rosNode;
+    private: rclcpp::Node::UniquePtr myRosNode;
 
     /// \brief Subscriber reacting to new reference set points.
-    private: ros::Subscriber subReference;
+    private: rclcpp::Subscription<uuv_gazebo_ros_plugins_msgs::msg::FloatStamped>::SharedPtr mySubReference;
 
     /// \brief Publisher for current state.
-    private: ros::Publisher pubState;
+    private: rclcpp::Publisher<uuv_gazebo_ros_plugins_msgs::msg::FloatStamped>::SharedPtr myPubState;
 
     /// \brief Publisher for current actual thrust.
-    private: ros::Publisher pubFinForce;
+    private: rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr myPubFinForce;
 
     /// \brief Connection for callbacks on update world.
     private: gazebo::event::ConnectionPtr rosPublishConnection;
@@ -82,7 +86,8 @@ namespace uuv_simulator_ros
     private: gazebo::common::Time rosPublishPeriod;
 
     /// \brief Map of services
-    private: std::map<std::string, ros::ServiceServer> services;
+    private: std::map<std::string, 
+                      rclcpp::Service<uuv_gazebo_ros_plugins_msgs::srv::GetListParam>::SharedPtr> myServicesById;
 
     /// \brief Last time we published a message via ROS.
     private: gazebo::common::Time lastRosPublishTime;

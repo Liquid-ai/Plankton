@@ -23,7 +23,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/scoped_ptr.hpp>
 #include <boost/algorithm/string.hpp>
 #include <gazebo/gazebo.hh>
 #include <gazebo/common/Plugin.hh>
@@ -53,13 +52,13 @@ class JointStatePublisher : public gazebo::ModelPlugin
 
   private: gazebo::physics::WorldPtr world;
 
-  private: gazebo::physics::ModelPtr model;
+  private: gazebo::physics::ModelPtr myModel;
 
   private: gazebo::event::ConnectionPtr updateConnection;
 
-  private: boost::shared_ptr<ros::NodeHandle> node;
+  private: rclcpp::Node::UniquePtr myNode;
 
-  private: std::string robotNamespace;
+  private: std::string myRobotNamespace;
 
   private: std::vector<std::string> movingJoints;
 
@@ -69,7 +68,7 @@ class JointStatePublisher : public gazebo::ModelPlugin
 
   private: gazebo::common::Time lastUpdate;
 
-  private: ros::Publisher jointStatePub;
+  private: rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr myJointStatePub;
 };
 }
 

@@ -19,18 +19,21 @@
 #include <gazebo/physics/Model.hh>
 #include <gazebo/common/Plugin.hh>
 
+#include <chrono>
+
 namespace gazebo
 {
 /////////////////////////////////////////////////
 LinearBatteryROSPlugin::LinearBatteryROSPlugin()
 {
-  this->robotNamespace = "";
+  myRobotNamespace = "";
 }
 
 /////////////////////////////////////////////////
 LinearBatteryROSPlugin::~LinearBatteryROSPlugin()
 {
-  this->rosNode->shutdown();
+  rclcpp::shutdown();
+  //this->rosNode->shutdown();
 }
 
 /////////////////////////////////////////////////
@@ -49,7 +52,7 @@ void LinearBatteryROSPlugin::Load(physics::ModelPtr _parent,
     return;
   }
 
-  if (!ros::isInitialized())
+  if (!rclcpp::is_initialized())
   {
     gzerr << "Not loading plugin since ROS has not been "
           << "properly initialized.  Try starting gazebo with ros plugin:\n"
@@ -58,7 +61,7 @@ void LinearBatteryROSPlugin::Load(physics::ModelPtr _parent,
   }
 
   if (_sdf->HasElement("namespace"))
-    this->robotNamespace = _sdf->Get<std::string>("namespace");
+    myRobotNamespace = _sdf->Get<std::string>("namespace");
 
   double updateRate = 2;
   if (_sdf->HasElement("update_rate"))
@@ -70,14 +73,16 @@ void LinearBatteryROSPlugin::Load(physics::ModelPtr _parent,
       << std::endl;
     updateRate = 2;
   }
-  this->rosNode.reset(new ros::NodeHandle(this->robotNamespace));
+  myRosNode = rclcpp::Node::make_unique(myRobotNamespace);
+  //this->rosNode.reset(new ros::NodeHandle(this->robotNamespace));
 
-  this->batteryStatePub = this->rosNode->advertise<sensor_msgs::BatteryState>
+  myBatteryStatePub = myRosNode->create_publisher<sensor_msgs::msg::BatteryState>
     ("battery_state", 0);
 
-  this->updateTimer = this->rosNode->createTimer(
-    ros::Duration(1 / updateRate),
-    boost::bind(&LinearBatteryROSPlugin::PublishBatteryState, this));
+  myUpdateTimer = myRosNode->create_wall_timer(
+    //duration in seconds
+    std::chrono::duration<double, std::ratio<1>>(1. / updateRate),
+    std::bind(&LinearBatteryROSPlugin::PublishBatteryState, this));
 
   gzmsg << "ROS Battery Plugin for link <" << this->link->GetName()
     << "> initialized\n"
@@ -89,24 +94,24 @@ void LinearBatteryROSPlugin::Load(physics::ModelPtr _parent,
 /////////////////////////////////////////////////
 void LinearBatteryROSPlugin::PublishBatteryState()
 {
-  this->batteryStateMsg.header.stamp = ros::Time().now();
-  this->batteryStateMsg.header.frame_id = this->link->GetName();
+  myBatteryStateMsg.header.stamp = myRosNode->now();//::Time().now();
+  myBatteryStateMsg.header.frame_id = this->link->GetName();
 
-  this->batteryStateMsg.charge = this->q;
-  this->batteryStateMsg.percentage = this->q / this->q0;
-  this->batteryStateMsg.voltage = this->battery->Voltage();
-  this->batteryStateMsg.design_capacity = this->q0;
+  myBatteryStateMsg.charge = this->q;
+  myBatteryStateMsg.percentage = this->q / this->q0;
+  myBatteryStateMsg.voltage = this->battery->Voltage();
+  myBatteryStateMsg.design_capacity = this->q0;
 
-  this->batteryStateMsg.power_supply_status =
-    sensor_msgs::BatteryState::POWER_SUPPLY_STATUS_DISCHARGING;
-  this->batteryStateMsg.power_supply_health =
-    sensor_msgs::BatteryState::POWER_SUPPLY_HEALTH_GOOD;
-  this->batteryStateMsg.power_supply_technology =
-    sensor_msgs::BatteryState::POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
-  this->batteryStateMsg.present = true;
+  myBatteryStateMsg.power_supply_status =
+    sensor_msgs::msg::BatteryState::POWER_SUPPLY_STATUS_DISCHARGING;
+  myBatteryStateMsg.power_supply_health =
+    sensor_msgs::msg::BatteryState::POWER_SUPPLY_HEALTH_GOOD;
+  myBatteryStateMsg.power_supply_technology =
+    sensor_msgs::msg::BatteryState::POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
+  myBatteryStateMsg.present = true;
 
   // Publish battery message
-  this->batteryStatePub.publish(this->batteryStateMsg);
+  myBatteryStatePub->publish(myBatteryStateMsg);
 }
 
 /////////////////////////////////////////////////

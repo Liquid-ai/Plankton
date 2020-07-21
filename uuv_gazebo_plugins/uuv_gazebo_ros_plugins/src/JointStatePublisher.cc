@@ -19,45 +19,53 @@ namespace uuv_simulator_ros
 {
 GZ_REGISTER_MODEL_PLUGIN(JointStatePublisher)
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 JointStatePublisher::JointStatePublisher()
 {
-    this->model = NULL;
+    myModel = NULL;
     this->world = NULL;
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 JointStatePublisher::~JointStatePublisher()
 {
-    this->node->shutdown();
+  rclcpp::shutdown();
+    //this->node->shutdown();
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
   sdf::ElementPtr _sdf)
 {
-  this->model = _parent;
+  myModel = _parent;
 
-  GZ_ASSERT(this->model != NULL, "Invalid model pointer");
+  GZ_ASSERT(myModel != NULL, "Invalid model pointer");
 
-  this->world = this->model->GetWorld();
+  this->world = myModel->GetWorld();
 
-  if (!ros::isInitialized())
+  if (!rclcpp::is_initialized())
   {
     gzerr << "ROS was not initialized. Closing plugin..." << std::endl;
     return;
   }
 
-  this->node = boost::shared_ptr<ros::NodeHandle>(
-    new ros::NodeHandle(this->robotNamespace));
+  myNode = rclcpp::Node::make_unique(myRobotNamespace);
+  // this->node = boost::shared_ptr<ros::NodeHandle>(
+  //   new ros::NodeHandle(this->robotNamespace));
   // Retrieve the namespace used to publish the joint states
   if (_sdf->HasElement("robotNamespace"))
-    this->robotNamespace = _sdf->Get<std::string>("robotNamespace");
+    myRobotNamespace = _sdf->Get<std::string>("robotNamespace");
   else
-    this->robotNamespace = this->model->GetName();
+    myRobotNamespace = myModel->GetName();
 
   gzmsg << "JointStatePublisher::robotNamespace="
-    << this->robotNamespace << std::endl;
+    << myRobotNamespace << std::endl;
 
-  if (this->robotNamespace[0] != '/')
-    this->robotNamespace = "/" + this->robotNamespace;
+  if (myRobotNamespace[0] != '/')
+    myRobotNamespace = "/" + myRobotNamespace;
 
   if (_sdf->HasElement("updateRate"))
     this->updateRate = _sdf->Get<double>("updateRate");
@@ -67,7 +75,7 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
   gzmsg << "JointStatePublisher::Retrieving moving joints:" << std::endl;
   this->movingJoints.clear();
   double upperLimit, lowerLimit;
-  for (auto &joint : this->model->GetJoints())
+  for (auto &joint : myModel->GetJoints())
   {
 #if GAZEBO_MAJOR_VERSION >= 8
   lowerLimit = joint->LowerLimit(0);
@@ -93,9 +101,10 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
   this->updatePeriod = 1.0 / this->updateRate;
 
   // Advertise the joint states topic
-  this->jointStatePub =
-    this->node->advertise<sensor_msgs::JointState>(
-      this->robotNamespace + "/joint_states", 1);
+  //TODO check namespace...why was the NodeHandle prefix repeated ?
+  myJointStatePub =
+    myNode->create_publisher<sensor_msgs::msg::JointState>(
+      myRobotNamespace + "/joint_states", 1);
 #if GAZEBO_MAJOR_VERSION >= 8
   this->lastUpdate = this->world->SimTime();
 #else
@@ -106,6 +115,8 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
     boost::bind(&JointStatePublisher::OnUpdate, this, _1));
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void JointStatePublisher::OnUpdate(const gazebo::common::UpdateInfo &_info)
 {
 #if GAZEBO_MAJOR_VERSION >= 8
@@ -120,20 +131,22 @@ void JointStatePublisher::OnUpdate(const gazebo::common::UpdateInfo &_info)
   }
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void JointStatePublisher::PublishJointStates()
 {
-  ros::Time stamp = ros::Time::now();
-  sensor_msgs::JointState jointState;
+  //ros::Time stamp = ros::Time::now();
+  sensor_msgs::msg::JointState jointState;
 
-  jointState.header.stamp = stamp;
+  jointState.header.stamp = myNode->get_clock()->now();
   // Resize containers
-  jointState.name.resize(this->model->GetJointCount());
-  jointState.position.resize(this->model->GetJointCount());
-  jointState.velocity.resize(this->model->GetJointCount());
-  jointState.effort.resize(this->model->GetJointCount());
+  jointState.name.resize(myModel->GetJointCount());
+  jointState.position.resize(myModel->GetJointCount());
+  jointState.velocity.resize(myModel->GetJointCount());
+  jointState.effort.resize(myModel->GetJointCount());
 
   int i = 0;
-  for (auto &joint : this->model->GetJoints())
+  for (auto &joint : myModel->GetJoints())
   {
     if (!this->IsIgnoredJoint(joint->GetName()))
     {
@@ -157,9 +170,11 @@ void JointStatePublisher::PublishJointStates()
     ++i;
   }
 
-  this->jointStatePub.publish(jointState);
+  myJointStatePub->publish(jointState);
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 bool JointStatePublisher::IsIgnoredJoint(std::string _jointName)
 {
   if (this->movingJoints.empty()) return true;

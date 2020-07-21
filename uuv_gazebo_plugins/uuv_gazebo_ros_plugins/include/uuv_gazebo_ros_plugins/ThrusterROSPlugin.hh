@@ -20,16 +20,16 @@
 #include <string>
 #include <vector>
 
-#include <uuv_gazebo_plugins/ThrusterPlugin.h>
-
-#include <boost/scoped_ptr.hpp>
-#include <gazebo/common/Plugin.hh>
 #include <rclcpp/rclcpp.hpp>
-#include <uuv_gazebo_ros_plugins_msgs/msg/float_stamped.hpp>
 #include <geometry_msgs/msg/wrench_stamped.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <std_msgs/msg/float64.hpp>
 
+#include <gazebo/common/Plugin.hh>
+
+#include <uuv_gazebo_plugins/ThrusterPlugin.h>
+
+#include <uuv_gazebo_ros_plugins_msgs/msg/float_stamped.hpp>
 #include <uuv_gazebo_ros_plugins_msgs/srv/set_thruster_state.hpp>
 #include <uuv_gazebo_ros_plugins_msgs/srv/get_thruster_state.hpp>
 #include <uuv_gazebo_ros_plugins_msgs/srv/set_thruster_efficiency.hpp>
@@ -54,7 +54,7 @@ namespace uuv_simulator_ros
 
     /// \brief Set new set point (desired thrust [N]) for thruster.
     public: void SetThrustReference(
-        const uuv_gazebo_ros_plugins_msgs::FloatStamped::ConstPtr &_msg);
+        const uuv_gazebo_ros_plugins_msgs::msg::FloatStamped::SharedPtr _msg);
 
     /// \brief Return the ROS publish period.
     public: gazebo::common::Time  GetRosPublishPeriod();
@@ -69,63 +69,71 @@ namespace uuv_simulator_ros
     public: virtual void Reset();
 
     /// \brief Set the thrust efficiency factor
-    public: bool SetThrustForceEfficiency(
-      uuv_gazebo_ros_plugins_msgs::SetThrusterEfficiency::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetThrusterEfficiency::Response& _res);
+    public: void SetThrustForceEfficiency(
+      const uuv_gazebo_ros_plugins_msgs::srv::SetThrusterEfficiency::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetThrusterEfficiency::Response::SharedPtr _res);
 
     /// \brief Get the thrust efficiency factor
-    public: bool GetThrustForceEfficiency(
-      uuv_gazebo_ros_plugins_msgs::GetThrusterEfficiency::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetThrusterEfficiency::Response& _res);
+    public: void GetThrustForceEfficiency(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency::Response::SharedPtr _res);
 
     /// \brief Set the dynamic state efficiency factor
-    public: bool SetDynamicStateEfficiency(
-      uuv_gazebo_ros_plugins_msgs::SetThrusterEfficiency::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetThrusterEfficiency::Response& _res);
+    public: void SetDynamicStateEfficiency(
+      const uuv_gazebo_ros_plugins_msgs::srv::SetThrusterEfficiency::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetThrusterEfficiency::Response::SharedPtr _res);
 
       /// \brief Get the dynamic state efficiency factor
-    public: bool GetDynamicStateEfficiency(
-        uuv_gazebo_ros_plugins_msgs::GetThrusterEfficiency::Request& _req,
-        uuv_gazebo_ros_plugins_msgs::GetThrusterEfficiency::Response& _res);
+    public: void GetDynamicStateEfficiency(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency::Request::SharedPtr _req,
+        uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency::Response::SharedPtr _res);
 
     /// \brief Turn thruster on/off
-    public: bool SetThrusterState(
-      uuv_gazebo_ros_plugins_msgs::SetThrusterState::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::SetThrusterState::Response& _res);
+    public: void SetThrusterState(
+      const  uuv_gazebo_ros_plugins_msgs::srv::SetThrusterState::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::SetThrusterState::Response::SharedPtr _res);
 
     /// \brief Get thruster state
-    public: bool GetThrusterState(
-      uuv_gazebo_ros_plugins_msgs::GetThrusterState::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetThrusterState::Response& _res);
+    public: void GetThrusterState(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterState::Request::SharedPtr _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetThrusterState::Response::SharedPtr _res);
 
     /// \brief Get thruster conversion function parameters
-    public: bool GetThrusterConversionFcn(
-      uuv_gazebo_ros_plugins_msgs::GetThrusterConversionFcn::Request& _req,
-      uuv_gazebo_ros_plugins_msgs::GetThrusterConversionFcn::Response& _res);
+    public: void GetThrusterConversionFcn(
+      const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn::Request& _req,
+      uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn::Response& _res);
 
     /// \brief Map of thruster services
-    private: std::map<std::string, ros::ServiceServer> services;
+    //TODO Replace with map<string, ServiceBase::SharedPtr>
+    //private: std::map<std::string, rclcpp::Service:: ::ServiceServer> services;
+    rclcpp::Service<uuv_gazebo_ros_plugins_msgs::srv::SetThrusterEfficiency>::SharedPtr mySet_thrust_force_efficiencySrv;
+    rclcpp::Service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency>::SharedPtr myGet_thrust_force_efficiencySrv;
+    rclcpp::Service<uuv_gazebo_ros_plugins_msgs::srv::SetThrusterEfficiency>::SharedPtr mySet_dynamic_state_efficiencySrv;
+    rclcpp::Service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency>::SharedPtr myGet_dynamic_state_efficiency;
+    rclcpp::Service<uuv_gazebo_ros_plugins_msgs::srv::SetThrusterState>::SharedPtr mySet_thruster_state;
+    rclcpp::Service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterState>::SharedPtr myGet_thruster_state;
+    rclcpp::Service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn>::SharedPtr myGet_thruster_conversion_fcn;
 
     /// \brief Pointer to this ROS node's handle.
-    private: boost::scoped_ptr<ros::NodeHandle> rosNode;
+    private: rclcpp::Node::UniquePtr myRosNode;
 
     /// \brief Subscriber reacting to new reference thrust set points.
-    private: ros::Subscriber subThrustReference;
+    private: rclcpp::Subscription<uuv_gazebo_ros_plugins_msgs::msg::FloatStamped>::SharedPtr mySubThrustReference;
 
     /// \brief Publisher for current actual thrust.
-    private: ros::Publisher pubThrust;
+    private: rclcpp::Publisher<uuv_gazebo_ros_plugins_msgs::msg::FloatStamped>::SharedPtr myPubThrust;
 
     /// \brief Publisher for current actual thrust as wrench.
-    private: ros::Publisher pubThrustWrench;
+    private: rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr myPubThrustWrench;
 
     /// \brief Publisher for the thruster state
-    private: ros::Publisher pubThrusterState;
+    private: rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr myPubThrusterState;
 
     /// \brief Publisher for the thrust force efficiency
-    private: ros::Publisher pubThrustForceEff;
+    private: rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr myPubThrustForceEff;
 
     /// \brief Publisher for the dynamic state efficiency
-    private: ros::Publisher pubDynamicStateEff;
+    private: rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr myPubDynamicStateEff;
 
     /// \brief Connection for callbacks on update world.
     private: gazebo::event::ConnectionPtr rosPublishConnection;

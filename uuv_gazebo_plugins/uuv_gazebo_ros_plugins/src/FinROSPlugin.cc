@@ -24,14 +24,16 @@
 
 namespace uuv_simulator_ros
 {
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 FinROSPlugin::FinROSPlugin()
 {
   this->rosPublishPeriod = gazebo::common::Time(0.05);
   this->lastRosPublishTime = gazebo::common::Time(0.0);
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 FinROSPlugin::~FinROSPlugin()
 {
 #if GAZEBO_MAJOR_VERSION >= 8
@@ -40,29 +42,33 @@ FinROSPlugin::~FinROSPlugin()
   gazebo::event::Events::DisconnectWorldUpdateBegin(
         this->rosPublishConnection);
 #endif
-  this->rosNode->shutdown();
+  rclcpp::shutdown();
+  //this->rosNode->shutdown();
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void FinROSPlugin::SetReference(
-    const uuv_gazebo_ros_plugins_msgs::FloatStamped::ConstPtr &_msg)
+    uuv_gazebo_ros_plugins_msgs::msg::FloatStamped::ConstSharedPtr _msg)
 {
   if (std::isnan(_msg->data))
   {
-    ROS_WARN("FinROSPlugin: Ignoring nan command");
+    RCLCPP_WARN(myRosNode->get_logger(), "FinROSPlugin: Ignoring nan command");
     return;
   }
 
   this->inputCommand = _msg->data;
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 gazebo::common::Time FinROSPlugin::GetRosPublishPeriod()
 {
   return this->rosPublishPeriod;
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void FinROSPlugin::SetRosPublishRate(double _hz)
 {
   if (_hz > 0.0)
@@ -71,19 +77,22 @@ void FinROSPlugin::SetRosPublishRate(double _hz)
     this->rosPublishPeriod = 0.;
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void FinROSPlugin::Init()
 {
   FinPlugin::Init();
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void FinROSPlugin::Reset()
 {
   this->lastRosPublishTime.Set(0, 0);
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
 {
   try {
@@ -96,7 +105,7 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
     return;
   }
 
-  if (!ros::isInitialized())
+  if (!rclcpp::is_initialized())
   {
     gzerr << "Not loading plugin since ROS has not been "
           << "properly initialized.  Try starting gazebo with ros plugin:\n"
@@ -104,15 +113,16 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
     return;
   }
 
-  this->rosNode.reset(new ros::NodeHandle(""));
+  myRosNode = rclcpp::Node::make_unique();
+  //this->rosNode.reset(new ros::NodeHandle(""));
 
-  this->subReference = this->rosNode->subscribe<
-    uuv_gazebo_ros_plugins_msgs::FloatStamped
+  mySubReference = myRosNode->create_subscription<
+    uuv_gazebo_ros_plugins_msgs::msg::FloatStamped
     >(this->commandSubscriber->GetTopic(), 10,
-      boost::bind(&FinROSPlugin::SetReference, this, _1));
+      std::bind(&FinROSPlugin::SetReference, this, _1));
 
-  this->pubState = this->rosNode->advertise<
-    uuv_gazebo_ros_plugins_msgs::FloatStamped
+  myPubState = myRosNode->create_publisher<
+    uuv_gazebo_ros_plugins_msgs::msg::FloatStamped
     >(this->anglePublisher->GetTopic(), 10);
 
   std::string wrenchTopic;
@@ -121,14 +131,14 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
   else
     wrenchTopic = this->topicPrefix + "wrench_topic";
 
-  this->pubFinForce =
-    this->rosNode->advertise<geometry_msgs::WrenchStamped>(wrenchTopic, 10);
+  myPubFinForce =
+    myRosNode->create_publisher<geometry_msgs::msg::WrenchStamped>(wrenchTopic, 10);
 
   std::stringstream stream;
   stream << _parent->GetName() << "/fins/" << this->finID <<
     "/get_lift_drag_params";
-  this->services["get_lift_drag_params"] = this->rosNode->advertiseService(
-    stream.str(), &FinROSPlugin::GetLiftDragParams, this);
+  myServicesById["get_lift_drag_params"] = myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetListParam>(
+    stream.str(), std::bind(&FinROSPlugin::GetLiftDragParams, this, std::placeholders::_1, std::placeholders::_2));
 
   gzmsg << "Fin #" << this->finID << " initialized" << std::endl
     << "\t- Link: " << this->link->GetName() << std::endl
@@ -152,37 +162,35 @@ void FinROSPlugin::RosPublishStates()
     this->lastRosPublishTime = this->angleStamp;
 
     // Publish the current angle of attack
-    uuv_gazebo_ros_plugins_msgs::FloatStamped state_msg;
-    state_msg.header.stamp = ros::Time().now();
+    uuv_gazebo_ros_plugins_msgs::msg::FloatStamped state_msg;
+    state_msg.header.stamp = myRosNode->get_clock()->now();// ros::Time().now();
     state_msg.header.frame_id = this->link->GetName();
     state_msg.data = this->angle;
-    this->pubState.publish(state_msg);
+    myPubState->publish(state_msg);
 
     // Publish the lift and drag forces
-    geometry_msgs::WrenchStamped msg;
-    msg.header.stamp = ros::Time().now();
+    geometry_msgs::msg::WrenchStamped msg;
+    msg.header.stamp = myRosNode->get_clock()->now(); //ros::Time().now();
     msg.header.frame_id = this->link->GetName();
     msg.wrench.force.x = this->finForce.X();
     msg.wrench.force.y = this->finForce.Y();
     msg.wrench.force.z = this->finForce.Z();
 
-    this->pubFinForce.publish(msg);
+    myPubFinForce->publish(msg);
   }
 }
 
 /////////////////////////////////////////////////
-bool FinROSPlugin::GetLiftDragParams(
-  uuv_gazebo_ros_plugins_msgs::GetListParam::Request& _req,
-  uuv_gazebo_ros_plugins_msgs::GetListParam::Response& _res)
+void FinROSPlugin::GetLiftDragParams(
+  const uuv_gazebo_ros_plugins_msgs::srv::GetListParam::Request::SharedPtr _req,
+  uuv_gazebo_ros_plugins_msgs::srv::GetListParam::Response::SharedPtr _res)
 {
-  _res.description = this->liftdrag->GetType();
+  _res->description = this->liftdrag->GetType();
   for (auto& item : this->liftdrag->GetListParams())
   {
-    _res.tags.push_back(item.first);
-    _res.data.push_back(item.second);
+    _res->tags.push_back(item.first);
+    _res->data.push_back(item.second);
   }
-
-  return true;
 }
 
 GZ_REGISTER_MODEL_PLUGIN(FinROSPlugin)

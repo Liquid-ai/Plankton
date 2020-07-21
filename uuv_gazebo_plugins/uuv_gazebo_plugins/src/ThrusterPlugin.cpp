@@ -164,16 +164,16 @@ void ThrusterPlugin::Load(physics::ModelPtr _model,
   // Root string for topics
   std::stringstream strs;
   strs << "/" << _model->GetName() << "/thrusters/" << this->thrusterID << "/";
-  this->topicPrefix = strs.str();
+  myTopicPrefix = strs.str();
 
   // Advertise the thrust topic
   this->thrustTopicPublisher =
-      this->node->Advertise<msgs::Vector3d>(this->topicPrefix + "thrust");
+      this->node->Advertise<msgs::Vector3d>(myTopicPrefix + "thrust");
 
   // Subscribe to the input signal topic
 
   this->commandSubscriber =
-    this->node->Subscribe(this->topicPrefix + "input",
+    this->node->Subscribe(myTopicPrefix + "input",
         &ThrusterPlugin::UpdateInput,
         this);
 

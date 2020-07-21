@@ -26,14 +26,15 @@ CustomBatteryConsumerROSPlugin::CustomBatteryConsumerROSPlugin()
 /////////////////////////////////////////////////
 CustomBatteryConsumerROSPlugin::~CustomBatteryConsumerROSPlugin()
 {
-  this->rosNode->shutdown();
+  rclcpp::shutdown();
+  //this->rosNode->shutdown();
 }
 
 /////////////////////////////////////////////////
 void CustomBatteryConsumerROSPlugin::Load(physics::ModelPtr _parent,
   sdf::ElementPtr _sdf)
 {
-  if (!ros::isInitialized())
+  if (!rclcpp::is_initialized())
   {
     gzerr << "Not loading plugin since ROS has not been "
           << "properly initialized.  Try starting gazebo with ros plugin:\n"
@@ -41,7 +42,7 @@ void CustomBatteryConsumerROSPlugin::Load(physics::ModelPtr _parent,
     return;
   }
 
-  this->rosNode.reset(new ros::NodeHandle(""));
+  myRosNode = rclcpp::Node::make_unique();// new ros::NodeHandle(""));
 
   GZ_ASSERT(_sdf->HasElement("link_name"), "Consumer link name is missing");
   this->linkName = _sdf->Get<std::string>("link_name");
@@ -65,9 +66,9 @@ void CustomBatteryConsumerROSPlugin::Load(physics::ModelPtr _parent,
   {
     std::string topicName = _sdf->Get<std::string>("topic_device_state");
     if (!topicName.empty())
-        this->deviceStateSub = this->rosNode->subscribe<std_msgs::Bool>(
+        myDeviceStateSub = myRosNode->create_subscription<std_msgs::msg::Bool>(
           topicName, 1,
-          boost::bind(&CustomBatteryConsumerROSPlugin::UpdateDeviceState,
+          std::bind(&CustomBatteryConsumerROSPlugin::UpdateDeviceState,
           this, _1));
   }
   else
@@ -85,7 +86,7 @@ void CustomBatteryConsumerROSPlugin::Load(physics::ModelPtr _parent,
 
 /////////////////////////////////////////////////
 void CustomBatteryConsumerROSPlugin::UpdateDeviceState(
-  const std_msgs::Bool::ConstPtr &_msg)
+  std_msgs::msg::Bool::SharedPtr _msg)
 {
   this->isDeviceOn = _msg->data;
   if (this->isDeviceOn)

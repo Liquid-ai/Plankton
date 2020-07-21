@@ -117,7 +117,7 @@ class ThrusterPlugin : public ModelPlugin
   protected: int thrusterID;
 
   /// \brief Thruster topics prefix
-  protected: std::string topicPrefix;
+  protected: std::string myTopicPrefix;
 
   /// \brief: Optional: Gain factor: Desired angular velocity = command * gain
   protected: double gain;

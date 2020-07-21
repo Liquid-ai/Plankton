@@ -20,9 +20,8 @@
 #include <gazebo/plugins/LinearBatteryPlugin.hh>
 #include <gazebo/physics/Model.hh>
 #include <gazebo/common/Plugin.hh>
-#include <boost/scoped_ptr.hpp>
-#include <ros/ros.h>
-#include <sensor_msgs/BatteryState.h>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/battery_state.hpp>
 #include <string>
 
 namespace gazebo
@@ -49,19 +48,19 @@ class LinearBatteryROSPlugin : public LinearBatteryPlugin
   protected: void PublishBatteryState();
 
   /// \brief Pointer to this ROS node's handle.
-  protected: boost::scoped_ptr<ros::NodeHandle> rosNode;
+  protected: rclcpp::Node::UniquePtr myRosNode;
 
   /// \brief Namespace for this ROS node
-  protected: std::string robotNamespace;
+  protected: std::string myRobotNamespace;
 
   /// \brief Publisher for the dynamic state efficiency
-  private: ros::Publisher batteryStatePub;
+  private: rclcpp::Publisher<sensor_msgs::msg::BatteryState>::SharedPtr myBatteryStatePub;
 
   /// \brief Battery state ROS message
-  protected: sensor_msgs::BatteryState batteryStateMsg;
+  protected: sensor_msgs::msg::BatteryState myBatteryStateMsg;
 
   /// \brief Connection for callbacks on update world.
-  protected: ros::Timer updateTimer;
+  protected: rclcpp::TimerBase::SharedPtr myUpdateTimer;
 };
 
 }

@@ -22,8 +22,12 @@
 #include <gazebo/gazebo.hh>
 #include <gazebo/msgs/msgs.hh>
 
-#include <uuv_gazebo_plugins/HydrodynamicModel.hh>
-#include <uuv_gazebo_plugins/Def.hh>
+#include <uuv_gazebo_plugins/HydrodynamicModel.h>
+#include <uuv_gazebo_plugins/Def.h>
+
+#include <rclcpp/rclcpp.hpp>
+
+#include <memory>
 
 namespace gazebo
 {
@@ -66,13 +70,13 @@ class AccelerationsTestPlugin : public gazebo::ModelPlugin
   protected: physics::LinkPtr link;
 
   // ROS things
-  private: boost::scoped_ptr<ros::NodeHandle> rosNode;
+  private: rclcpp::Node::UniquePtr myRosNode;
 
-  protected: ros::Publisher pub_accel_b_gazebo;
-  protected: ros::Publisher pub_accel_b_numeric;
+  protected: rclcpp::Publisher<geometry_msgs::msg::Accel>::SharedPtr myPub_accel_b_gazebo;
+  protected: rclcpp::Publisher<geometry_msgs::msg::Accel>::SharedPtr myPub_accel_b_numeric;
 
-  protected: ros::Publisher pub_accel_w_gazebo;
-  protected: ros::Publisher pub_accel_w_numeric;
+  protected: rclcpp::Publisher<geometry_msgs::msg::Accel>::SharedPtr myPub_accel_w_gazebo;
+  protected: rclcpp::Publisher<geometry_msgs::msg::Accel>::SharedPtr myPub_accel_w_numeric;
 
   /// \brief Velocity of link with respect to world frame in previous time step.
   Eigen::Vector6d last_w_v_w_b;
