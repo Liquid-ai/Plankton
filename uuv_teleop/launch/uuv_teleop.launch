@@ -21,12 +21,13 @@
   <arg name="output_topic" default="cmd_vel"/>
   <!-- The type of message can also be geometry_msgs/Accel -->
   <arg name="message_type" default="twist"/>
-  <group ns="$(arg uuv_name)">
-    <node pkg="joy" type="joy_node" name="joystick">
+  <group>
+    <push-ros-namespace namespace="$(arg uuv_name)"/>
+    <node pkg="joy" exec="joy_node" name="joystick">
       <param name="autorepeat_rate" value="10"/>
       <param name="dev" value="/dev/input/js$(arg joy_id)"/>
     </node>
-    <node pkg="uuv_teleop" type="vehicle_teleop.py" name="joy_uuv_velocity_teleop">
+    <node pkg="uuv_teleop" exec="vehicle_teleop.py" name="joy_uuv_velocity_teleop">
       <remap from="output" to="/$(arg uuv_name)/$(arg output_topic)"/>
       <remap from="joy" to="/$(arg uuv_name)/joy"/>
       <rosparam subst_value="true">
