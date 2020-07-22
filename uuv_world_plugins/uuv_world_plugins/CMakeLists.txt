@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.5)
 project(uuv_world_plugins)
+
+# Add support for C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
 find_package(gazebo_dev REQUIRED)
 find_package(gazebo_msgs REQUIRED)
 find_package(ament_cmake REQUIRED)
@@ -16,12 +26,10 @@ link_directories(${LIBRARY_DIRS})
 set(LIBS ${gazebo_dev_LIBRARIES} ${gazebo_msgs_LIBRARIES}
   ${ament_cmake_LIBRARIES})
 
-add_definitions(-std=c++11)
-
 find_package(Boost REQUIRED)
 
-add_library(uuv_underwater_current_plugin src/UnderwaterCurrentPlugin.cc
-  src/GaussMarkovProcess.cc)
+add_library(uuv_underwater_current_plugin src/UnderwaterCurrentPlugin.cpp
+  src/GaussMarkovProcess.cpp)
 target_link_libraries(uuv_underwater_current_plugin ${GAZEBO_LIBRARIES}
   ${Boost_LIBRARIES} ${LIBS})
 
@@ -31,12 +39,12 @@ install(TARGETS uuv_underwater_current_plugin
   LIBRARY
   DESTINATION lib
   RUNTIME
-  DESTINATION lib/${PROJECT_NAME})
+  DESTINATION bin/${PROJECT_NAME})
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION include/${PROJECT_NAME}
   FILES_MATCHING
-  PATTERN "*.hh")
+  PATTERN "*.h")
 
 ament_export_dependencies(gazebo_dev)
 ament_export_dependencies(gazebo_msgs)

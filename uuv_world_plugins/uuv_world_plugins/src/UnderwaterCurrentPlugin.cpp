@@ -13,8 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// \file UnderwaterCurrentPlugin.cc
+/// \file UnderwaterCurrentPlugin.cpp
 
+//TODO Remove boost
 #include <boost/algorithm/string.hpp>
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
@@ -30,7 +31,7 @@
 
 #include <math.h>
 
-#include <uuv_world_plugins/UnderwaterCurrentPlugin.hh>
+#include <uuv_world_plugins/UnderwaterCurrentPlugin.h>
 
 using namespace gazebo;
 

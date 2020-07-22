@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// \file GaussMarkovProcess.cc
+/// \file GaussMarkovProcess.cpp
 
-#include <uuv_world_plugins/GaussMarkovProcess.hh>
+#include <uuv_world_plugins/GaussMarkovProcess.h>
 
 namespace gazebo
 {
