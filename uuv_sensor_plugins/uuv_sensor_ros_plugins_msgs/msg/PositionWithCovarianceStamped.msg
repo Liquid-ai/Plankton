@@ -16,5 +16,5 @@
 # This expresses an estimated position with a reference coordinate frame and
 # timestamp
 
-Header header
+std_msgs/Header header
 PositionWithCovariance pos

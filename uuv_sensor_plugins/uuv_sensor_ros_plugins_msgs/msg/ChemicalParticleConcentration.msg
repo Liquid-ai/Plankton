@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-Header header
+std_msgs/Header header
 # Sensor link position
 geometry_msgs/Vector3 position
 # Latitude in degrees (WGS84 coordinates)
