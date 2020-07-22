@@ -23,7 +23,7 @@ Underwater environment with the ODE physics engine configured for vehicles using
 
     <node name="publish_world_models"
         pkg="uuv_assistants"
-        type="publish_world_models.py"
+        exec="publish_world_models.py"
         output="screen">
         <rosparam subst_value="true">
           meshes:
