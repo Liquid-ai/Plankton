@@ -26,6 +26,7 @@
 #include <uuv_gazebo_plugins/Def.h>
 
 #include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/accel.hpp>
 
 #include <memory>
 

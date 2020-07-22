@@ -20,8 +20,10 @@
 #include <gazebo/plugins/LinearBatteryPlugin.hh>
 #include <gazebo/physics/Model.hh>
 #include <gazebo/common/Plugin.hh>
+
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/battery_state.hpp>
+
 #include <string>
 
 namespace gazebo

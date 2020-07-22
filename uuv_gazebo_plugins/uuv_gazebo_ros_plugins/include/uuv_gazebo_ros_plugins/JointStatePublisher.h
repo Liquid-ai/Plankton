@@ -20,19 +20,21 @@
 #ifndef __JOINT_STATE_PUBLISHER_HH__
 #define __JOINT_STATE_PUBLISHER_HH__
 
+#include <sstream>
 #include <string>
 #include <vector>
 
-#include <boost/algorithm/string.hpp>
+//#include <boost/algorithm/string.hpp>
 #include <gazebo/gazebo.hh>
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/common/Event.hh>
 #include <gazebo/physics/Model.hh>
 #include <gazebo/physics/Joint.hh>
 #include <gazebo/physics/World.hh>
+
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
-#include <sstream>
+
 
 namespace uuv_simulator_ros
 {

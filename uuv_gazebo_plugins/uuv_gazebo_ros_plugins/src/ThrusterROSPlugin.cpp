@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <uuv_gazebo_ros_plugins/ThrusterROSPlugin.hh>
+#include <uuv_gazebo_ros_plugins/ThrusterROSPlugin.h>
 
 #include <string>
 
@@ -264,7 +264,7 @@ void ThrusterROSPlugin::SetThrustForceEfficiency(
 
 /////////////////////////////////////////////////
 void ThrusterROSPlugin::GetThrustForceEfficiency(
-  const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency::Request::SharedPtr _req,
+  const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency::Request::SharedPtr /*_req*/,
   uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency::Response::SharedPtr _res)
 {
   _res->efficiency = this->thrustEfficiency;
@@ -291,7 +291,7 @@ void ThrusterROSPlugin::SetDynamicStateEfficiency(
 
 /////////////////////////////////////////////////
 void ThrusterROSPlugin::GetDynamicStateEfficiency(
-  const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency::Request::SharedPtr _req,
+  const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency::Request::SharedPtr /*_req*/,
   uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency::Response::SharedPtr _res)
 {
   _res->efficiency = this->propellerEfficiency;
@@ -310,7 +310,7 @@ void ThrusterROSPlugin::SetThrusterState(
 
 /////////////////////////////////////////////////
 void ThrusterROSPlugin::GetThrusterState(
-  const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterState::Request::SharedPtr _req,
+  const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterState::Request::SharedPtr /*_req*/,
   uuv_gazebo_ros_plugins_msgs::srv::GetThrusterState::Response::SharedPtr _res)
 {
   _res->is_on = this->isOn;
@@ -318,7 +318,7 @@ void ThrusterROSPlugin::GetThrusterState(
 
 /////////////////////////////////////////////////
 void ThrusterROSPlugin::GetThrusterConversionFcn(
-  const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn::Request::SharedPtr _req,
+  const uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn::Request::SharedPtr /*_req*/,
   uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn::Response::SharedPtr _res)
 {
   _res->fcn.function_name = this->conversionFunction->GetType();

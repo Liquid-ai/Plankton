@@ -25,7 +25,7 @@
 
 #include <geometry_msgs/msg/accel.hpp>
 
-#include <uuv_gazebo_ros_plugins/AccelerationsTestPlugin.hh>
+#include <uuv_gazebo_ros_plugins/AccelerationsTestPlugin.h>
 #include <uuv_gazebo_plugins/Def.h>
 
 namespace gazebo {

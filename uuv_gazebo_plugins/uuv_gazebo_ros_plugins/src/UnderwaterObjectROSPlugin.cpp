@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <uuv_gazebo_ros_plugins/UnderwaterObjectROSPlugin.hh>
+#include <uuv_gazebo_ros_plugins/UnderwaterObjectROSPlugin.h>
 
 #include <gazebo/physics/Base.hh>
 #include <gazebo/physics/Model.hh>

@@ -19,9 +19,8 @@
 #include <gazebo/gazebo.hh>
 #include <gazebo/physics/Model.hh>
 #include <gazebo/physics/Link.hh>
-//TODO remove boost dep
-#include <boost/scoped_ptr.hpp>
 #include <gazebo/common/Plugin.hh>
+
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 

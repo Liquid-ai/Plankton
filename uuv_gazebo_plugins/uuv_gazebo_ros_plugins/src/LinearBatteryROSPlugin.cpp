@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <uuv_gazebo_ros_plugins/LinearBatteryROSPlugin.hh>
+#include <uuv_gazebo_ros_plugins/LinearBatteryROSPlugin.h>
 
 #include <gazebo/plugins/LinearBatteryPlugin.hh>
 #include <gazebo/physics/Model.hh>

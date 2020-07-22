@@ -38,35 +38,35 @@
 
 # set(UUV_GAZEBO_ROS_PLUGINS_LIST "")
 
-# add_library(uuv_fin_ros_plugin src/FinROSPlugin.cc)
+# add_library(uuv_fin_ros_plugin src/FinROSPlugin.cpp)
 # ament_target_dependencies(
 #   uuv_fin_ros_plugin
 #   ${BASE_LIBS}
 # )
 # list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_fin_ros_plugin)
 
-# add_library(uuv_thruster_ros_plugin src/ThrusterROSPlugin.cc)
+# add_library(uuv_thruster_ros_plugin src/ThrusterROSPlugin.cpp)
 # ament_target_dependencies(uuv_thruster_ros_plugin ${BASE_LIBS})
 # list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_thruster_ros_plugin)
 
-# add_library(uuv_underwater_object_ros_plugin src/UnderwaterObjectROSPlugin.cc)
+# add_library(uuv_underwater_object_ros_plugin src/UnderwaterObjectROSPlugin.cpp)
 # ament_target_dependencies(uuv_underwater_object_ros_plugin ${BASE_LIBS})
 # list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_underwater_object_ros_plugin)
 
-# add_library(uuv_joint_state_publisher src/JointStatePublisher.cc)
+# add_library(uuv_joint_state_publisher src/JointStatePublisher.cpp)
 # ament_target_dependencies(uuv_joint_state_publisher ${BASE_LIBS})
 # list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_joint_state_publisher)
 
-# add_library(uuv_accelerations_test_plugin src/AccelerationsTestPlugin.cc)
+# add_library(uuv_accelerations_test_plugin src/AccelerationsTestPlugin.cpp)
 # ament_target_dependencies(uuv_accelerations_test_plugin ${BASE_LIBS})
 # list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_accelerations_test_plugin)
 
-# add_library(linear_battery_ros_plugin src/LinearBatteryROSPlugin.cc)
+# add_library(linear_battery_ros_plugin src/LinearBatteryROSPlugin.cpp)
 # ament_target_dependencies(linear_battery_ros_plugin ${BASE_LIBS})
 # target_link_libraries(linear_battery_ros_plugin LinearBatteryPlugin)
 # list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST linear_battery_ros_plugin)
 
-# add_library(custom_battery_consumer_ros_plugin src/CustomBatteryConsumerROSPlugin.cc)
+# add_library(custom_battery_consumer_ros_plugin src/CustomBatteryConsumerROSPlugin.cpp)
 # ament_target_dependencies(custom_battery_consumer_ros_plugin ${BASE_LIBS})
 # list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST custom_battery_consumer_ros_plugin)
 
@@ -177,7 +177,7 @@ set(LIBS ${tf2_ros_LIBRARIES} ${uuv_gazebo_plugins_LIBRARIES}
 
 set(UUV_GAZEBO_ROS_PLUGINS_LIST "")
 
-add_library(uuv_fin_ros_plugin src/FinROSPlugin.cc)
+add_library(uuv_fin_ros_plugin src/FinROSPlugin.cpp)
 # ament_target_dependencies(
 #   uuv_fin_ros_plugin
 #   tf2_ros 
@@ -196,28 +196,28 @@ add_library(uuv_fin_ros_plugin src/FinROSPlugin.cc)
 target_link_libraries(uuv_fin_ros_plugin ${LIBS})
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_fin_ros_plugin)
 
-add_library(uuv_thruster_ros_plugin src/ThrusterROSPlugin.cc)
+add_library(uuv_thruster_ros_plugin src/ThrusterROSPlugin.cpp)
 target_link_libraries(uuv_thruster_ros_plugin ${LIBS})
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_thruster_ros_plugin)
 
-add_library(uuv_underwater_object_ros_plugin src/UnderwaterObjectROSPlugin.cc)
+add_library(uuv_underwater_object_ros_plugin src/UnderwaterObjectROSPlugin.cpp)
 target_link_libraries(uuv_underwater_object_ros_plugin ${LIBS})
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_underwater_object_ros_plugin)
 
-add_library(uuv_joint_state_publisher src/JointStatePublisher.cc)
+add_library(uuv_joint_state_publisher src/JointStatePublisher.cpp)
 target_link_libraries(uuv_joint_state_publisher ${LIBS})
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_joint_state_publisher)
 
-add_library(uuv_accelerations_test_plugin src/AccelerationsTestPlugin.cc)
+add_library(uuv_accelerations_test_plugin src/AccelerationsTestPlugin.cpp)
 target_link_libraries(uuv_accelerations_test_plugin ${GAZEBO_LIBRARIES} ${LIBS})
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_accelerations_test_plugin)
 
-add_library(linear_battery_ros_plugin src/LinearBatteryROSPlugin.cc)
+add_library(linear_battery_ros_plugin src/LinearBatteryROSPlugin.cpp)
 target_link_libraries(linear_battery_ros_plugin LinearBatteryPlugin ${LIBS})
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST linear_battery_ros_plugin)
 
 add_library(custom_battery_consumer_ros_plugin
-  src/CustomBatteryConsumerROSPlugin.cc)
+  src/CustomBatteryConsumerROSPlugin.cpp)
 target_link_libraries(custom_battery_consumer_ros_plugin ${LIBS})
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST custom_battery_consumer_ros_plugin)
 

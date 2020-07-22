@@ -13,7 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <uuv_gazebo_ros_plugins/JointStatePublisher.hh>
+#include <uuv_gazebo_ros_plugins/JointStatePublisher.h>
+
+#include <boost/bind.hpp>
 
 namespace uuv_simulator_ros
 {
@@ -117,7 +119,7 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
 
 //=============================================================================
 ///////////////////////////////////////////////////////////////////////////////
-void JointStatePublisher::OnUpdate(const gazebo::common::UpdateInfo &_info)
+void JointStatePublisher::OnUpdate(const gazebo::common::UpdateInfo & /*_info*/)
 {
 #if GAZEBO_MAJOR_VERSION >= 8
   gazebo::common::Time simTime = this->world->SimTime();
