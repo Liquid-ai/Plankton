@@ -23,12 +23,14 @@
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/common/SphericalCoordinates.hh>
 #include <gazebo/physics/World.hh>
-#include <ros/ros.h>
-#include <uuv_world_ros_plugins_msgs/SetOriginSphericalCoord.h>
-#include <uuv_world_ros_plugins_msgs/GetOriginSphericalCoord.h>
-#include <uuv_world_ros_plugins_msgs/TransformToSphericalCoord.h>
-#include <uuv_world_ros_plugins_msgs/TransformFromSphericalCoord.h>
-#include <geometry_msgs/Vector3.h>
+
+#include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/vector3.hpp>
+
+#include <uuv_world_ros_plugins_msgs/srv/set_origin_spherical_coord.hpp>
+#include <uuv_world_ros_plugins_msgs/srv/get_origin_spherical_coord.hpp>
+#include <uuv_world_ros_plugins_msgs/srv/transform_to_spherical_coord.hpp>
+#include <uuv_world_ros_plugins_msgs/srv/transform_from_spherical_coord.hpp>
 
 #include <map>
 #include <string>
@@ -49,26 +51,26 @@ class SphericalCoordinatesROSInterfacePlugin : public WorldPlugin
 
   /// \brief Service call that returns the origin in WGS84 standard
   public: bool GetOriginSphericalCoord(
-      uuv_world_ros_plugins_msgs::GetOriginSphericalCoord::Request& _req,
-      uuv_world_ros_plugins_msgs::GetOriginSphericalCoord::Response& _res);
+      const uuv_world_ros_plugins_msgs::srv::GetOriginSphericalCoord::Request::SharedPtr _req,
+      uuv_world_ros_plugins_msgs::srv::GetOriginSphericalCoord::Response::SharedPtr _res);
 
   /// \brief Service call that returns the origin in WGS84 standard
   public: bool SetOriginSphericalCoord(
-      uuv_world_ros_plugins_msgs::SetOriginSphericalCoord::Request& _req,
-      uuv_world_ros_plugins_msgs::SetOriginSphericalCoord::Response& _res);
+      const uuv_world_ros_plugins_msgs::srv::SetOriginSphericalCoord::Request::SharedPtr _req,
+      uuv_world_ros_plugins_msgs::srv::SetOriginSphericalCoord::Response::SharedPtr _res);
 
   /// \brief Service call to transform from Cartesian to spherical coordinates
   public: bool TransformToSphericalCoord(
-      uuv_world_ros_plugins_msgs::TransformToSphericalCoord::Request& _req,
-      uuv_world_ros_plugins_msgs::TransformToSphericalCoord::Response& _res);
+      const uuv_world_ros_plugins_msgs::srv::TransformToSphericalCoord::Request::SharedPtr _req,
+      uuv_world_ros_plugins_msgs::srv::TransformToSphericalCoord::Response::SharedPtr _res);
 
   /// \brief Service call to transform from spherical to Cartesian coordinates
   public: bool TransformFromSphericalCoord(
-      uuv_world_ros_plugins_msgs::TransformFromSphericalCoord::Request& _req,
-      uuv_world_ros_plugins_msgs::TransformFromSphericalCoord::Response& _res);
+      const uuv_world_ros_plugins_msgs::srv::TransformFromSphericalCoord::Request::SharedPtr _req,
+      uuv_world_ros_plugins_msgs::srv::TransformFromSphericalCoord::Response::SharedPtr _res);
 
   /// \brief Pointer to this ROS node's handle.
-  protected: boost::scoped_ptr<ros::NodeHandle> rosNode;
+  protected: rclcpp::Node::UniquePtr myRosNode;
 
   /// \brief Connection for callbacks on update world.
   protected: event::ConnectionPtr rosPublishConnection;
@@ -77,7 +79,7 @@ class SphericalCoordinatesROSInterfacePlugin : public WorldPlugin
   protected: physics::WorldPtr world;
 
   /// \brief All underwater world services
-  protected: std::map<std::string, ros::ServiceServer> worldServices;
+  protected: std::map<std::string, rclcpp::ServiceBase::SharedPtr> worldServices;
 };
 
 }

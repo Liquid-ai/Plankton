@@ -24,19 +24,20 @@
 #include <string>
 
 // Gazebo plugin
-#include <uuv_world_plugins/UnderwaterCurrentPlugin.hh>
+#include <uuv_world_plugins/UnderwaterCurrentPlugin.h>
 
-#include <boost/scoped_ptr.hpp>
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/physics/World.hh>
-#include <ros/ros.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <uuv_world_ros_plugins_msgs/SetCurrentModel.h>
-#include <uuv_world_ros_plugins_msgs/GetCurrentModel.h>
-#include <uuv_world_ros_plugins_msgs/SetCurrentVelocity.h>
-#include <uuv_world_ros_plugins_msgs/SetCurrentDirection.h>
-#include <uuv_world_ros_plugins_msgs/SetOriginSphericalCoord.h>
-#include <uuv_world_ros_plugins_msgs/GetOriginSphericalCoord.h>
+
+#include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
+
+#include <uuv_world_ros_plugins_msgs/srv/set_current_model.hpp>
+#include <uuv_world_ros_plugins_msgs/srv/get_current_model.hpp>
+#include <uuv_world_ros_plugins_msgs/srv/set_current_velocity.hpp>
+#include <uuv_world_ros_plugins_msgs/srv/set_current_direction.hpp>
+#include <uuv_world_ros_plugins_msgs/srv/set_origin_spherical_coord.hpp>
+#include <uuv_world_ros_plugins_msgs/srv/get_origin_spherical_coord.hpp>
 
 namespace uuv_simulator_ros
 {
@@ -54,69 +55,69 @@ namespace uuv_simulator_ros
 
     /// \brief Service call to update the parameters for the velocity
     /// Gauss-Markov process model
-    public: bool UpdateCurrentVelocityModel(
-        uuv_world_ros_plugins_msgs::SetCurrentModel::Request& _req,
-        uuv_world_ros_plugins_msgs::SetCurrentModel::Response& _res);
+    public: void UpdateCurrentVelocityModel(
+        const uuv_world_ros_plugins_msgs::srv::SetCurrentModel::Request::SharedPtr _req,
+        uuv_world_ros_plugins_msgs::srv::SetCurrentModel::Response::SharedPtr _res);
 
     /// \brief Service call to update the parameters for the horizontal angle
     /// Gauss-Markov process model
-    public: bool UpdateCurrentHorzAngleModel(
-        uuv_world_ros_plugins_msgs::SetCurrentModel::Request& _req,
-        uuv_world_ros_plugins_msgs::SetCurrentModel::Response& _res);
+    public: void UpdateCurrentHorzAngleModel(
+        const uuv_world_ros_plugins_msgs::srv::SetCurrentModel::Request::SharedPtr _req,
+        uuv_world_ros_plugins_msgs::srv::SetCurrentModel::Response::SharedPtr _res);
 
     /// \brief Service call to update the parameters for the vertical angle
     /// Gauss-Markov process model
-    public: bool UpdateCurrentVertAngleModel(
-        uuv_world_ros_plugins_msgs::SetCurrentModel::Request& _req,
-        uuv_world_ros_plugins_msgs::SetCurrentModel::Response& _res);
+    public: void UpdateCurrentVertAngleModel(
+        const uuv_world_ros_plugins_msgs::srv::SetCurrentModel::Request::SharedPtr _req,
+        uuv_world_ros_plugins_msgs::srv::SetCurrentModel::Response::SharedPtr _res);
 
     /// \brief Service call to read the parameters for the velocity
     /// Gauss-Markov process model
-    public: bool GetCurrentVelocityModel(
-        uuv_world_ros_plugins_msgs::GetCurrentModel::Request& _req,
-        uuv_world_ros_plugins_msgs::GetCurrentModel::Response& _res);
+    public: void GetCurrentVelocityModel(
+        const uuv_world_ros_plugins_msgs::srv::GetCurrentModel::Request::SharedPtr _req,
+        uuv_world_ros_plugins_msgs::srv::GetCurrentModel::Response::SharedPtr _res);
 
     /// \brief Service call to read the parameters for the horizontal angle
     /// Gauss-Markov process model
-    public: bool GetCurrentHorzAngleModel(
-        uuv_world_ros_plugins_msgs::GetCurrentModel::Request& _req,
-        uuv_world_ros_plugins_msgs::GetCurrentModel::Response& _res);
+    public: void GetCurrentHorzAngleModel(
+        const uuv_world_ros_plugins_msgs::srv::GetCurrentModel::Request::SharedPtr _req,
+        uuv_world_ros_plugins_msgs::srv::GetCurrentModel::Response::SharedPtr _res);
 
     /// \brief Service call to read the parameters for the vertical angle
     /// Gauss-Markov process model
-    public: bool GetCurrentVertAngleModel(
-        uuv_world_ros_plugins_msgs::GetCurrentModel::Request& _req,
-        uuv_world_ros_plugins_msgs::GetCurrentModel::Response& _res);
+    public: void GetCurrentVertAngleModel(
+        const uuv_world_ros_plugins_msgs::srv::GetCurrentModel::Request::SharedPtr _req,
+        uuv_world_ros_plugins_msgs::srv::GetCurrentModel::Response::SharedPtr _res);
 
     /// \brief Service call to update the mean value of the flow velocity
-    public: bool UpdateCurrentVelocity(
-        uuv_world_ros_plugins_msgs::SetCurrentVelocity::Request& _req,
-        uuv_world_ros_plugins_msgs::SetCurrentVelocity::Response& _res);
+    public: void UpdateCurrentVelocity(
+        const uuv_world_ros_plugins_msgs::srv::SetCurrentVelocity::Request::SharedPtr _req,
+        uuv_world_ros_plugins_msgs::srv::SetCurrentVelocity::Response::SharedPtr _res);
 
     /// \brief Service call to update the mean value of the horizontal angle
-    public: bool UpdateHorzAngle(
-        uuv_world_ros_plugins_msgs::SetCurrentDirection::Request& _req,
-        uuv_world_ros_plugins_msgs::SetCurrentDirection::Response& _res);
+    public: void UpdateHorzAngle(
+        const uuv_world_ros_plugins_msgs::srv::SetCurrentDirection::Request::SharedPtr _req,
+        uuv_world_ros_plugins_msgs::srv::SetCurrentDirection::Response::SharedPtr _res);
 
     /// \brief Service call to update the mean value of the vertical angle
-    public: bool UpdateVertAngle(
-        uuv_world_ros_plugins_msgs::SetCurrentDirection::Request& _req,
-        uuv_world_ros_plugins_msgs::SetCurrentDirection::Response& _res);
+    public: void UpdateVertAngle(
+        const uuv_world_ros_plugins_msgs::srv::SetCurrentDirection::Request::SharedPtr _req,
+        uuv_world_ros_plugins_msgs::srv::SetCurrentDirection::Response::SharedPtr _res);
 
     /// \brief Publishes ROS topics
     private: void OnUpdateCurrentVel();
 
     /// \brief All underwater world services
-    private: std::map<std::string, ros::ServiceServer> worldServices;
+    private: std::map<std::string, rclcpp::ServiceBase::SharedPtr> worldServices;
 
     /// \brief Pointer to this ROS node's handle.
-    private: boost::scoped_ptr<ros::NodeHandle> rosNode;
+    private: rclcpp::Node::UniquePtr myRosNode;
 
     /// \brief Connection for callbacks on update world.
     private: gazebo::event::ConnectionPtr rosPublishConnection;
 
     /// \brief Publisher for the flow velocity in the world frame
-    private: ros::Publisher flowVelocityPub;
+    private: rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr myFlowVelocityPub;
 
     /// \brief Period after which we should publish a message via ROS.
     private: gazebo::common::Time rosPublishPeriod;

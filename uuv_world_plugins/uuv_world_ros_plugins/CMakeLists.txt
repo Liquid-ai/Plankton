@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.5)
 project(uuv_world_ros_plugins)
+
+# Add support for C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
 find_package(uuv_world_plugins REQUIRED)
 find_package(uuv_world_ros_plugins_msgs REQUIRED)
 find_package(gazebo_msgs REQUIRED)
@@ -27,11 +37,11 @@ set(LIBS ${uuv_world_plugins_LIBRARIES} ${uuv_world_ros_plugins_msgs_LIBRARIES}
 
 add_definitions(-std=c++11)
 
-add_library(uuv_underwater_current_ros_plugin src/UnderwaterCurrentROSPlugin.cc)
+add_library(uuv_underwater_current_ros_plugin src/UnderwaterCurrentROSPlugin.cpp)
 target_link_libraries(uuv_underwater_current_ros_plugin ${LIBS})
 
 add_library(uuv_sc_ros_interface_plugin
-  src/SphericalCoordinatesROSInterfacePlugin.cc)
+  src/SphericalCoordinatesROSInterfacePlugin.cpp)
 target_link_libraries(uuv_sc_ros_interface_plugin ${LIBS})
 
 install(TARGETS uuv_underwater_current_ros_plugin uuv_sc_ros_interface_plugin
