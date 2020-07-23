@@ -13,37 +13,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef __ROS_BASE_SENSOR_PLUGIN_HH__
-#define __ROS_BASE_SENSOR_PLUGIN_HH__
+#ifndef __GPS_SENSOR_ROS_PLUGIN_HH__
+#define __GPS_SENSOR_ROS_PLUGIN_HH__
 
-#include <gazebo/common/Plugin.hh>
 #include <gazebo/gazebo.hh>
-#include <gazebo/physics/physics.hh>
 #include <gazebo/sensors/sensors.hh>
-#include <uuv_sensor_ros_plugins/ROSBasePlugin.hh>
-#include <boost/bind.hpp>
-#include <string>
+
+#include <uuv_sensor_ros_plugins/ROSBaseSensorPlugin.h>
+
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/NavSatFix.hpp>
 
 namespace gazebo
 {
-  class ROSBaseSensorPlugin : public ROSBasePlugin, public SensorPlugin
+  class GPSROSPlugin : public ROSBaseSensorPlugin
   {
     /// \brief Class constructor
-    public: ROSBaseSensorPlugin();
+    public: GPSROSPlugin();
 
     /// \brief Class destructor
-    public: virtual ~ROSBaseSensorPlugin();
+    public: virtual ~GPSROSPlugin();
 
-    /// \brief Load plugin and its configuration from sdf,
-    protected: virtual void Load(sensors::SensorPtr _model,
+    /// \brief Load module and read parameters from SDF.
+    public: virtual void Load(sensors::SensorPtr _parent,
       sdf::ElementPtr _sdf);
 
-    /// \brief Update callback from simulation.
-    protected: virtual bool OnUpdate(const common::UpdateInfo&);
+    /// \brief Update GPS ROS message
+    public: bool OnUpdateGPS();
 
     /// \brief Pointer to the parent sensor
-    protected: sensors::SensorPtr parentSensor;
+    protected: sensors::GpsSensorPtr gazeboGPSSensor;
+
+    /// \brief Output GPS ROS message
+    protected: sensor_msgs::NavSatFix gpsMessage;
   };
 }
 
-#endif // __ROS_BASE_SENSOR_PLUGIN_HH__
+#endif // __GPS_SENSOR_ROS_PLUGIN_HH__

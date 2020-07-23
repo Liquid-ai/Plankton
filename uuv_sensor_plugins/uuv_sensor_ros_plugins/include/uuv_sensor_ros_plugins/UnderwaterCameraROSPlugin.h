@@ -17,11 +17,14 @@
 #define __UUV_UNDERWATER_CAMERA_ROS_PLUGIN_HH__
 
 #include <gazebo/gazebo.hh>
-#include <ros/ros.h>
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/plugins/DepthCameraPlugin.hh>
 #include <gazebo_plugins/gazebo_ros_camera_utils.h>
-#include <uuv_sensor_ros_plugins/Common.hh>
+
+#include <rclcpp/rclcpp.hpp>
+
+#include <uuv_sensor_ros_plugins/Common.h>
+
 #include <opencv2/opencv.hpp>
 
 namespace gazebo

@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <uuv_sensor_ros_plugins/ROSBasePlugin.hh>
+#include <uuv_sensor_ros_plugins/ROSBasePlugin.h>
 
 namespace gazebo
 {
@@ -36,8 +36,7 @@ ROSBasePlugin::ROSBasePlugin()
 /////////////////////////////////////////////////
 ROSBasePlugin::~ROSBasePlugin()
 {
-  if (this->rosNode)
-    this->rosNode->shutdown();
+  rclcpp::shutdown();
   if (this->updateConnection)
     this->updateConnection.reset();
 }
@@ -47,8 +46,8 @@ bool ROSBasePlugin::InitBasePlugin(sdf::ElementPtr _sdf)
 {
   GZ_ASSERT(this->world != NULL, "World object not available");
   // Get the robot namespace
-  GetSDFParam<std::string>(_sdf, "robot_namespace", this->robotNamespace, "");
-  GZ_ASSERT(!this->robotNamespace.empty(), "Robot namespace was not provided");
+  GetSDFParam<std::string>(_sdf, "robot_namespace", myRobotNamespace, "");
+  GZ_ASSERT(!myRobotNamespace.empty(), "Robot namespace was not provided");
 
   // Read separately in case a default topic name is given
   std::string sensorTopic;
@@ -67,17 +66,18 @@ bool ROSBasePlugin::InitBasePlugin(sdf::ElementPtr _sdf)
 
   // If output Gazebo messages have been enabled, create a Gazebo node
   this->gazeboNode = transport::NodePtr(new transport::Node());
-  this->gazeboNode->Init(this->robotNamespace);
+  this->gazeboNode->Init(myRobotNamespace);
 
   // Create ROS node
-  if (!ros::isInitialized())
+  if (!rclcpp::is_initialized())
   {
     gzerr << "Not loading sensor plugin since ROS has not been properly "
           << "initialized." << std::endl;
     return false;
   }
 
-  this->rosNode.reset(new ros::NodeHandle(this->robotNamespace));
+  myRosNode = rclcpp::Node::make_unique(myRobotNamespace);
+  //this->rosNode.reset(new ros::NodeHandle(this->robotNamespace));
 
   // Initialize reference frame
   if (_sdf->HasElement("static_reference_frame"))
@@ -91,9 +91,9 @@ bool ROSBasePlugin::InitBasePlugin(sdf::ElementPtr _sdf)
     // frame.
     if (this->referenceFrameID.compare("world") != 0)
     {
-      this->tfStaticSub = this->rosNode->subscribe<tf::tfMessage>(
+      myTfStaticSub = myRosNode->create_subscription<tf2_msgs::msg::TFMessage>(//)::tfMessage>(
         "/tf_static", 1,
-        boost::bind(&ROSBasePlugin::GetTFMessage, this, _1));
+        std::bind(&ROSBasePlugin::GetTFMessage, this, _1));
     }
     else
       this->isReferenceInit = true;
@@ -124,11 +124,11 @@ bool ROSBasePlugin::InitBasePlugin(sdf::ElementPtr _sdf)
 
   // The ROS node is expected to be initialized under a the namespace of the
   // plugin running this module
-  this->changeSensorSrv = this->rosNode->advertiseService(
+  myChangeSensorSrv = myRosNode->create_service<uuv_sensor_ros_plugins_msgs::srv::ChangeSensorState>(
     this->sensorOutputTopic + "/change_state",
-    &ROSBasePlugin::ChangeSensorState, this);
+    std::bind(&ROSBasePlugin::ChangeSensorState, this, std::placeholders::_1, std::placeholders::_2));
 
-  this->pluginStatePub = this->rosNode->advertise<std_msgs::Bool>(
+  myPluginStatePub = myRosNode->create_publisher<std_msgs::msg::Bool>(
     this->sensorOutputTopic + "/state", 1);
 
   GetSDFParam<double>(_sdf, "noise_sigma", this->noiseSigma, 0.0);
@@ -144,7 +144,7 @@ bool ROSBasePlugin::InitBasePlugin(sdf::ElementPtr _sdf)
 }
 
 /////////////////////////////////////////////////
-void ROSBasePlugin::GetTFMessage(const tf::tfMessage::ConstPtr &_msg)
+void ROSBasePlugin::GetTFMessage(const tf2_msgs::msg::TFMessage::SharedPtr _msg)//::tfMessage::ConstPtr &_msg)
 {
   if (this->isReferenceInit)
     return;
@@ -173,27 +173,26 @@ void ROSBasePlugin::GetTFMessage(const tf::tfMessage::ConstPtr &_msg)
 }
 
 /////////////////////////////////////////////////
-bool ROSBasePlugin::ChangeSensorState(
-    uuv_sensor_ros_plugins_msgs::ChangeSensorState::Request& _req,
-    uuv_sensor_ros_plugins_msgs::ChangeSensorState::Response& _res)
+void ROSBasePlugin::ChangeSensorState(
+    const uuv_sensor_ros_plugins_msgs::srv::ChangeSensorState::Request::SharedPtr _req,
+    uuv_sensor_ros_plugins_msgs::srv::ChangeSensorState::Response::SharedPtr _res)
 {
-  this->isOn.data = _req.on;
-  _res.success = true;
+  this->isOn.data = _req->on;
+  _res->success = true;
   std::string message = this->sensorOutputTopic + "::";
 
-  if (_req.on)
+  if (_req->on)
     message += " ON";
   else
     message += " OFF";
-  _res.message = message;
+  _res->message = message;
   gzmsg << message << std::endl;
-  return true;
 }
 
 /////////////////////////////////////////////////
 void ROSBasePlugin::PublishState()
 {
-  this->pluginStatePub.publish(this->isOn);
+  myPluginStatePub->publish(this->isOn);
 }
 
 /////////////////////////////////////////////////
@@ -203,7 +202,7 @@ double ROSBasePlugin::GetGaussianNoise(double _amp)
 }
 
 /////////////////////////////////////////////////
-double ROSBasePlugin::GetGaussianNoise(std::string _name, double _amp)
+double ROSBasePlugin::GetGaussianNoise(const std::string& _name, double _amp)
 {
   GZ_ASSERT(this->noiseModels.count(_name),
     "Gaussian noise model does not exist");
@@ -211,7 +210,7 @@ double ROSBasePlugin::GetGaussianNoise(std::string _name, double _amp)
 }
 
 /////////////////////////////////////////////////
-bool ROSBasePlugin::AddNoiseModel(std::string _name, double _sigma)
+bool ROSBasePlugin::AddNoiseModel(const std::string& _name, double _sigma)
 {
   // Check if noise model name already exists
   if (this->noiseModels.count(_name))

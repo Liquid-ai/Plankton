@@ -19,10 +19,13 @@
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/gazebo.hh>
 #include <gazebo/physics/physics.hh>
-#include <uuv_sensor_ros_plugins/ROSBasePlugin.hh>
+
+#include <uuv_sensor_ros_plugins/ROSBasePlugin.h>
+
 #include <functional>
 #include <memory>
 #include <string>
+
 #include <tf/transform_datatypes.h>
 #include <tf/tfMessage.h>
 #include <tf/transform_listener.h>

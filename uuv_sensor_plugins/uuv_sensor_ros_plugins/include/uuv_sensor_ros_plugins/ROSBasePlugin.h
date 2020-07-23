@@ -18,16 +18,23 @@
 
 #include <gazebo/common/common.hh>
 #include <gazebo/physics/physics.hh>
-#include <uuv_sensor_ros_plugins/Common.hh>
-#include <ros/ros.h>
-#include <std_msgs/Bool.h>
-#include <uuv_sensor_ros_plugins_msgs/ChangeSensorState.h>
-#include <geometry_msgs/TransformStamped.h>
 #include <gazebo/sensors/Noise.hh>
+
+#include <uuv_sensor_ros_plugins/Common.h>
+#include <uuv_sensor_ros_plugins_msgs/srv/change_sensor_state.hpp>
+
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <tf2_msgs/msg/tf_message.hpp>
+//#include <tf2/
+//#include <tf/tfMessage.h>
+//#include <tf/tf.h>
+
+#include <geometry_msgs/msg/transform_stamped.hpp>
+
 #include <boost/shared_ptr.hpp>
 #include <boost/bind.hpp>
-#include <tf/tfMessage.h>
-#include <tf/tf.h>
+
 #include <chrono>
 #include <random>
 #include <string>
@@ -51,10 +58,10 @@ namespace gazebo
     public: virtual bool OnUpdate(const common::UpdateInfo&) = 0;
 
     /// \brief Add noise normal distribution to the list
-    public: bool AddNoiseModel(std::string _name, double _sigma);
+    public: bool AddNoiseModel(const std::string& _name, double _sigma);
 
     /// \brief Robot namespace
-    protected: std::string robotNamespace;
+    protected: std::string myRobotNamespace;
 
     /// \brief Name of the sensor's output topic
     protected: std::string sensorOutputTopic;
@@ -90,31 +97,31 @@ namespace gazebo
       noiseModels;
 
     /// \brief Flag to control the generation of output messages
-    protected: std_msgs::Bool isOn;
+    protected: std_msgs::msg::Bool isOn;
 
     /// \brief ROS node handle for communication with ROS
-    protected: boost::shared_ptr<ros::NodeHandle> rosNode;
+    protected: rclcpp::Node::UniquePtr myRosNode;
 
     /// \brief Gazebo's node handle for transporting measurement  messages.
     protected: transport::NodePtr gazeboNode;
 
     /// \brief Gazebo's publisher for transporting measurement messages.
-    protected: ros::Publisher rosSensorOutputPub;
+    //protected: ros::Publisher rosSensorOutputPub;
 
     /// \brief Gazebo's publisher for transporting measurement messages.
     protected: transport::PublisherPtr gazeboSensorOutputPub;
 
     /// \brief Service server object
-    protected: ros::ServiceServer changeSensorSrv;
+    protected: rclcpp::Service<uuv_sensor_ros_plugins_msgs::srv::ChangeSensorState>::SharedPtr myChangeSensorSrv;
 
     /// \brief ROS publisher for the switchable sensor data
-    protected: ros::Publisher pluginStatePub;
+    protected: rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr myPluginStatePub;
 
     /// \brief Pose of the reference frame wrt world frame
     protected: ignition::math::Pose3d referenceFrame;
 
     /// \brief ROS subscriber for the TF static reference frame
-    protected: ros::Subscriber tfStaticSub;
+    protected: rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr myTfStaticSub;
 
     /// \brief Frame ID of the reference frame
     protected: std::string referenceFrameID;
@@ -132,12 +139,12 @@ namespace gazebo
     protected: void PublishState();
 
     /// \brief Change sensor state (ON/OFF)
-    protected: bool ChangeSensorState(
-        uuv_sensor_ros_plugins_msgs::ChangeSensorState::Request& _req,
-        uuv_sensor_ros_plugins_msgs::ChangeSensorState::Response& _res);
+    protected: void ChangeSensorState(
+        const uuv_sensor_ros_plugins_msgs::srv::ChangeSensorState::Request::SharedPtr _req,
+        uuv_sensor_ros_plugins_msgs::srv::ChangeSensorState::Response::SharedPtr _res);
 
     /// \brief Callback function for the static TF message
-    protected: void GetTFMessage(const tf::tfMessage::ConstPtr &_msg);
+    protected: void GetTFMessage(const tf2_msgs::msg::TFMessage::SharedPtr _msg);// tf::tfMessage::ConstPtr &_msg);
 
     /// \brief Returns noise value for a function with zero mean from the
     /// default Gaussian noise model
@@ -145,7 +152,7 @@ namespace gazebo
 
     /// \brief Returns noise value for a function with zero mean from a
     /// Gaussian noise model according to the model name
-    protected: double GetGaussianNoise(std::string _name, double _amp);
+    protected: double GetGaussianNoise(const std::string& _name, double _amp);
 
     /// \brief Enables generation of simulated measurement if the timeout
     /// since the last update has been reached

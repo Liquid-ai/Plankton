@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.5)
 project(uuv_sensor_ros_plugins)
+
+# Add support for C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
 find_package(image_transport REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
@@ -69,6 +79,14 @@ endforeach()
 
 message(STATUS "GAZEBO_MSG_INCLUDE_DIRS = " ${GAZEBO_MSG_INCLUDE_DIRS})
 
+#
+include_directories(
+  ${GAZEBO_MSG_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_BINARY_DIR} # for generated messages
+)
+#
+
 file(GLOB msgs msgs/*.proto)
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${msgs})
@@ -77,61 +95,61 @@ target_link_libraries(uuv_sensor_gazebo_msgs ${PROTOBUF_LIBRARY}
   ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_sensor_gazebo_msgs)
 
-add_library(uuv_gazebo_ros_base_model_plugin src/ROSBasePlugin.cc
-  src/ROSBaseModelPlugin.cc)
+add_library(uuv_gazebo_ros_base_model_plugin src/ROSBasePlugin.cpp
+  src/ROSBaseModelPlugin.cpp)
 target_link_libraries(uuv_gazebo_ros_base_model_plugin ${LIBS}
   ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_base_model_plugin)
 
-add_library(uuv_gazebo_ros_base_sensor_plugin src/ROSBasePlugin.cc
-  src/ROSBaseSensorPlugin.cc)
+add_library(uuv_gazebo_ros_base_sensor_plugin src/ROSBasePlugin.cpp
+  src/ROSBaseSensorPlugin.cpp)
 target_link_libraries(uuv_gazebo_ros_base_sensor_plugin ${LIBS}
   ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_base_sensor_plugin)
 
-add_library(uuv_gazebo_ros_gps_plugin src/GPSROSPlugin.cc src/ROSBasePlugin.cc
-  src/ROSBaseSensorPlugin.cc)
+add_library(uuv_gazebo_ros_gps_plugin src/GPSROSPlugin.cpp src/ROSBasePlugin.cpp
+  src/ROSBaseSensorPlugin.cpp)
 target_link_libraries(uuv_gazebo_ros_gps_plugin ${LIBS} ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_gps_plugin)
 
-add_library(uuv_gazebo_ros_pose_gt_plugin src/PoseGTROSPlugin.cc
-  src/ROSBasePlugin.cc src/ROSBaseModelPlugin.cc)
+add_library(uuv_gazebo_ros_pose_gt_plugin src/PoseGTROSPlugin.cpp
+  src/ROSBasePlugin.cpp src/ROSBaseModelPlugin.cpp)
 target_link_libraries(uuv_gazebo_ros_pose_gt_plugin ${LIBS} ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_pose_gt_plugin)
 
-add_library(uuv_gazebo_ros_subsea_pressure_plugin src/SubseaPressureROSPlugin.cc
-  src/ROSBasePlugin.cc src/ROSBaseModelPlugin.cc)
+add_library(uuv_gazebo_ros_subsea_pressure_plugin src/SubseaPressureROSPlugin.cpp
+  src/ROSBasePlugin.cpp src/ROSBaseModelPlugin.cpp)
 target_link_libraries(uuv_gazebo_ros_subsea_pressure_plugin ${LIBS}
   ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_subsea_pressure_plugin)
 
-add_library(uuv_gazebo_ros_dvl_plugin src/DVLROSPlugin.cc src/ROSBasePlugin.cc
-  src/ROSBaseModelPlugin.cc)
+add_library(uuv_gazebo_ros_dvl_plugin src/DVLROSPlugin.cpp src/ROSBasePlugin.cpp
+  src/ROSBaseModelPlugin.cpp)
 target_link_libraries(uuv_gazebo_ros_dvl_plugin ${LIBS} ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_dvl_plugin)
 
-add_library(uuv_gazebo_ros_magnetometer_plugin src/MagnetometerROSPlugin.cc
-  src/ROSBasePlugin.cc src/ROSBaseModelPlugin.cc)
+add_library(uuv_gazebo_ros_magnetometer_plugin src/MagnetometerROSPlugin.cpp
+  src/ROSBasePlugin.cpp src/ROSBaseModelPlugin.cpp)
 target_link_libraries(uuv_gazebo_ros_magnetometer_plugin ${LIBS}
   ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_magnetometer_plugin)
 
-add_library(uuv_gazebo_ros_cpc_plugin src/CPCROSPlugin.cc src/ROSBasePlugin.cc
-  src/ROSBaseModelPlugin.cc)
+add_library(uuv_gazebo_ros_cpc_plugin src/CPCROSPlugin.cpp src/ROSBasePlugin.cpp
+  src/ROSBaseModelPlugin.cpp)
 target_link_libraries(uuv_gazebo_ros_cpc_plugin ${LIBS} ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_cpc_plugin)
 
-add_library(uuv_gazebo_ros_imu_plugin src/IMUROSPlugin.cc src/ROSBasePlugin.cc
-  src/ROSBaseModelPlugin.cc)
+add_library(uuv_gazebo_ros_imu_plugin src/IMUROSPlugin.cpp src/ROSBasePlugin.cpp
+  src/ROSBaseModelPlugin.cpp)
 target_link_libraries(uuv_gazebo_ros_imu_plugin ${LIBS} ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_imu_plugin)
 
-add_library(uuv_gazebo_ros_rpt_plugin src/RPTROSPlugin.cc src/ROSBasePlugin.cc
-  src/ROSBaseModelPlugin.cc)
+add_library(uuv_gazebo_ros_rpt_plugin src/RPTROSPlugin.cpp src/ROSBasePlugin.cpp
+  src/ROSBaseModelPlugin.cpp)
 target_link_libraries(uuv_gazebo_ros_rpt_plugin ${LIBS} ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_rpt_plugin)
 
-add_library(uuv_gazebo_ros_camera_plugin src/UnderwaterCameraROSPlugin.cc)
+add_library(uuv_gazebo_ros_camera_plugin src/UnderwaterCameraROSPlugin.cpp)
 target_link_libraries(uuv_gazebo_ros_camera_plugin ${LIBS} ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_camera_plugin)
 
@@ -148,7 +166,7 @@ install(TARGETS ${UUV_SENSOR_ROS_PLUGINS_LIST}
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION include/${PROJECT_NAME}
   FILES_MATCHING
-  PATTERN "*.hh"
+  PATTERN "*.h"
   PATTERN "*~"
   EXCLUDE)
 
