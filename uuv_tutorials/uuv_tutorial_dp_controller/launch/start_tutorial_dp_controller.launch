@@ -52,7 +52,8 @@
     Most of the nodes per default are going to look for configuration parameters and
     topics under the vehicle's namespace per default.
     -->
-    <group ns="$(arg uuv_name)">
+    <group>
+        <push-ros-namespace namespace="$(arg uuv_name)"/>
         <!--
         This node just reads the trajectory and waypoint topics and publishes visualization
         markers to RViz, but is not essential to the controller's operation
@@ -80,7 +81,7 @@
         -->
 
         <node pkg="uuv_tutorial_dp_controller"
-            type="tutorial_dp_controller.py"
+            exec="tutorial_dp_controller.py"
             name="tutorial_dp_controller"
             output="screen">
             <!-- Remap necessary topics -->

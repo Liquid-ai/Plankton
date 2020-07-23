@@ -49,5 +49,5 @@
         <arg name="disturbance_file" value="$(find uuv_tutorial_disturbances)/config/disturbances.yaml"/>
     </include>
 
-    <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find uuv_gazebo)/rviz/controller_demo.rviz"/>
+    <node name="rviz" pkg="rviz2" exec="rviz2" output="screen" args="-d $(find uuv_gazebo)/rviz/controller_demo.rviz"/>
 </launch>

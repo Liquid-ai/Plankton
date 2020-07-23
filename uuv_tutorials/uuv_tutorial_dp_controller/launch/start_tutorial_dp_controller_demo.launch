@@ -25,7 +25,7 @@
     </include>
 
     <!-- Open RViz for visualization of sensor data and visualization markers -->
-    <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find uuv_gazebo)/rviz/controller_demo.rviz"/>
+    <node name="rviz" pkg="rviz2" exec="rviz2" output="screen" args="-d $(find uuv_gazebo)/rviz/controller_demo.rviz"/>
 
 
     <!--

@@ -67,5 +67,5 @@
         <arg name="torque_z" default="3000"/>
     </include>
 
-    <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find uuv_gazebo)/rviz/controller_demo.rviz"/>
+    <node name="rviz" pkg="rviz2" exec="rviz2" output="screen" args="-d $(find uuv_gazebo)/rviz/controller_demo.rviz"/>
 </launch>

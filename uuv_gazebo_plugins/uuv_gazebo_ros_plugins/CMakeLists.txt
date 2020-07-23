@@ -96,7 +96,7 @@
 # install(DIRECTORY include/${PROJECT_NAME}/
 #   DESTINATION include/${PROJECT_NAME}
 #   FILES_MATCHING
-#   PATTERN "*.hh"
+#   PATTERN "*.h"
 #   PATTERN "*~"
 #   EXCLUDE)
 
@@ -231,7 +231,7 @@ install(TARGETS ${UUV_GAZEBO_ROS_PLUGINS_LIST}
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION include/${PROJECT_NAME}
   FILES_MATCHING
-  PATTERN "*.hh"
+  PATTERN "*.h"
   PATTERN "*~"
   EXCLUDE)
 
