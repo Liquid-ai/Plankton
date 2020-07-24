@@ -31,7 +31,7 @@
 #include <sensor_msgs/msg/imu.hpp>
 
 #include <tf2/LinearMath/Transform.h>
-#include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 
@@ -49,7 +49,7 @@ bool g_publish_roll_pitch;
 
 std::string g_tf_prefix;
 
-tf2_ros::StaticTransformBroadcaster *g_transform_broadcaster;
+tf2_ros::TransformBroadcaster *g_transform_broadcaster; //revert to not static version
 rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr g_pose_publisher;
 rclcpp::Publisher<geometry_msgs::msg::Vector3Stamped>::SharedPtr g_euler_publisher;
 
@@ -264,7 +264,7 @@ int main(int argc, char** argv) {
   g_publish_roll_pitch = true;
   node->get_parameter("publish_roll_pitch", g_publish_roll_pitch);
 
-  g_transform_broadcaster = new tf2_ros::StaticTransformBroadcaster(node); // TODO Check
+  g_transform_broadcaster = new tf2_ros::TransformBroadcaster(node); // TODO Check
 
   int subscribers = 0;
   if (!g_odometry_topic.empty()) {
