@@ -17,12 +17,15 @@
 #define __UUV_CHEMICAL_PARTICLE_CONCENTRATION_ROS_PLUGIN_HH__
 
 #include <gazebo/gazebo.hh>
-#include <ros/ros.h>
-#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.hh>
-#include <uuv_sensor_ros_plugins_msgs/ChemicalParticleConcentration.h>
-#include <uuv_sensor_ros_plugins_msgs/Salinity.h>
-#include <sensor_msgs/PointCloud.h>
-#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.hh>
+
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/point_cloud.hpp>
+
+#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.h>
+#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.h>
+
+#include <uuv_sensor_ros_plugins_msgs/msg/chemical_particle_concentration.hpp>
+#include <uuv_sensor_ros_plugins_msgs/msg/salinity.hpp>
 
 namespace gazebo
 {
@@ -42,13 +45,13 @@ namespace gazebo
 
     /// \brief Update callback from simulator.
     protected: virtual void OnPlumeParticlesUpdate(
-      const sensor_msgs::PointCloud::ConstPtr &_msg);
+      const sensor_msgs::msg::PointCloud::SharedPtr _msg);
 
     /// \brief Input topic for the plume particle point cloud
-    protected: ros::Subscriber particlesSub;
+    protected: rclcpp::Subscription<sensor_msgs::msg::PointCloud>::SharedPtr particlesSub;
 
     /// \brief Output topic for salinity measurements based on the particle concentration
-    protected: ros::Publisher salinityPub;
+    protected: rclcpp::Publisher<uuv_sensor_ros_plugins_msgs::msg::Salinity>::SharedPtr salinityPub;
 
     /// \brief Flag to ensure the cloud and measurement update don't coincide
     protected: bool updatingCloud;
@@ -63,19 +66,26 @@ namespace gazebo
     // account in the concentration computation
     protected: double smoothingLength;
 
+    //protected: rclcpp::Clock myTimer;
+
     /// \brief Last update from the point cloud callback
-    protected: ros::Time lastUpdateTimestamp;
+    //protected: ros::Time lastUpdateTimestamp;
+    protected: rclcpp::Time myLastUpdateTimeStamp;
 
     /// \brief Output measurement topic
-    protected: uuv_sensor_ros_plugins_msgs::ChemicalParticleConcentration
+    protected: uuv_sensor_ros_plugins_msgs::msg::ChemicalParticleConcentration
       outputMsg;
 
     /// \brief Output salinity measurement message
-    protected: uuv_sensor_ros_plugins_msgs::Salinity salinityMsg;
+    protected: uuv_sensor_ros_plugins_msgs::msg::Salinity salinityMsg;
 
     protected: double waterSalinityValue;
 
     protected: double plumeSalinityValue;
+
+    /// \brief publisher for transporting measurement messages.
+    protected: rclcpp::Publisher<uuv_sensor_ros_plugins_msgs::msg::ChemicalParticleConcentration>::SharedPtr rosSensorOutputPub;
+    
   };
 }
 

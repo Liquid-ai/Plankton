@@ -27,10 +27,13 @@
 #define __UUV_MAGNETOMETER_ROS_PLUGIN_HH__
 
 #include "SensorMagnetic.pb.h"
+
 #include <gazebo/gazebo.hh>
-#include <ros/ros.h>
-#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.hh>
-#include <sensor_msgs/MagneticField.h>
+
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/magnetic_field.hpp>
+
+#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.h>
 
 namespace gazebo
 {
@@ -80,7 +83,11 @@ namespace gazebo
     protected: ignition::math::Vector3d measMagneticField;
 
     /// \brief ROS message
-    protected: sensor_msgs::MagneticField rosMsg;
+    protected: sensor_msgs::msg::MagneticField rosMsg;
+
+    /// \brief publisher for transporting measurement messages.
+    protected: rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr rosSensorOutputPub;
+    
   };
 }
 

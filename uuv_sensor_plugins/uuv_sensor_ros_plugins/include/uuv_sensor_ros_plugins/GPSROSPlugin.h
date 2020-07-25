@@ -22,7 +22,7 @@
 #include <uuv_sensor_ros_plugins/ROSBaseSensorPlugin.h>
 
 #include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/msg/NavSatFix.hpp>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
 
 namespace gazebo
 {
@@ -45,7 +45,10 @@ namespace gazebo
     protected: sensors::GpsSensorPtr gazeboGPSSensor;
 
     /// \brief Output GPS ROS message
-    protected: sensor_msgs::NavSatFix gpsMessage;
+    protected: sensor_msgs::msg::NavSatFix gpsMessage;
+
+    /// \brief publisher for transporting measurement messages.
+    protected: rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr rosSensorOutputPub;
   };
 }
 

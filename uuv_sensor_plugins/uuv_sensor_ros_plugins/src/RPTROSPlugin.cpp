@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <uuv_sensor_ros_plugins/RPTROSPlugin.hh>
+#include <uuv_sensor_ros_plugins/RPTROSPlugin.h>
 
 namespace gazebo
 {
@@ -39,7 +39,7 @@ void RPTROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   // Initialize the default RPT output
   this->rosSensorOutputPub =
-    this->rosNode->advertise<
+    myRosNode->create_publisher<
       uuv_sensor_ros_plugins_msgs::PositionWithCovarianceStamped>(
         this->sensorOutputTopic, 1);
 
@@ -87,13 +87,13 @@ bool RPTROSPlugin::OnUpdate(const common::UpdateInfo& _info)
   this->position.Y() += this->GetGaussianNoise(this->noiseAmp);
   this->position.Z() += this->GetGaussianNoise(this->noiseAmp);
 
-  this->rosMessage.header.stamp = ros::Time::now();
+  this->rosMessage.header.stamp = myRosNode->now();//ros::Time::now();
   this->rosMessage.header.frame_id = this->referenceFrameID;
   this->rosMessage.pos.pos.x = this->position.X();
   this->rosMessage.pos.pos.y = this->position.Y();
   this->rosMessage.pos.pos.z = this->position.Z();
 
-  this->rosSensorOutputPub.publish(this->rosMessage);
+  this->rosSensorOutputPub->publish(this->rosMessage);
 
   if (this->gazeboMsgEnabled)
   {

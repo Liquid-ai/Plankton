@@ -36,6 +36,8 @@
 #   gazebo_dev 
 # )
 
+#include_directories(include)
+
 # set(UUV_GAZEBO_ROS_PLUGINS_LIST "")
 
 # add_library(uuv_fin_ros_plugin src/FinROSPlugin.cpp)
@@ -78,9 +80,9 @@
 
 # #MESSAGE(FATAL_ERROR ${EXPORT_MY_LIBS})
 
-# ament_export_interfaces(${EXPORT_MY_LIBS} HAS_LIBRARY_TARGET)#${EXPORT_MY_LIBS} HAS_LIBRARY_TARGET)
+# ament_export_interfaces(${EXPORT_MY_LIBS})#${EXPORT_MY_LIBS} HAS_LIBRARY_TARGET)
 # ament_export_dependencies(${BASE_LIBS})
-# ament_export_include_directories(${INCLUDE_DIRS})
+# ament_export_include_directories(include)
 # ament_export_libraries(${UUV_GAZEBO_ROS_PLUGINS_LIST})
 
 # foreach(VAL ${UUV_GAZEBO_ROS_PLUGINS_LIST})

@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <uuv_sensor_ros_plugins/SubseaPressureROSPlugin.hh>
+#include <uuv_sensor_ros_plugins/SubseaPressureROSPlugin.h>
 
 namespace gazebo
 {
@@ -38,7 +38,7 @@ void SubseaPressureROSPlugin::Load(physics::ModelPtr _model,
   GetSDFParam<double>(_sdf, "kPa_per_meter", this->kPaPerM, 9.80638);
 
   this->rosSensorOutputPub =
-    this->rosNode->advertise<sensor_msgs::FluidPressure>(
+    myRosNode->create_publisher<sensor_msgs::msg::FluidPressure>(
       this->sensorOutputTopic, 1);
 
   if (this->gazeboMsgEnabled)
@@ -97,16 +97,16 @@ bool SubseaPressureROSPlugin::OnUpdate(const common::UpdateInfo& _info)
   }
 
   // Publish ROS pressure message
-  sensor_msgs::FluidPressure rosMsg;
+  sensor_msgs::msg::FluidPressure rosMsg;
 
   rosMsg.header.stamp.sec  = _info.simTime.sec;
-  rosMsg.header.stamp.nsec = _info.simTime.nsec;
+  rosMsg.header.stamp.nanosec = _info.simTime.nsec;
   rosMsg.header.frame_id = this->link->GetName();
 
   rosMsg.fluid_pressure = pressure;
   rosMsg.variance = this->noiseSigma * this->noiseSigma;
 
-  this->rosSensorOutputPub.publish(rosMsg);
+  this->rosSensorOutputPub->publish(rosMsg);
 
   // Read the current simulation time
 #if GAZEBO_MAJOR_VERSION >= 8

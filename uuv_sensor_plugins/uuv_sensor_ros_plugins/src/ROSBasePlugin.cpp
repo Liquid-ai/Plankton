@@ -76,7 +76,7 @@ bool ROSBasePlugin::InitBasePlugin(sdf::ElementPtr _sdf)
     return false;
   }
 
-  myRosNode = rclcpp::Node::make_unique(myRobotNamespace);
+  myRosNode = rclcpp::Node::make_shared(myRobotNamespace);
   //this->rosNode.reset(new ros::NodeHandle(this->robotNamespace));
 
   // Initialize reference frame

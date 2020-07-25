@@ -23,7 +23,7 @@
 // - be more consistent with other sensor plugins within uuv_simulator,
 // - adhere to Gazebo's coding standards.
 
-#include <uuv_sensor_ros_plugins/MagnetometerROSPlugin.hh>
+#include <uuv_sensor_ros_plugins/MagnetometerROSPlugin.h>
 
 namespace gazebo
 {
@@ -42,11 +42,9 @@ void MagnetometerROSPlugin::Load(physics::ModelPtr _model,
   ROSBaseModelPlugin::Load(_model, _sdf);
 
   GetSDFParam<double>(_sdf, "intensity", this->parameters.intensity, 1.0);
-  GetSDFParam<double>(_sdf, "reference_heading", this->parameters.heading,
-    M_PI);
+  GetSDFParam<double>(_sdf, "reference_heading", this->parameters.heading, M_PI);
   GetSDFParam<double>(_sdf, "declination", this->parameters.declination, 0.0);
-  GetSDFParam<double>(_sdf, "inclination", this->parameters.inclination,
-    60.*M_PI/180.);
+  GetSDFParam<double>(_sdf, "inclination", this->parameters.inclination, 60.*M_PI/180.);
   GetSDFParam<double>(_sdf, "noise_xy", this->parameters.noiseXY, 1.0);
   GetSDFParam<double>(_sdf, "noise_z", this->parameters.noiseZ, 1.4);
   GetSDFParam<double>(_sdf, "turn_on_bias", this->parameters.turnOnBias, 2.0);
@@ -72,7 +70,7 @@ void MagnetometerROSPlugin::Load(physics::ModelPtr _model,
 
   // Initialize ROS message
   if (this->enableLocalNEDFrame)
-    this->rosMsg.header.frame_id = tfLocalNEDFrame.child_frame_id_;
+    this->rosMsg.header.frame_id = tfLocalNEDFrameMsg.child_frame_id;
   else
     this->rosMsg.header.frame_id = this->link->GetName();
 
@@ -88,14 +86,14 @@ void MagnetometerROSPlugin::Load(physics::ModelPtr _model,
 
   // Initialize the default magnetometer output
   this->rosSensorOutputPub =
-    this->rosNode->advertise<sensor_msgs::MagneticField>(
+    myRosNode->create_publisher<sensor_msgs::msg ::MagneticField>(
       this->sensorOutputTopic, 1);
 
   if (this->gazeboMsgEnabled)
   {
     this->gazeboSensorOutputPub =
       this->gazeboNode->Advertise<sensor_msgs::msgs::Magnetic>(
-        this->robotNamespace + "/" + this->sensorOutputTopic, 1);
+        this->myRobotNamespace + "/" + this->sensorOutputTopic, 1);
   }
 }
 
@@ -132,7 +130,7 @@ bool MagnetometerROSPlugin::OnUpdate(const common::UpdateInfo& _info)
 
   if (this->gazeboMsgEnabled)
   {
-    sensor_msgs::msgs::Magnetic gazeboMsg;
+    sensor_msgs::msg::Magnetic gazeboMsg;
 
     gazebo::msgs::Vector3d* field = new gazebo::msgs::Vector3d();
     field->set_x(this->measMagneticField.X());
@@ -143,12 +141,12 @@ bool MagnetometerROSPlugin::OnUpdate(const common::UpdateInfo& _info)
     this->gazeboSensorOutputPub->Publish(gazeboMsg);
   }
 
-  this->rosMsg.header.stamp = ros::Time::now();
+  this->rosMsg.header.stamp = myRosNode->now();//ros::Time::now();
   this->rosMsg.magnetic_field.x = this->measMagneticField.X();
   this->rosMsg.magnetic_field.y = this->measMagneticField.Y();
   this->rosMsg.magnetic_field.z = this->measMagneticField.Z();
 
-  this->rosSensorOutputPub.publish(this->rosMsg);
+  this->rosSensorOutputPub->publish(this->rosMsg);
 }
 
 /////////////////////////////////////////////////

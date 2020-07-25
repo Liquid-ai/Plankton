@@ -17,10 +17,13 @@
 #define __UUV_RPT_ROS_PLUGIN_HH__
 
 #include <gazebo/gazebo.hh>
-#include <ros/ros.h>
-#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.hh>
-#include <uuv_sensor_ros_plugins_msgs/PositionWithCovarianceStamped.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
+
+#include <rclcpp/rclcpp.hpp>
+
+#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.h>
+#include <uuv_sensor_ros_plugins_msgs/msg/position_with_covariance_stamped.hpp>
+
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include "SensorRpt.pb.h"
 
 namespace gazebo
@@ -43,7 +46,11 @@ namespace gazebo
     protected: ignition::math::Vector3d position;
 
     /// \brief Store message since many attributes do not change (cov.).
-    protected: uuv_sensor_ros_plugins_msgs::PositionWithCovarianceStamped rosMessage;
+    protected: uuv_sensor_ros_plugins_msgs::msg::PositionWithCovarianceStamped myRosMessage;
+
+    /// \brief publisher for transporting measurement messages.
+    protected: rclcpp::Publisher<uuv_sensor_ros_plugins_msgs::PositionWithCovarianceStamped>::SharedPtr rosSensorOutputPub;
+    
   };
 }
 

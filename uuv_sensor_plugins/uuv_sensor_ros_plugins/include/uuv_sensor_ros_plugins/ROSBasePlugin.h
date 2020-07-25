@@ -31,9 +31,10 @@
 //#include <tf/tf.h>
 
 #include <geometry_msgs/msg/transform_stamped.hpp>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
 
-#include <boost/shared_ptr.hpp>
-#include <boost/bind.hpp>
+// #include <boost/shared_ptr.hpp>
+// #include <boost/bind.hpp>
 
 #include <chrono>
 #include <random>
@@ -100,13 +101,13 @@ namespace gazebo
     protected: std_msgs::msg::Bool isOn;
 
     /// \brief ROS node handle for communication with ROS
-    protected: rclcpp::Node::UniquePtr myRosNode;
+    protected: rclcpp::Node::SharedPtr myRosNode;
 
     /// \brief Gazebo's node handle for transporting measurement  messages.
     protected: transport::NodePtr gazeboNode;
 
     /// \brief Gazebo's publisher for transporting measurement messages.
-    //protected: ros::Publisher rosSensorOutputPub;
+    //protected: rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr rosSensorOutputPub;
 
     /// \brief Gazebo's publisher for transporting measurement messages.
     protected: transport::PublisherPtr gazeboSensorOutputPub;

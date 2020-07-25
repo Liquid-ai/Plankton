@@ -36,14 +36,14 @@ void GPSROSPlugin::Load(sensors::SensorPtr _parent, sdf::ElementPtr _sdf)
     std::dynamic_pointer_cast<sensors::GpsSensor>(_parent);
 
   gzmsg << "GPSROSPlugin - Initialize sensor topic publisher" << std::endl;
-  this->rosSensorOutputPub = this->rosNode->advertise<sensor_msgs::NavSatFix>(
+  this->rosSensorOutputPub = myRosNode->create_publisher<sensor_msgs::msg::NavSatFix>(
     this->sensorOutputTopic, 10);
 
   // Set the frame ID
-  this->gpsMessage.header.frame_id = this->robotNamespace + "/gps_link";
+  this->gpsMessage.header.frame_id = this->myRobotNamespace + "/gps_link";
   // TODO: Get the position covariance from the GPS sensor
   this->gpsMessage.position_covariance_type =
-    sensor_msgs::NavSatFix::COVARIANCE_TYPE_KNOWN;
+    sensor_msgs::msg::NavSatFix::COVARIANCE_TYPE_KNOWN;
 
   double horizontalPosStdDev = 0.0;
   GetSDFParam(_sdf, "horizontal_pos_std_dev", horizontalPosStdDev, 0.0);
@@ -56,8 +56,8 @@ void GPSROSPlugin::Load(sensors::SensorPtr _parent, sdf::ElementPtr _sdf)
   this->gpsMessage.position_covariance[8] = verticalPosStdDev * verticalPosStdDev;
 
   // TODO: Configurable status setup
-  this->gpsMessage.status.status = sensor_msgs::NavSatStatus::STATUS_FIX;
-  this->gpsMessage.status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
+  this->gpsMessage.status.status = sensor_msgs::msg::NavSatStatus::STATUS_FIX;
+  this->gpsMessage.status.service = sensor_msgs::msg::NavSatStatus::SERVICE_GPS;
 
   // Connect to the sensor update event.
   this->updateConnection = this->gazeboGPSSensor->ConnectUpdated(
@@ -72,14 +72,14 @@ bool GPSROSPlugin::OnUpdateGPS()
   common::Time currentTime = this->gazeboGPSSensor->LastMeasurementTime();
 
   this->gpsMessage.header.stamp.sec = currentTime.sec;
-  this->gpsMessage.header.stamp.nsec = currentTime.nsec;
+  this->gpsMessage.header.stamp.nanosec = currentTime.nsec;
 
   // Copy the output of Gazebo's GPS sensor into a NavSatFix message
   this->gpsMessage.latitude = -this->gazeboGPSSensor->Latitude().Degree();
   this->gpsMessage.longitude = -this->gazeboGPSSensor->Longitude().Degree();
   this->gpsMessage.altitude = this->gazeboGPSSensor->Altitude();
 
-  this->rosSensorOutputPub.publish(this->gpsMessage);
+  this->rosSensorOutputPub->publish(this->gpsMessage);
 
   return true;
 }

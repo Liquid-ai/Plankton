@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <uuv_sensor_ros_plugins/CPCROSPlugin.hh>
+#include <uuv_sensor_ros_plugins/CPCROSPlugin.h>
 
 namespace gazebo
 {
@@ -70,9 +70,9 @@ void CPCROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   }
   else
   {
-    if (salinityUnit.compare(uuv_sensor_ros_plugins_msgs::Salinity::PPT) == 0)
+    if (salinityUnit.compare(uuv_sensor_ros_plugins_msgs::msg::Salinity::PPT) == 0)
       this->waterSalinityValue = 35.0;
-    else if (salinityUnit.compare(uuv_sensor_ros_plugins_msgs::Salinity::PPM) == 0)
+    else if (salinityUnit.compare(uuv_sensor_ros_plugins_msgs::msg::Salinity::PPM) == 0)
       this->waterSalinityValue = 35000.0;
     else
       this->waterSalinityValue = 35.0;
@@ -84,10 +84,10 @@ void CPCROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   GZ_ASSERT(this->plumeSalinityValue < this->waterSalinityValue,
     "Plume salinity value must be lower than the water salinity value");
 
-  this->particlesSub = this->rosNode->subscribe<sensor_msgs::PointCloud>(
+  this->particlesSub = myRosNode->create_subscription<sensor_msgs::msg::PointCloud>(
     inputTopic, 1,
-    boost::bind(&CPCROSPlugin::OnPlumeParticlesUpdate,
-      this, _1));
+    std::bind(&CPCROSPlugin::OnPlumeParticlesUpdate,
+      this, std::placeholders::_1));
 
   // Set initial particle concentration value to zero
   this->outputMsg.concentration = 0.0;
@@ -97,14 +97,14 @@ void CPCROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   this->salinityMsg.variance = this->noiseSigma * this->noiseSigma;
 
-  this->rosSensorOutputPub = this->rosNode->advertise<
-    uuv_sensor_ros_plugins_msgs::ChemicalParticleConcentration>(
+  this->rosSensorOutputPub = myRosNode->create_publisher<
+    uuv_sensor_ros_plugins_msgs::msg::ChemicalParticleConcentration>(
       this->sensorOutputTopic, 1);
 
-  this->salinityPub = this->rosNode->advertise<
-    uuv_sensor_ros_plugins_msgs::Salinity>(salinityTopic, 1);
+  this->salinityPub = myRosNode->create_publisher<uuv_sensor_ros_plugins_msgs::msg::Salinity>(salinityTopic, 1);
 
-  this->lastUpdateTimestamp = ros::Time::now();
+  //this->lastUpdateTimestamp = ros::Time::now();
+  myLastUpdateTimeStamp = myRosNode->now();//myTimer.now();
 
   gzmsg << "CPCROSPlugin[" << this->link->GetName()
     << "] initialized!" << std::endl
@@ -124,7 +124,7 @@ bool CPCROSPlugin::OnUpdate(const common::UpdateInfo& _info)
 
   // Set particle concentration to zero if the point cloud message has not
   // been received for a long time
-  if (_info.simTime.Double() - this->lastUpdateTimestamp.toSec() > 5.0)
+  if (_info.simTime.Double() - myLastUpdateTimeStamp.seconds() > 5.0)
   {
     this->outputMsg.is_measuring = false;
     this->outputMsg.concentration = 0.0;
@@ -134,18 +134,18 @@ bool CPCROSPlugin::OnUpdate(const common::UpdateInfo& _info)
   this->outputMsg.concentration += this->GetGaussianNoise(
     this->noiseAmp);
   this->outputMsg.header.stamp.sec = _info.simTime.sec;
-  this->outputMsg.header.stamp.nsec = _info.simTime.nsec;
-  this->rosSensorOutputPub.publish(this->outputMsg);
+  this->outputMsg.header.stamp.nanosec = _info.simTime.nsec;
+  this->rosSensorOutputPub->publish(this->outputMsg);
 
   this->salinityMsg.header.frame_id = this->referenceFrameID;
   this->salinityMsg.header.stamp.sec = _info.simTime.sec;
-  this->salinityMsg.header.stamp.nsec = _info.simTime.nsec;
+  this->salinityMsg.header.stamp.nanosec = _info.simTime.nsec;
 
   this->salinityMsg.salinity =
     this->waterSalinityValue * (1 - std::min(1.0, this->outputMsg.concentration)) +
     std::min(1.0, this->outputMsg.concentration) * this->plumeSalinityValue;
 
-  this->salinityPub.publish(this->salinityMsg);
+  this->salinityPub->publish(this->salinityMsg);
 
   // Read the current simulation time
 #if GAZEBO_MAJOR_VERSION >= 8
@@ -158,9 +158,9 @@ bool CPCROSPlugin::OnUpdate(const common::UpdateInfo& _info)
 
 /////////////////////////////////////////////////
 void CPCROSPlugin::OnPlumeParticlesUpdate(
-  const sensor_msgs::PointCloud::ConstPtr &_msg)
+  const sensor_msgs::msg::PointCloud::SharedPtr _msg)
 {
-  if (this->rosSensorOutputPub.getNumSubscribers() > 0)
+  if (this->rosSensorOutputPub->get_subscription_count() > 0)
   {
     this->updatingCloud = true;
 
@@ -203,9 +203,9 @@ void CPCROSPlugin::OnPlumeParticlesUpdate(
     this->outputMsg.depth = -1 * scVec.Z();
 
     // Store this measurement's time stamp
-    this->lastUpdateTimestamp = _msg->header.stamp;
+    myLastUpdateTimeStamp = _msg->header.stamp;
 
-    double currentTime = _msg->header.stamp.toSec();
+    double currentTime = (double)_msg->header.stamp.sec;
 
     double initSmoothingLength = std::pow(this->smoothingLength, 2.0 / 3);
     ignition::math::Vector3d particle;

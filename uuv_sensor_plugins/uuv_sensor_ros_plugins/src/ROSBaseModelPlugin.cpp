@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.hh>
+#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.h>
 
 namespace gazebo
 {
@@ -26,18 +26,34 @@ ROSBaseModelPlugin::ROSBaseModelPlugin()
   this->localNEDFrame.Rot() = ignition::math::Quaterniond(
     ignition::math::Vector3d(M_PI, 0, 0));
   // Initialize the local NED frame
-  this->tfLocalNEDFrame.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
-  this->tfLocalNEDFrame.setRotation(
-    tf::createQuaternionFromRPY(M_PI, 0.0, 0.0));
+  //this->tfLocalNEDFrame.setOrigin(tf2::Vector3(0.0, 0.0, 0.0));
+  tf2::Quaternion quat;
+  quat.setRPY(M_PI, 0.0, 0.0);
+  //this->tfLocalNEDFrame.setRotation(quat);
+    //tf2::createQuaternionFromRPY(M_PI, 0.0, 0.0));
+
+  //Refactor with tf2::convert
+  // tf2::Stamped<tf2::Transform> tf2Tr;
+  // tf2Tr.setOrigin(tf2::Vector3(0.0, 0.0, 0.0));
+  // tf2Tr.setRotation(quat);
+  // tf2::convert(tf2Tr, tfLocalNEDFrameMsg);
+
+  geometry_msgs::msg::Vector3 translation; translation.x = 0.0;translation.y = 0.0;translation.z = 0.0;
+    tfLocalNEDFrameMsg.transform.set__translation(translation);
+  this->tfLocalNEDFrameMsg.transform.rotation.x = quat.x();
+  this->tfLocalNEDFrameMsg.transform.rotation.y = quat.y();
+  this->tfLocalNEDFrameMsg.transform.rotation.z = quat.z();
+  this->tfLocalNEDFrameMsg.transform.rotation.w = quat.w();
+
   // Initialize TF broadcaster
-  this->tfBroadcaster = new tf::TransformBroadcaster();
+  this->tfBroadcaster = std::make_unique<tf2_ros::TransformBroadcaster>();
 }
 
 /////////////////////////////////////////////////
 ROSBaseModelPlugin::~ROSBaseModelPlugin()
 {
-  if (this->tfBroadcaster)
-    delete this->tfBroadcaster;
+  // if (this->tfBroadcaster)
+  //   delete this->tfBroadcaster;
 }
 
 /////////////////////////////////////////////////
@@ -75,8 +91,8 @@ void ROSBaseModelPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   GZ_ASSERT(this->link != NULL, "Invalid link pointer");
 
   // Set the frame IDs for the local NED frame
-  this->tfLocalNEDFrame.frame_id_ = this->link->GetName();
-  this->tfLocalNEDFrame.child_frame_id_ = this->link->GetName() + "_ned";
+  this->tfLocalNEDFrameMsg.header.frame_id = this->link->GetName();
+  this->tfLocalNEDFrameMsg.child_frame_id = this->link->GetName() + "_ned";
 
   this->InitBasePlugin(_sdf);
 
@@ -94,9 +110,13 @@ bool ROSBaseModelPlugin::OnUpdate(const common::UpdateInfo&)
 /////////////////////////////////////////////////
 void ROSBaseModelPlugin::SendLocalNEDTransform()
 {
-  geometry_msgs::TransformStamped msg;
-  this->tfLocalNEDFrame.stamp_ = ros::Time::now();
-  tf::transformStampedTFToMsg(this->tfLocalNEDFrame, msg);
+  geometry_msgs::msg::TransformStamped msg;
+  auto time = myRosNode->now();
+  //builtin_interfaces::msg::Time msgTime;
+  
+  this->tfLocalNEDFrameMsg.header.stamp = time;    
+  tf2::TimePoint(std::chrono::nanoseconds(time.nanoseconds()));//ros::Time::now();
+  //tf2::transformStampedTFToMsg(this->tfLocalNEDFrame, msg);
   this->tfBroadcaster->sendTransform(msg);  
 }
 

@@ -26,11 +26,18 @@
 #include <memory>
 #include <string>
 
-#include <tf/transform_datatypes.h>
-#include <tf/tfMessage.h>
-#include <tf/transform_listener.h>
-#include <tf/tf.h>
-#include <tf/transform_broadcaster.h>
+#include <tf2/transform_datatypes.h>
+#include <tf2_msgs/msg/tf_message.hpp>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
+
+#include <geometry_msgs/msg/transform_stamped.hpp>
+
+// #include <tf/transform_datatypes.h>
+// #include <tf/tfMessage.h>
+// #include <tf/transform_listener.h>
+// #include <tf/tf.h>
+// #include <tf/transform_broadcaster.h>
 
 namespace gazebo
 {
@@ -59,13 +66,14 @@ namespace gazebo
     protected: bool enableLocalNEDFrame;
 
     /// \brief TF broadcaster for the local NED frame
-    protected: tf::TransformBroadcaster * tfBroadcaster;
+    protected: std::unique_ptr<tf2_ros::TransformBroadcaster> tfBroadcaster;
 
     /// \brief Pose of the local NED frame wrt link frame
     protected: ignition::math::Pose3d localNEDFrame;
 
     /// \brief Local NED TF frame
-    protected: tf::StampedTransform tfLocalNEDFrame;
+    //protected: tf2::Stamped<tf2::Transform> tfLocalNEDFrame;
+    protected: geometry_msgs::msg::TransformStamped tfLocalNEDFrameMsg;
 
     /// \brief Returns true if the base_link_ned frame exists
     protected: void SendLocalNEDTransform();

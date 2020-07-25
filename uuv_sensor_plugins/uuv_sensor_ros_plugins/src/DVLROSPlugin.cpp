@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <uuv_sensor_ros_plugins/DVLROSPlugin.hh>
+#include <uuv_sensor_ros_plugins/DVLROSPlugin.h>
 
 namespace gazebo
 {
@@ -31,6 +31,10 @@ DVLROSPlugin::~DVLROSPlugin()
 void DVLROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 {
   ROSBaseModelPlugin::Load(_model, _sdf);
+
+  std::shared_ptr<rclcpp::Clock> clock = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
+  tf2_ros::Buffer buffer(clock);
+  myTransformListener.reset(new tf2_ros::TransformListener(buffer, myRosNode));
 
   // Load the link names for all the beams
   std::string beamLinkName;
@@ -69,22 +73,22 @@ void DVLROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   this->beamTopics.push_back(beamTopic);
 
   // Create beam subscribers
-  this->beamSub0.reset(new message_filters::Subscriber<sensor_msgs::Range>(
-    *this->rosNode.get(), this->beamTopics[0], 1));
-  this->beamSub1.reset(new message_filters::Subscriber<sensor_msgs::Range>(
-    *this->rosNode.get(), this->beamTopics[1], 1));
-  this->beamSub2.reset(new message_filters::Subscriber<sensor_msgs::Range>(
-    *this->rosNode.get(), this->beamTopics[2], 1));
-  this->beamSub3.reset(new message_filters::Subscriber<sensor_msgs::Range>(
-    *this->rosNode.get(), this->beamTopics[3], 1));
+  this->beamSub0.reset(new message_filters::Subscriber<sensor_msgs::msg::Range>(
+    myRosNode, this->beamTopics[0], 1));
+  this->beamSub1.reset(new message_filters::Subscriber<sensor_msgs::msg::Range>(
+    myRosNode, this->beamTopics[1], 1));
+  this->beamSub2.reset(new message_filters::Subscriber<sensor_msgs::msg::Range>(
+    myRosNode, this->beamTopics[2], 1));
+  this->beamSub3.reset(new message_filters::Subscriber<sensor_msgs::msg::Range>(
+    myRosNode, this->beamTopics[3], 1));
 
   for (int i = 0; i < 4; i++)
-    this->dvlBeamMsgs.push_back(uuv_sensor_ros_plugins_msgs::DVLBeam());
+    this->dvlBeamMsgs.push_back(uuv_sensor_ros_plugins_msgs::msg::DVLBeam());
 
   // Synchronize the beam topics
   this->syncBeamMessages.reset(new message_filters::TimeSynchronizer<
-    sensor_msgs::Range, sensor_msgs::Range,
-    sensor_msgs::Range, sensor_msgs::Range>(
+    sensor_msgs::msg::Range, sensor_msgs::msg::Range,
+    sensor_msgs::msg::Range, sensor_msgs::msg::Range>(
       *this->beamSub0.get(), *this->beamSub1.get(), *this->beamSub2.get(),
       *this->beamSub3.get(), 10));
 
@@ -94,19 +98,19 @@ void DVLROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   // Initialize the default DVL output
   this->rosSensorOutputPub =
-    this->rosNode->advertise<uuv_sensor_ros_plugins_msgs::DVL>(
+    myRosNode->create_publisher<uuv_sensor_ros_plugins_msgs::msg::DVL>(
       this->sensorOutputTopic, 1);
 
   this->twistPub =
-    this->rosNode->advertise<geometry_msgs::TwistWithCovarianceStamped>(
+    myRosNode->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(
       this->sensorOutputTopic + "_twist", 1);
 
   // Initialize ROS messages headers
   if (this->enableLocalNEDFrame)
   {
     // Use the local NED frame format
-    this->dvlROSMsg.header.frame_id = this->tfLocalNEDFrame.child_frame_id_;
-    this->twistROSMsg.header.frame_id = this->tfLocalNEDFrame.child_frame_id_;
+    this->dvlROSMsg.header.frame_id = this->tfLocalNEDFrameMsg.child_frame_id;
+    this->twistROSMsg.header.frame_id = this->tfLocalNEDFrameMsg.child_frame_id;
   }
   else
   {
@@ -139,7 +143,7 @@ void DVLROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   {
     this->gazeboSensorOutputPub =
       this->gazeboNode->Advertise<sensor_msgs::msgs::Dvl>(
-        this->robotNamespace + "/" + this->sensorOutputTopic, 1);
+        myRobotNamespace + "/" + this->sensorOutputTopic, 1);
   }
 }
 
@@ -200,7 +204,7 @@ bool DVLROSPlugin::OnUpdate(const common::UpdateInfo& _info)
 
   // Publish ROS DVL message
   this->dvlROSMsg.header.stamp.sec = _info.simTime.sec;
-  this->dvlROSMsg.header.stamp.nsec = _info.simTime.nsec;
+  this->dvlROSMsg.header.stamp.nanosec = _info.simTime.nsec;
 
   this->dvlROSMsg.altitude = this->altitude;
 
@@ -209,7 +213,7 @@ bool DVLROSPlugin::OnUpdate(const common::UpdateInfo& _info)
   this->dvlROSMsg.velocity.x = bodyVel.X();
   this->dvlROSMsg.velocity.y = bodyVel.Y();
   this->dvlROSMsg.velocity.z = bodyVel.Z();
-  this->rosSensorOutputPub.publish(this->dvlROSMsg);
+  this->rosSensorOutputPub->publish(this->dvlROSMsg);
 
   this->twistROSMsg.header.stamp = this->dvlROSMsg.header.stamp;
 
@@ -217,7 +221,7 @@ bool DVLROSPlugin::OnUpdate(const common::UpdateInfo& _info)
   this->twistROSMsg.twist.twist.linear.y = bodyVel.Y();
   this->twistROSMsg.twist.twist.linear.z = bodyVel.Z();
 
-  this->twistPub.publish(this->twistROSMsg);
+  this->twistPub->publish(this->twistROSMsg);
 
   // Read the current simulation time
   #if GAZEBO_MAJOR_VERSION >= 8
@@ -229,10 +233,10 @@ bool DVLROSPlugin::OnUpdate(const common::UpdateInfo& _info)
 }
 
 /////////////////////////////////////////////////
-void DVLROSPlugin::OnBeamCallback(const sensor_msgs::RangeConstPtr& _range0,
-  const sensor_msgs::RangeConstPtr& _range1,
-  const sensor_msgs::RangeConstPtr& _range2,
-  const sensor_msgs::RangeConstPtr& _range3)
+void DVLROSPlugin::OnBeamCallback(const sensor_msgs::msg::Range::SharedPtr _range0,
+  const sensor_msgs::msg::Range::SharedPtr _range1,
+  const sensor_msgs::msg::Range::SharedPtr _range2,
+  const sensor_msgs::msg::Range::SharedPtr _range3)
 {
   if (_range0->range == _range0->min_range &&
       _range1->range == _range1->min_range &&
@@ -269,7 +273,7 @@ bool DVLROSPlugin::UpdateBeamTransforms()
   if (this->beamPoses.size() == 4)
     return true;
 
-  tf::StampedTransform beamTransform;
+  tf2::Stamped<tf2::Transform> beamTransform;
   std::string targetFrame, sourceFrame;
   bool success = true;
 
@@ -279,15 +283,15 @@ bool DVLROSPlugin::UpdateBeamTransforms()
     if (!this->enableLocalNEDFrame)
       targetFrame = this->link->GetName();
     else
-      targetFrame = tfLocalNEDFrame.child_frame_id_;
+      targetFrame = tfLocalNEDFrameMsg.child_frame_id;
     try
     {
-      ros::Time now = ros::Time::now();
-      this->transformListener.lookupTransform(
+      //ros::Time now = ros::Time::now();
+      myTransformListener->lookupTransform(
         targetFrame, sourceFrame, ros::Time(0),
         beamTransform);
     }
-    catch(tf::TransformException &ex)
+    catch(tf2::TransformException &ex)
     {
       success = false;
       break;
@@ -304,8 +308,8 @@ bool DVLROSPlugin::UpdateBeamTransforms()
       beamTransform.getRotation().getAxis().y(),
       beamTransform.getRotation().getAxis().z());
 
-    this->dvlBeamMsgs[i].pose = geometry_msgs::PoseStamped();
-    this->dvlBeamMsgs[i].pose.header.stamp = ros::Time::now();
+    this->dvlBeamMsgs[i].pose = geometry_msgs::msg::PoseStamped();
+    this->dvlBeamMsgs[i].pose.header.stamp = myNode->now();//ros::Time::now();
     this->dvlBeamMsgs[i].pose.header.frame_id = sourceFrame;
 
     this->dvlBeamMsgs[i].pose.pose.position.x = beamTransform.getOrigin().x();

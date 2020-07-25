@@ -17,20 +17,25 @@
 #define __UUV_DVL_ROS_PLUGIN_HH__
 
 #include <gazebo/gazebo.hh>
-#include <ros/ros.h>
-#include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
-#include <geometry_msgs/TwistWithCovarianceStamped.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <sensor_msgs/Range.h>
-#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.hh>
-#include <uuv_sensor_ros_plugins_msgs/DVL.h>
-#include <uuv_sensor_ros_plugins_msgs/DVLBeam.h>
+
+#include <rclcpp/rclcpp.hpp>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
-#include <tf/transform_listener.h>
+#include <sensor_msgs/msg/range.hpp>
+
+#include <geometry_msgs/msg/twist_with_covariance_stamped.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+
+#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.h>
+#include <uuv_sensor_ros_plugins_msgs/msg/dvl.hpp>
+#include <uuv_sensor_ros_plugins_msgs/msg/dvl_beam.hpp>
+
+
+#include <tf2_ros/transform_listener.h>
+
 #include <vector>
-#include "SensorDvl.pb.h"
+
+//#include "SensorDvl.pb.h"
 
 #define ALTITUDE_OUT_OF_RANGE -1.0
 namespace gazebo
@@ -51,10 +56,10 @@ namespace gazebo
     protected: virtual bool OnUpdate(const common::UpdateInfo& _info);
 
     /// \brief Get beam Range message update
-    protected: void OnBeamCallback(const sensor_msgs::RangeConstPtr& _range0,
-      const sensor_msgs::RangeConstPtr& _range1,
-      const sensor_msgs::RangeConstPtr& _range2,
-      const sensor_msgs::RangeConstPtr& _range3);
+    protected: void OnBeamCallback(const sensor_msgs::msg::Range::SharedPtr _range0,
+      const sensor_msgs::msg::Range::SharedPtr _range1,
+      const sensor_msgs::msg::Range::SharedPtr _range2,
+      const sensor_msgs::msg::Range::SharedPtr _range3);
 
     /// \brief Updates the poses of each beam wrt the DVL frame
     protected: bool UpdateBeamTransforms();
@@ -65,15 +70,15 @@ namespace gazebo
     protected: double altitude;
 
     /// \brief ROS DVL message
-    protected: uuv_sensor_ros_plugins_msgs::DVL dvlROSMsg;
+    protected: uuv_sensor_ros_plugins_msgs::msg::DVL dvlROSMsg;
 
-    protected: std::vector<uuv_sensor_ros_plugins_msgs::DVLBeam> dvlBeamMsgs;
+    protected: std::vector<uuv_sensor_ros_plugins_msgs::msg::DVLBeam> dvlBeamMsgs;
 
     /// \brief ROS publisher for twist data.
-    protected: ros::Publisher twistPub;
+    protected: rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr twistPub;
 
     /// \brief Store pose message since many attributes do not change (cov.).
-    protected: geometry_msgs::TwistWithCovarianceStamped twistROSMsg;
+    protected: geometry_msgs::msg::TwistWithCovarianceStamped twistROSMsg;
 
     /// \brief List of beam links
     protected: std::vector<std::string> beamsLinkNames;
@@ -85,22 +90,26 @@ namespace gazebo
     protected: std::vector<ignition::math::Pose3d> beamPoses;
 
     protected: boost::shared_ptr<message_filters::TimeSynchronizer<
-      sensor_msgs::Range, sensor_msgs::Range, sensor_msgs::Range, sensor_msgs::Range>>
+      sensor_msgs::msg::Range, sensor_msgs::msg::Range, sensor_msgs::msg::Range, sensor_msgs::msg::Range>>
       syncBeamMessages;
 
-    protected: boost::shared_ptr<message_filters::Subscriber<
-      sensor_msgs::Range>> beamSub0;
+    protected: std::shared_ptr<message_filters::Subscriber<
+      sensor_msgs::msg::Range>> beamSub0;
 
-    protected: boost::shared_ptr<message_filters::Subscriber<
-      sensor_msgs::Range>> beamSub1;
+    protected: std::shared_ptr<message_filters::Subscriber<
+      sensor_msgs::msg::Range>> beamSub1;
 
-    protected: boost::shared_ptr<message_filters::Subscriber<
-      sensor_msgs::Range>> beamSub2;
+    protected: std::shared_ptr<message_filters::Subscriber<
+      sensor_msgs::msg::Range>> beamSub2;
 
-    protected: boost::shared_ptr<message_filters::Subscriber<
-      sensor_msgs::Range>> beamSub3;
+    protected: std::shared_ptr<message_filters::Subscriber<
+      sensor_msgs::msg::Range>> beamSub3;
 
-    protected: tf::TransformListener transformListener;
+    protected: std::unique_ptr<tf2_ros::TransformListener> myTransformListener;
+
+    /// \brief publisher for transporting measurement messages.
+    protected: rclcpp::Publisher<uuv_sensor_ros_plugins_msgs::msg::DVL>::SharedPtr rosSensorOutputPub;
+    
   };
 }
 

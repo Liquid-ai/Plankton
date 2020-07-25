@@ -17,10 +17,12 @@
 #define __UUV_SUBSEA_PRESSURE_ROS_PLUGIN_HH__
 
 #include <gazebo/gazebo.hh>
-#include <ros/ros.h>
-#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.hh>
+#include <rclcpp/rclcpp.hpp>
+
+#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.h>
+
 #include "SensorPressure.pb.h"
-#include <sensor_msgs/FluidPressure.h>
+#include <sensor_msgs/msg/fluid_pressure.hpp>
 
 namespace gazebo
 {
@@ -50,6 +52,9 @@ namespace gazebo
 
     /// \brief Factor of kPa per meter
     protected: double kPaPerM;
+
+    /// \brief publisher for transporting measurement messages.
+    protected: rclcpp::Publisher<sensor_msgs::msg::FluidPressure>::SharedPtr rosSensorOutputPub;
   };
 }
 
