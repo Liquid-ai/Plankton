@@ -33,8 +33,8 @@ void DVLROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   ROSBaseModelPlugin::Load(_model, _sdf);
 
   std::shared_ptr<rclcpp::Clock> clock = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
-  tf2_ros::Buffer buffer(clock);
-  myTransformListener.reset(new tf2_ros::TransformListener(buffer, myRosNode));
+  myBuffer.reset(new tf2_ros::Buffer(clock));
+  myTransformListener.reset(new tf2_ros::TransformListener(*myBuffer, myRosNode));
 
   // Load the link names for all the beams
   std::string beamLinkName;
@@ -74,13 +74,13 @@ void DVLROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   // Create beam subscribers
   this->beamSub0.reset(new message_filters::Subscriber<sensor_msgs::msg::Range>(
-    myRosNode, this->beamTopics[0], 1));
+    myRosNode, this->beamTopics[0]));
   this->beamSub1.reset(new message_filters::Subscriber<sensor_msgs::msg::Range>(
-    myRosNode, this->beamTopics[1], 1));
+    myRosNode, this->beamTopics[1]));
   this->beamSub2.reset(new message_filters::Subscriber<sensor_msgs::msg::Range>(
-    myRosNode, this->beamTopics[2], 1));
+    myRosNode, this->beamTopics[2]));
   this->beamSub3.reset(new message_filters::Subscriber<sensor_msgs::msg::Range>(
-    myRosNode, this->beamTopics[3], 1));
+    myRosNode, this->beamTopics[3]));
 
   for (int i = 0; i < 4; i++)
     this->dvlBeamMsgs.push_back(uuv_sensor_ros_plugins_msgs::msg::DVLBeam());
@@ -274,6 +274,7 @@ bool DVLROSPlugin::UpdateBeamTransforms()
     return true;
 
   tf2::Stamped<tf2::Transform> beamTransform;
+  //geometry_msgs::msg::TransformStamped
   std::string targetFrame, sourceFrame;
   bool success = true;
 
@@ -287,9 +288,8 @@ bool DVLROSPlugin::UpdateBeamTransforms()
     try
     {
       //ros::Time now = ros::Time::now();
-      myTransformListener->lookupTransform(
-        targetFrame, sourceFrame, ros::Time(0),
-        beamTransform);
+      beamTransform = myBuffer->lookupTransform(
+        targetFrame, sourceFrame, rclcpp::Time(0));
     }
     catch(tf2::TransformException &ex)
     {
@@ -309,7 +309,7 @@ bool DVLROSPlugin::UpdateBeamTransforms()
       beamTransform.getRotation().getAxis().z());
 
     this->dvlBeamMsgs[i].pose = geometry_msgs::msg::PoseStamped();
-    this->dvlBeamMsgs[i].pose.header.stamp = myNode->now();//ros::Time::now();
+    this->dvlBeamMsgs[i].pose.header.stamp = myRosNode->now();//ros::Time::now();
     this->dvlBeamMsgs[i].pose.header.frame_id = sourceFrame;
 
     this->dvlBeamMsgs[i].pose.pose.position.x = beamTransform.getOrigin().x();
