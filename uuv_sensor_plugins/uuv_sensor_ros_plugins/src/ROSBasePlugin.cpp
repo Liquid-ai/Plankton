@@ -93,7 +93,7 @@ bool ROSBasePlugin::InitBasePlugin(sdf::ElementPtr _sdf)
     {
       myTfStaticSub = myRosNode->create_subscription<tf2_msgs::msg::TFMessage>(//)::tfMessage>(
         "/tf_static", 1,
-        std::bind(&ROSBasePlugin::GetTFMessage, this, _1));
+        std::bind(&ROSBasePlugin::GetTFMessage, this, std::placeholders::_1));
     }
     else
       this->isReferenceInit = true;
@@ -141,6 +141,8 @@ bool ROSBasePlugin::InitBasePlugin(sdf::ElementPtr _sdf)
 
   // Add a default Gaussian noise model
   this->AddNoiseModel("default", this->noiseSigma);
+
+  return true;
 }
 
 /////////////////////////////////////////////////
