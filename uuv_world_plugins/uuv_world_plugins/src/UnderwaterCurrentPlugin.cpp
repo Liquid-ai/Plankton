@@ -15,11 +15,6 @@
 
 /// \file UnderwaterCurrentPlugin.cpp
 
-//TODO Remove boost
-#include <boost/algorithm/string.hpp>
-#include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
-
 #include <gazebo/gazebo.hh>
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/physics/Link.hh>
@@ -216,8 +211,8 @@ void UnderwaterCurrentPlugin::Load(physics::WorldPtr _world, sdf::ElementPtr _sd
 
   // Connect the update event
   this->updateConnection = event::Events::ConnectWorldUpdateBegin(
-    boost::bind(&UnderwaterCurrentPlugin::Update,
-    this, _1));
+    std::bind(&UnderwaterCurrentPlugin::Update,
+      this, std::placeholders::_1));
 
   gzmsg << "Underwater current plugin loaded!" << std::endl
     << "\tWARNING: Current velocity calculated in the ENU frame"

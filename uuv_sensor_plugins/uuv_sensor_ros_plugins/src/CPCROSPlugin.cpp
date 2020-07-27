@@ -209,7 +209,7 @@ void CPCROSPlugin::OnPlumeParticlesUpdate(
 
     double initSmoothingLength = std::pow(this->smoothingLength, 2.0 / 3);
     ignition::math::Vector3d particle;
-    for (int i = 0; i < _msg->points.size(); i++)
+    for (size_t i = 0; i < _msg->points.size(); i++)
     {
       particle = ignition::math::Vector3d(_msg->points[i].x, _msg->points[i].y,
         _msg->points[i].z);
