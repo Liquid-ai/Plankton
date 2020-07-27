@@ -45,7 +45,7 @@ void SubseaPressureROSPlugin::Load(physics::ModelPtr _model,
   {
     this->gazeboSensorOutputPub =
       this->gazeboNode->Advertise<sensor_msgs::msgs::Pressure>(
-          this->robotNamespace + "/" + this->sensorOutputTopic, 1);
+          myRobotNamespace + "/" + this->sensorOutputTopic, 1);
   }
 }
 

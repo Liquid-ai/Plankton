@@ -46,7 +46,7 @@ ROSBaseModelPlugin::ROSBaseModelPlugin()
   this->tfLocalNEDFrameMsg.transform.rotation.w = quat.w();
 
   // Initialize TF broadcaster
-  this->tfBroadcaster = std::make_unique<tf2_ros::TransformBroadcaster>();
+  this->tfBroadcaster.reset(new tf2_ros::TransformBroadcaster(myRosNode));
 }
 
 /////////////////////////////////////////////////

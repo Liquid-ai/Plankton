@@ -31,9 +31,12 @@
 #define __UUV_IMU_ROS_PLUGIN_HH__
 
 #include <gazebo/gazebo.hh>
-#include <ros/ros.h>
-#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.hh>
-#include <sensor_msgs/Imu.h>
+
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+
+#include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.h>
+
 #include "SensorImu.pb.h"
 
 // Default values for use with ADIS16448 IMU
@@ -151,7 +154,10 @@ namespace gazebo
     protected: IMUParameters imuParameters;
 
     /// \brief ROS IMU message
-    protected: sensor_msgs::Imu imuROSMessage;
+    protected: sensor_msgs::msg::Imu imuROSMessage;
+
+    /// \brief publisher for transporting measurement messages.
+    protected: rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr rosSensorOutputPub;
   };
 }
 

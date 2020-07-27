@@ -49,7 +49,7 @@ namespace gazebo
     protected: uuv_sensor_ros_plugins_msgs::msg::PositionWithCovarianceStamped myRosMessage;
 
     /// \brief publisher for transporting measurement messages.
-    protected: rclcpp::Publisher<uuv_sensor_ros_plugins_msgs::PositionWithCovarianceStamped>::SharedPtr rosSensorOutputPub;
+    protected: rclcpp::Publisher<uuv_sensor_ros_plugins_msgs::msg::PositionWithCovarianceStamped>::SharedPtr rosSensorOutputPub;
     
   };
 }

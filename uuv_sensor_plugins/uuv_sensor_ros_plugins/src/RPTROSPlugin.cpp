@@ -32,22 +32,22 @@ void RPTROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   double variance = this->noiseSigma * this->noiseSigma;
   for (int i = 0; i < 9; i++)
-    this->rosMessage.pos.covariance[i] = 0;
+    myRosMessage.pos.covariance[i] = 0;
 
-  this->rosMessage.pos.covariance[0] = this->rosMessage.pos.covariance[4] =
-      this->rosMessage.pos.covariance[8] = variance;
+  myRosMessage.pos.covariance[0] = myRosMessage.pos.covariance[4] =
+      myRosMessage.pos.covariance[8] = variance;
 
   // Initialize the default RPT output
   this->rosSensorOutputPub =
     myRosNode->create_publisher<
-      uuv_sensor_ros_plugins_msgs::PositionWithCovarianceStamped>(
+      uuv_sensor_ros_plugins_msgs::msg::PositionWithCovarianceStamped>(
         this->sensorOutputTopic, 1);
 
   if (this->gazeboMsgEnabled)
   {
     this->gazeboSensorOutputPub =
       this->gazeboNode->Advertise<sensor_msgs::msgs::Rpt>(
-        this->robotNamespace + "/" + this->sensorOutputTopic, 1);
+        myRobotNamespace + "/" + this->sensorOutputTopic, 1);
   }
 }
 
@@ -87,13 +87,13 @@ bool RPTROSPlugin::OnUpdate(const common::UpdateInfo& _info)
   this->position.Y() += this->GetGaussianNoise(this->noiseAmp);
   this->position.Z() += this->GetGaussianNoise(this->noiseAmp);
 
-  this->rosMessage.header.stamp = myRosNode->now();//ros::Time::now();
-  this->rosMessage.header.frame_id = this->referenceFrameID;
-  this->rosMessage.pos.pos.x = this->position.X();
-  this->rosMessage.pos.pos.y = this->position.Y();
-  this->rosMessage.pos.pos.z = this->position.Z();
+  myRosMessage.header.stamp = myRosNode->now();//ros::Time::now();
+  myRosMessage.header.frame_id = this->referenceFrameID;
+  myRosMessage.pos.pos.x = this->position.X();
+  myRosMessage.pos.pos.y = this->position.Y();
+  myRosMessage.pos.pos.z = this->position.Z();
 
-  this->rosSensorOutputPub->publish(this->rosMessage);
+  this->rosSensorOutputPub->publish(myRosMessage);
 
   if (this->gazeboMsgEnabled)
   {

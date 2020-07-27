@@ -51,7 +51,7 @@ set(LIBS ${image_transport_LIBRARIES} ${sensor_msgs_LIBRARIES}
   ${uuv_sensor_ros_plugins_msgs_LIBRARIES} ${rclcpp_LIBRARIES} ${tf2_LIBRARIES}
   ${tf2_ros_LIBRARIES} ${std_msgs_LIBRARIES} ${ament_cmake_LIBRARIES})
 
-add_definitions(-std=c++11)
+#add_definitions(-std=c++11)
 
 find_package(Eigen3 REQUIRED)
 find_package(OGRE REQUIRED)
@@ -81,6 +81,7 @@ message(STATUS "GAZEBO_MSG_INCLUDE_DIRS = " ${GAZEBO_MSG_INCLUDE_DIRS})
 
 #
 include_directories(
+  ${INCLUDE_DIRS}
   ${GAZEBO_MSG_INCLUDE_DIRS}
   ${PROJECT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_BINARY_DIR} # for generated messages
@@ -182,14 +183,15 @@ install(DIRECTORY meshes urdf
   PATTERN "*~"
   EXCLUDE)
 
-if(BUILD_TESTING)
-  find_package(rostest REQUIRED)
-  find_package(xacro REQUIRED)
-  find_package(rosunit REQUIRED)
-  foreach(T test/test_urdf_files.test)
-    add_rostest(${T})
-  endforeach()
-endif()
+#TODO add tests
+# if(BUILD_TESTING)
+#   find_package(rostest REQUIRED)
+#   find_package(xacro REQUIRED)
+#   find_package(rosunit REQUIRED)
+#   foreach(T test/test_urdf_files.test)
+#     add_rostest(${T})
+#   endforeach()
+# endif()
 
 ament_export_dependencies(image_transport)
 ament_export_dependencies(sensor_msgs)

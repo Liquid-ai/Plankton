@@ -27,7 +27,7 @@
 // - be more consistent with other sensor plugins within uuv_simulator,
 // - adhere to Gazebo's coding standards.
 
-#include <uuv_sensor_ros_plugins/IMUROSPlugin.hh>
+#include <uuv_sensor_ros_plugins/IMUROSPlugin.h>
 
 namespace gazebo
 {
@@ -136,13 +136,13 @@ void IMUROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   this->accelerometerBias = ignition::math::Vector3d::Zero;
 
   this->rosSensorOutputPub =
-    this->rosNode->advertise<sensor_msgs::Imu>(this->sensorOutputTopic, 1);
+    myRosNode->create_publisher<sensor_msgs::msg::Imu>(this->sensorOutputTopic, 1);
 
   if (this->gazeboMsgEnabled)
   {
     this->gazeboSensorOutputPub =
       this->gazeboNode->Advertise<sensor_msgs::msgs::Imu>(
-        this->robotNamespace + "/" + this->sensorOutputTopic, 1);
+        myRobotNamespace + "/" + this->sensorOutputTopic, 1);
   }
 }
 
@@ -222,7 +222,7 @@ bool IMUROSPlugin::OnUpdate(const common::UpdateInfo& _info)
 
   // Fill the ROS IMU message
   this->imuROSMessage.header.stamp.sec = _info.simTime.sec;
-  this->imuROSMessage.header.stamp.nsec = _info.simTime.nsec;
+  this->imuROSMessage.header.stamp.nanosec = _info.simTime.nsec;
 
   this->imuROSMessage.orientation.x = this->measOrientation.X();
   this->imuROSMessage.orientation.y = this->measOrientation.Y();
@@ -237,7 +237,7 @@ bool IMUROSPlugin::OnUpdate(const common::UpdateInfo& _info)
   this->imuROSMessage.angular_velocity.y = this->measAngularVel.Y();
   this->imuROSMessage.angular_velocity.z = this->measAngularVel.Z();
 
-  this->rosSensorOutputPub.publish(this->imuROSMessage);
+  this->rosSensorOutputPub->publish(this->imuROSMessage);
 
   if (this->gazeboMsgEnabled)
   {

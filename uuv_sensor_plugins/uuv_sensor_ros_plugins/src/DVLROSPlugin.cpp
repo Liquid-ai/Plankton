@@ -30,6 +30,11 @@ DVLROSPlugin::~DVLROSPlugin()
 /////////////////////////////////////////////////
 void DVLROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 {
+  using std::placeholders::_1;
+  using std::placeholders::_2;
+  using std::placeholders::_3;
+  using std::placeholders::_4;
+
   ROSBaseModelPlugin::Load(_model, _sdf);
 
   std::shared_ptr<rclcpp::Clock> clock = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
@@ -94,7 +99,7 @@ void DVLROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   // Set synchronized callback function for the DVL beams
   this->syncBeamMessages->registerCallback(
-    boost::bind(&DVLROSPlugin::OnBeamCallback, this, _1, _2, _3, _4));
+    std::bind(&DVLROSPlugin::OnBeamCallback, this, _1, _2, _3, _4));
 
   // Initialize the default DVL output
   this->rosSensorOutputPub =
@@ -233,10 +238,10 @@ bool DVLROSPlugin::OnUpdate(const common::UpdateInfo& _info)
 }
 
 /////////////////////////////////////////////////
-void DVLROSPlugin::OnBeamCallback(const sensor_msgs::msg::Range::SharedPtr _range0,
-  const sensor_msgs::msg::Range::SharedPtr _range1,
-  const sensor_msgs::msg::Range::SharedPtr _range2,
-  const sensor_msgs::msg::Range::SharedPtr _range3)
+void DVLROSPlugin::OnBeamCallback(const sensor_msgs::msg::Range::ConstSharedPtr& _range0,
+  const sensor_msgs::msg::Range::ConstSharedPtr& _range1,
+  const sensor_msgs::msg::Range::ConstSharedPtr& _range2,
+  const sensor_msgs::msg::Range::ConstSharedPtr& _range3)
 {
   if (_range0->range == _range0->min_range &&
       _range1->range == _range1->min_range &&
@@ -273,12 +278,12 @@ bool DVLROSPlugin::UpdateBeamTransforms()
   if (this->beamPoses.size() == 4)
     return true;
 
-  tf2::Stamped<tf2::Transform> beamTransform;
-  //geometry_msgs::msg::TransformStamped
+  //tf2::Stamped<tf2::Transform> beamTransform;
+  geometry_msgs::msg::TransformStamped beamTransform;
   std::string targetFrame, sourceFrame;
   bool success = true;
 
-  for (int i = 0; i < this->beamsLinkNames.size(); i++)
+  for (size_t i = 0; i < this->beamsLinkNames.size(); i++)
   {
     sourceFrame = this->beamsLinkNames[i];
     if (!this->enableLocalNEDFrame)
@@ -299,27 +304,27 @@ bool DVLROSPlugin::UpdateBeamTransforms()
 
     ignition::math::Pose3d pose;
     pose.Pos() = ignition::math::Vector3d(
-      beamTransform.getOrigin().x(),
-      beamTransform.getOrigin().y(),
-      beamTransform.getOrigin().z());
+      beamTransform.transform.translation.x,
+      beamTransform.transform.translation.y,
+      beamTransform.transform.translation.z);
     pose.Rot() = ignition::math::Quaterniond(
-      beamTransform.getRotation().getW(),
-      beamTransform.getRotation().getAxis().x(),
-      beamTransform.getRotation().getAxis().y(),
-      beamTransform.getRotation().getAxis().z());
+      beamTransform.transform.rotation.w,
+      beamTransform.transform.rotation.x,
+      beamTransform.transform.rotation.y,
+      beamTransform.transform.rotation.z);
 
     this->dvlBeamMsgs[i].pose = geometry_msgs::msg::PoseStamped();
     this->dvlBeamMsgs[i].pose.header.stamp = myRosNode->now();//ros::Time::now();
     this->dvlBeamMsgs[i].pose.header.frame_id = sourceFrame;
 
-    this->dvlBeamMsgs[i].pose.pose.position.x = beamTransform.getOrigin().x();
-    this->dvlBeamMsgs[i].pose.pose.position.y = beamTransform.getOrigin().y();
-    this->dvlBeamMsgs[i].pose.pose.position.z = beamTransform.getOrigin().z();
+    this->dvlBeamMsgs[i].pose.pose.position.x = beamTransform.transform.translation.x;
+    this->dvlBeamMsgs[i].pose.pose.position.y = beamTransform.transform.translation.y;
+    this->dvlBeamMsgs[i].pose.pose.position.z = beamTransform.transform.translation.z;
 
-    this->dvlBeamMsgs[i].pose.pose.orientation.x = beamTransform.getRotation().getAxis().x();
-    this->dvlBeamMsgs[i].pose.pose.orientation.y = beamTransform.getRotation().getAxis().y();
-    this->dvlBeamMsgs[i].pose.pose.orientation.z = beamTransform.getRotation().getAxis().z();
-    this->dvlBeamMsgs[i].pose.pose.orientation.w = beamTransform.getRotation().getW();
+    this->dvlBeamMsgs[i].pose.pose.orientation.x = beamTransform.transform.rotation.x;
+    this->dvlBeamMsgs[i].pose.pose.orientation.y = beamTransform.transform.rotation.y;
+    this->dvlBeamMsgs[i].pose.pose.orientation.z = beamTransform.transform.rotation.z;
+    this->dvlBeamMsgs[i].pose.pose.orientation.w = beamTransform.transform.rotation.w;
 
     this->beamPoses.push_back(pose);
   }

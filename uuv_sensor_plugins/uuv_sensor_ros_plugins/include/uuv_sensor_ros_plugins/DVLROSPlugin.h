@@ -35,7 +35,7 @@
 
 #include <vector>
 
-//#include "SensorDvl.pb.h"
+#include "SensorDvl.pb.h"
 
 #define ALTITUDE_OUT_OF_RANGE -1.0
 namespace gazebo
@@ -56,10 +56,10 @@ namespace gazebo
     protected: virtual bool OnUpdate(const common::UpdateInfo& _info);
 
     /// \brief Get beam Range message update
-    protected: void OnBeamCallback(const sensor_msgs::msg::Range::SharedPtr _range0,
-      const sensor_msgs::msg::Range::SharedPtr _range1,
-      const sensor_msgs::msg::Range::SharedPtr _range2,
-      const sensor_msgs::msg::Range::SharedPtr _range3);
+    protected: void OnBeamCallback(const sensor_msgs::msg::Range::ConstSharedPtr& _range0,
+      const sensor_msgs::msg::Range::ConstSharedPtr& _range1,
+      const sensor_msgs::msg::Range::ConstSharedPtr& _range2,
+      const sensor_msgs::msg::Range::ConstSharedPtr& _range3);
 
     /// \brief Updates the poses of each beam wrt the DVL frame
     protected: bool UpdateBeamTransforms();
@@ -89,7 +89,7 @@ namespace gazebo
     /// \brief List of poses of each beam wrt to the DVL frame
     protected: std::vector<ignition::math::Pose3d> beamPoses;
 
-    protected: boost::shared_ptr<message_filters::TimeSynchronizer<
+    protected: std::shared_ptr<message_filters::TimeSynchronizer<
       sensor_msgs::msg::Range, sensor_msgs::msg::Range, sensor_msgs::msg::Range, sensor_msgs::msg::Range>>
       syncBeamMessages;
 
