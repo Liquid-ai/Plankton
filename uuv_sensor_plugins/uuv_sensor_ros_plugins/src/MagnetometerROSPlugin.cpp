@@ -130,7 +130,7 @@ bool MagnetometerROSPlugin::OnUpdate(const common::UpdateInfo& _info)
 
   if (this->gazeboMsgEnabled)
   {
-    sensor_msgs::msg::Magnetic gazeboMsg;
+    sensor_msgs::msgs::Magnetic gazeboMsg;
 
     gazebo::msgs::Vector3d* field = new gazebo::msgs::Vector3d();
     field->set_x(this->measMagneticField.X());
@@ -147,6 +147,8 @@ bool MagnetometerROSPlugin::OnUpdate(const common::UpdateInfo& _info)
   this->rosMsg.magnetic_field.z = this->measMagneticField.Z();
 
   this->rosSensorOutputPub->publish(this->rosMsg);
+
+  return true;
 }
 
 /////////////////////////////////////////////////
