@@ -13,17 +13,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from __future__ import print_function
 import os
 import time
 import sys, select, termios, tty
-import rospy
+import rclpy
 import numpy as np
 from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist, Accel, Vector3
+from rclpy.node import Node
 
-class KeyBoardVehicleTeleop:
-    def __init__(self):
+class KeyBoardVehicleTeleop(Node):
+    def __init__(self, node_name):
+        super().__init__(node_name)
         # Class Variables
         self.settings = termios.tcgetattr(sys.stdin)
 
@@ -55,24 +58,25 @@ class KeyBoardVehicleTeleop:
 
         # Default message remains as twist
         self._msg_type = 'twist'
-        if rospy.has_param('~type'):
-            self._msg_type = rospy.get_param('~type')
+        if self.has_parameter('~type'):
+            self._msg_type = self.get_parameter('~type').value
             if self._msg_type not in ['twist', 'accel']:
-                raise rospy.ROSException('Teleoperation output must be either '
+                raise rclpy.exceptions.ParameterException('Teleoperation output must be either '
                                          'twist or accel')
         # Name Publisher topics accordingly
         if self._msg_type == 'twist':
-            self._output_pub = rospy.Publisher('output', Twist, queue_size=1)
+            self._output_pub = self.create_publisher(Twist, 'output', 1)
         else:
-            self._output_pub = rospy.Publisher('output', Accel, queue_size=1)
+            self._output_pub = self.create_publisher(Accel, 'output', 1)
 
         print(self.msg)
 
         # Ros Spin
-        rate = rospy.Rate(50)  # 50hz
-        while not rospy.is_shutdown():
-            rate.sleep()
-            self._parse_keyboard()
+        #rate = rospy.Rate(50)  # 50hz
+        timer = self.create_timer(1 / 50., self._parse_keyboard)
+        # while not rclpy.ok().is_shutdown():
+        #     rate.sleep()
+        #     self._parse_keyboard()
 
     # Every spin this function will return the key being pressed
     # Only works for one key per spin currently, thus limited control exploring alternative methods
@@ -170,8 +174,8 @@ class KeyBoardVehicleTeleop:
 
         # If ctrl+c kill node
         if (key_press == '\x03'):
-            rospy.loginfo('Keyboard Interrupt Pressed')
-            rospy.loginfo('Shutting down [%s] node' % node_name)
+            self.get_logger().info('Keyboard Interrupt Pressed')
+            self.get_logger().info('Shutting down [%s] node' % node_name)
 
             # Set twists to 0
             cmd.angular = Vector3(0, 0, 0)
@@ -189,10 +193,13 @@ if __name__ == '__main__':
     time.sleep(5)
     # Start the node
     node_name = os.path.splitext(os.path.basename(__file__))[0]
-    rospy.init_node(node_name)
-    rospy.loginfo('Starting [%s] node' % node_name)
+    #rospy.init_node(node_name)
+    #rospy.loginfo('Starting [%s] node' % node_name)
 
-    teleop = KeyBoardVehicleTeleop()
+    teleop = KeyBoardVehicleTeleop(node_name)
 
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
-    rospy.loginfo('Shutting down [%s] node' % node_name)
+
+    rclpy.spin(teleop)
+    teleop.get_logger().info('Shutting down [%s] node' % node_name)
+    rclpy.shutdown()

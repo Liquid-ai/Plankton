@@ -15,20 +15,23 @@
 # limitations under the License.
 from __future__ import print_function
 import numpy
-import rospy
+import rclpy
 import tf
 import tf.transformations as trans
 
 from sensor_msgs.msg import Joy
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 from uuv_thrusters.models import Thruster
-from rospy.numpy_msg import numpy_msg
+from rclpy.numpy_msg import numpy_msg
+from rclpy.node import Node
 
 
-class FinnedUUVControllerNode:
+class FinnedUUVControllerNode(Node):
     def __init__(self):
-        print('FinnedUUVControllerNode: initializing node')
+        super.__init__('finned_uuv_teleop')
 
+        print('FinnedUUVControllerNode: initializing node')
+        
         self._ready = False
 
         # Test if any of the needed parameters are missing
@@ -37,62 +40,63 @@ class FinnedUUVControllerNode:
                         'fin_topic_suffix', 'thruster_topic',
                         'axis_thruster', 'axis_roll', 'axis_pitch', 'axis_yaw']
 
+        #TODO Remove ~ ?
         for label in param_labels:
-            if not rospy.has_param('~%s' % label):
+            if not self.has_parameter('~%s' % label):
                 raise rospy.ROSException('Parameter missing, label=%s' % label)
 
         # Number of fins
-        self._n_fins = rospy.get_param('~n_fins')
+        self._n_fins = self.get_parameter('~n_fins').get_parameter_value().integer_value
 
         # Thruster joy axis gain
         self._thruster_joy_gain = 1
-        if rospy.has_param('~thruster_joy_gain'):
-            self._thruster_joy_gain = rospy.get_param('~thruster_joy_gain')
+        if self.has_parameter('~thruster_joy_gain'):
+            self._thruster_joy_gain = self.get_parameter('~thruster_joy_gain').get_parameter_value().double_value
 
         # Read the vector for contribution of each fin on the change on
         # orientation
-        gain_roll = rospy.get_param('~gain_roll')
-        gain_pitch = rospy.get_param('~gain_pitch')
-        gain_yaw = rospy.get_param('~gain_yaw')
+        gain_roll = self.get_parameter('~gain_roll').get_parameter_value().double_array_value
+        gain_pitch = self.get_parameter('~gain_pitch').get_parameter_value().double_array_value
+        gain_yaw = self.get_parameter('~gain_yaw').get_parameter_value().double_array_value
 
         if len(gain_roll) != self._n_fins or len(gain_pitch) != self._n_fins \
             or len(gain_yaw) != self._n_fins:
-            raise rospy.ROSException('Input gain vectors must have length '
+            raise rclpy.exceptions.InvalidParameterValueException('Input gain vectors must have length '
                                      'equal to the number of fins')
 
         # Create the command angle to fin angle mapping
         self._rpy_to_fins = numpy.vstack((gain_roll, gain_pitch, gain_yaw)).T
 
         # Read the joystick mapping
-        self._joy_axis = dict(axis_thruster=rospy.get_param('~axis_thruster'),
-                              axis_roll=rospy.get_param('~axis_roll'),
-                              axis_pitch=rospy.get_param('~axis_pitch'),
-                              axis_yaw=rospy.get_param('~axis_yaw'))
+        self._joy_axis = dict(axis_thruster=self.get_parameter('~axis_thruster').get_parameter_value().integer_value,
+                              axis_roll=self.get_parameter('~axis_roll').get_parameter_value().integer_value,
+                              axis_pitch=self.get_parameter('~axis_pitch').get_parameter_value().integer_value,
+                              axis_yaw=self.get_parameter('~axis_yaw').get_parameter_value().integer_value)
 
         # Subscribe to the fin angle topics
         self._pub_cmd = list()
-        self._fin_topic_prefix = rospy.get_param('~fin_topic_prefix')
-        self._fin_topic_suffix = rospy.get_param('~fin_topic_suffix')
+        self._fin_topic_prefix = self.get_parameter('~fin_topic_prefix').get_parameter_value().string_value
+        self._fin_topic_suffix = self.get_parameter('~fin_topic_suffix').get_parameter_value().string_value
         for i in range(self._n_fins):
             topic = self._fin_topic_prefix + str(i) + self._fin_topic_suffix
             self._pub_cmd.append(
-              rospy.Publisher(topic, FloatStamped, queue_size=10))
+              self.create_publisher(FloatStamped, topic, 10))
 
         # Create the thruster model object
         try:
-            self._thruster_topic = rospy.get_param('~thruster_topic')
-            self._thruster_params = rospy.get_param('~thruster_model')
+            self._thruster_topic = self.get_parameter('~thruster_topic').get_parameter_value().string_value
+            self._thruster_params = self.get_parameter('~thruster_model').value
             if 'max_thrust' not in self._thruster_params:
-                raise rospy.ROSException('No limit to thruster output was given')
+                raise rclpy.exceptions.ParameterException('No limit to thruster output was given')
             self._thruster_model = Thruster.create_thruster(
                         self._thruster_params['name'], 0,
                         self._thruster_topic, None, None,
                         **self._thruster_params['params'])
         except:
-            raise rospy.ROSException('Thruster model could not be initialized')
-
+            raise RuntimeError('Thruster model could not be initialized')
+        
         # Subscribe to the joystick topic
-        self.sub_joy = rospy.Subscriber('joy', numpy_msg(Joy),
+        self.sub_joy = self.create_subscription(numpy_msg(Joy), 'joy',
                                         self.joy_callback)
 
         self._ready = True
@@ -137,14 +141,17 @@ class FinnedUUVControllerNode:
                   'if the joy_id corresponds to the joystick ' 
                   'being used. message={}'.format(e))
 
-
-if __name__ == '__main__':
+def main(args=None)
     print('starting FinnedUUVControllerNode.py')
-    rospy.init_node('finned_uuv_teleop')
+    #rospy.init_node('finned_uuv_teleop')
+    rclpy.init(args=args)
 
     try:
         node = FinnedUUVControllerNode()
-        rospy.spin()
+        rclpy.spin(node)
     except rospy.ROSInterruptException:
         print('caught exception')
     print('exiting')
+
+if __name__ == '__main__':
+    main()
