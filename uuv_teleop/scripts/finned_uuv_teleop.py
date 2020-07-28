@@ -16,8 +16,8 @@
 from __future__ import print_function
 import numpy
 import rclpy
-import tf
-import tf.transformations as trans
+# import tf
+# import tf.transformations as trans
 
 from sensor_msgs.msg import Joy
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
@@ -141,7 +141,7 @@ class FinnedUUVControllerNode(Node):
                   'if the joy_id corresponds to the joystick ' 
                   'being used. message={}'.format(e))
 
-def main(args=None)
+def main(args=None):
     print('starting FinnedUUVControllerNode.py')
     #rospy.init_node('finned_uuv_teleop')
     rclpy.init(args=args)
