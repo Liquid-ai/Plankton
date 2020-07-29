@@ -21,6 +21,7 @@ setup(
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
+    #scripts=['scripts/finned_uuv_teleop.py', 'scripts/vehicle_keyboard_teleop.py', 'scripts/vehicle_teleop.py']
     entry_points={
         'console_scripts': [
             'finned_uuv_teleop = scripts.finned_uuv_teleop:main',

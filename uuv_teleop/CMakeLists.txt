@@ -8,25 +8,15 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 
-set(INCLUDE_DIRS ${ament_cmake_INCLUDE_DIRS})
-include_directories(${INCLUDE_DIRS})
-
-set(LIBRARY_DIRS ${ament_cmake_LIBRARY_DIRS})
-
-link_directories(${LIBRARY_DIRS})
-
-set(LIBS ${ament_cmake_LIBRARIES})
-
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
-  PATTERN "*~"
-  EXCLUDE)
+  PATTERN "*~" EXCLUDE)
 
-catkin_install_python(PROGRAMS scripts/vehicle_teleop.py
+install(
+  PROGRAMS 
+  scripts/vehicle_teleop.py
+  scripts/vehicle_keyboard_teleop.py
   scripts/finned_uuv_teleop.py
-  DESTINATION lib/${PROJECT_NAME})
-
-ament_export_dependencies(ament_cmake)
-ament_export_include_directories(${INCLUDE_DIRS})
+  DESTINATION lib/${PROJECT_NAME}) #python executables are only found in lib folders by ros2 run (?!)...
 
 ament_package()
