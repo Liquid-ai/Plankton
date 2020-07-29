@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -16,22 +16,23 @@
 
 import roslib
 import os
-import rospy
+import rclpy
 import argparse
 import sys
 import shutil
 from rospkg import RosPack
 
-roslib.load_manifest('uuv_assistants')
+from ament_index_python.packages import get_package_share_directory
 
 ROSPACK_INST = RosPack()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Create new catkin package for a UUV robot description")
+    parser = argparse.ArgumentParser(description="Create new colcon package for a UUV robot description")
     parser.add_argument('--robot_name', type=str)
     parser.add_argument('--output_dir', type=str, default=None)
 
-    args = parser.parse_args(rospy.myargv()[1:])
+    args = parser.parse_args(rclpy.utilities.remove_ros_args(sys.argv)[1:])
+    #args = parser.parse_args(rospy.myargv()[1:])
 
     if args.robot_name is None:
         print('No robot name given!')
@@ -39,24 +40,24 @@ if __name__ == '__main__':
 
     if args.output_dir is None:
         output_dir = args.robot_name + '_control'
-        print('Creating catking package %s for the thruster manager configuration' % output_dir)
+        print('Creating colcon package %s for the thruster manager configuration' % output_dir)
         if os.path.exists(output_dir):
-            print('Catkin package already exists!')
+            print('Colcon package already exists!')
             sys.exit(-1)
-        print('Creating the catkin package...')
-        os.system('catkin_create_pkg ' + output_dir)
+        print('Creating the colcon package...')
+        os.system('colcon_create_pkg ' + output_dir)
         if not os.path.isdir(output_dir):
-            print('Catkin package could not be created')
+            print('Colcon package could not be created')
             sys.exit(-1)
         print('Done!')
     else:
         output_dir = args.output_dir
 
-    print('Create new catkin package for a UUV control configuration')
+    print('Create new colcon package for a UUV control configuration')
     print('\tRobot name = ' + args.robot_name)
     print('\tOutput directory = ' + output_dir)
 
-    template_path = os.path.join(ROSPACK_INST.get_path('uuv_assistants'), 'templates', 'thruster_manager_config')
+    template_path = os.path.join(get_package_share_directory('uuv_assistants'), 'templates', 'thruster_manager_config')
 
     for d in os.listdir(template_path):
         new_folder = os.path.join(output_dir, d)
@@ -74,8 +75,8 @@ if __name__ == '__main__':
                 for line in d_file:
                     if '$ROBOT_NAME' in line:
                         line = line.replace('$ROBOT_NAME', args.robot_name)
-                    if '$CATKIN_PACKAGE' in line:
-                        line = line.replace('$CATKIN_PACKAGE', output_dir)
+                    if '$COLCON_PACKAGE' in line:
+                        line = line.replace('$COLCON_PACKAGE', output_dir)
                     output_file.write(line)
 
     print('Thruster manager configuration <%s> create successfully' % output_dir)

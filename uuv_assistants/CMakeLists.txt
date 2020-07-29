@@ -33,13 +33,24 @@ ament_target_dependencies(
   rclcpp
 )
 
+ament_python_install_package(tf_quaternion PACKAGE_DIR src/tf_quaternion)
+
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
-  PATTERN "*~"
-  EXCLUDE)
+  PATTERN "*~" EXCLUDE)
 
 install(TARGETS uuv_message_to_tf
   DESTINATION bin/${PROJECT_NAME})
+
+install(
+  PROGRAMS scripts/publish_footprints.py
+          scripts/set_simulation_timer.py 
+          scripts/publish_world_models.py
+          scripts/publish_vehicle_footprint.py 
+          scripts/unpause_simulation.py
+          scripts/create_new_robot_model 
+          scripts/create_thruster_manager_configuration
+  DESTINATION lib/${PROJECT_NAME})
 
 # catkin_install_python(PROGRAMS scripts/publish_footprints.py
 #   scripts/set_simulation_timer.py scripts/publish_world_models.py
