@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,37 +14,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import print_function
-import rospy
+import rclpy
 from std_srvs.srv import Empty
 import time
 import sys
 
 
-if __name__ == '__main__':
-    rospy.init_node('unpause_simulation')
+def main():
+    rclpy.init()
 
-    if rospy.is_shutdown():
-        rospy.ROSException('ROS master is not running!')
+    node = rclpy.create_node('unpause_simulation')
+
+    # if not rclpy.ok():
+    #     rospy.ROSException('ROS master is not running!')
 
     timeout = 0.0
-    if rospy.has_param('~timeout'):
-        timeout = rospy.get_param('~timeout')
+    if node.has_parameter('~timeout'):
+        timeout = node.get_parameter('~timeout').get_parameter_value().double_value
         if timeout <= 0:
-            raise rospy.ROSException('Unpause time must be a positive floating point value')
+            raise RuntimeError('Unpause time must be a positive floating point value')
 
     print('Unpause simulation - Time = {} s'.format(timeout))
 
+    # ?
     start_time = time.time()
     while time.time() - start_time < timeout:
         time.sleep(0.1)
 
     try:
         # Handle for retrieving model properties
-        rospy.wait_for_service('/gazebo/unpause_physics', 100)
-        unpause = rospy.ServiceProxy('/gazebo/unpause_physics', Empty)
-    except rospy.ROSException:
+        unpause = node.create_client(Empty, '/gazebo/unpause_physics')
+        unpause.wait_for_service(timeout_sec=100)
+        if(not ready):
+            raise rclpy.exceptions.InvalidServiceNameException('service is unavailable')
+    except rclpy.exceptions.InvalidServiceNameException:
         print('/gazebo/unpause_physics service is unavailable')
         sys.exit()
 
-    unpause()
+    req = Empty.Request()
+    unpause.call(req)
     print('Simulation unpaused...')
+
+if __name__ == '__main__':
+    main()

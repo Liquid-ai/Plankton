@@ -72,17 +72,23 @@ class FootprintsPublisher(Node):
         new_poly.header.stamp = self.get_clock().now #rospy.Time.now()
         new_poly.header.frame_id = 'world'
         new_poly.polygon.points = points
-
+        self.get
         vehicle_pub[name].publish(new_poly)
 
     def get_topics(self, name):
-        return [t for t, _ in rosgraph.Master('/{}/'.format(name)).getPublishedTopics('') if not t.startswith('/rosout') and name in t]
+        #TODO Not sure if correct...
+        return [t, type for t, type in self.get_topic_names_and_types() if not t.startswith('/rosout') and name in t]
+        #return [t for t, _ in rosgraph.Master('/{}/'.format(name)).getPublishedTopics('') if not t.startswith('/rosout') and name in t]
 
     def sub_odometry_topic(self, name):
         odom_topic_sub = None
-        for t in get_topics(name):
-            msg_class, _, _ = rostopic.get_topic_class(t)
-            if msg_class == Odometry:
+        for t, msg_class in get_topics(name):
+            #msg_class, _, _ = rostopic.get_topic_class(t)
+            if len(msg_class) != 1:
+                self.get_logger().info(
+                        "Warning: ignoring topic '%s', which has more than one type: [%s]"
+                        % (t, ', '.join(msg_class)))
+            if msg_class[0] == Odometry:
                 odom_topic_sub = self.create_subscription(
                     Odometry, t, lambda msg: odometry_callback(msg, name), 10)
         return odom_topic_sub
@@ -98,7 +104,6 @@ class FootprintsPublisher(Node):
                 self.get_world_props = self.create_client(GetWorldProperties, '/gazebo/get_world_properties')
                 while not self.get_world_props.wait_for_service(timeout_sec=2):
                     self.get_logger().info('waiting for /gazebo/get_world_properties service')
-
             except:
                 print('/gazebo/get_world_properties service is unavailable')
 
@@ -119,7 +124,9 @@ class FootprintsPublisher(Node):
             msg = self.get_world_props.call(reqW)
             #msg = self.get_world_props()
             for model in msg.model_names:
-                model_properties = self.get_model_props.call(model)
+                reqM = GetModelProperties.Request()
+                reqM.model_name = model
+                model_properties = self.get_model_props.call(reqM)
                 #model_properties = self.get_model_props(model)
                 if not model_properties.is_static and \
                 self.has_parameter('/{}/robot_description'.format(model)) and \

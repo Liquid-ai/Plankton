@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,36 +14,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import rospy
+import rclpy
 import sys
 from tf_quaternion.transformations import quaternion_from_euler
 from visualization_msgs.msg import Marker, MarkerArray
 from gazebo_msgs.srv import GetModelState
+from rclpy.node import Node
 
 
-class WorldPublisher:
-    def __init__(self):
+class WorldPublisher(Node):
+    def __init__(self, node_name):
+        super().__init__(node_name)
+
         self._model_paths = dict()
 
         try:
             # Handle for retrieving model properties
-            rospy.wait_for_service('/gazebo/get_model_state', 100)
-            self._get_model_state = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
-        except rospy.ROSException:
+            
+            self._get_model_state = self.create_client(GetModelState, '/gazebo/get_model_state')
+            ready = self._get_model_state.wait_for_service(timeout_sec=100)
+            if not ready:
+                raise rclpy.exceptions.InvalidServiceNameException('service is unavailable')
+        except rclpy.exceptions.InvalidServiceNameException
             print('/gazebo/get_model_state service is unavailable')
             sys.exit()
 
-        if rospy.has_param('~meshes'):
-            meshes = rospy.get_param('~meshes')
+        if self.has_parameter('~meshes'):
+            meshes = self.get_parameter('~meshes').value
             if type(meshes) != dict:
-                raise rospy.ROSException('A list of mesh filenames is required')
+                raise RuntimeError('A list of mesh filenames is required')
 
             self.add_meshes(meshes)
 
-        self._mesh_topic = rospy.Publisher('/world_models', MarkerArray, queue_size=1)
+        self._mesh_topic = self.create_publisher(MarkerArray, '/world_models', 1)
 
-        rate = rospy.Rate(0.1)
-        while not rospy.is_shutdown():
+        rate = self.create_rate(0.1)
+        while rclpy.ok():)
             self.publish_meshes()
             rate.sleep()
 
@@ -126,7 +132,7 @@ class WorldPublisher:
                 marker.scale.z = self._model_paths[model]['plane'][2]
 
             marker.header.frame_id = 'world'
-            marker.header.stamp = rospy.get_rostime()
+            marker.header.stamp = self.get_clock().now()#rospy.get_rostime()
             marker.ns = ''
             marker.id = i
             marker.action = Marker.ADD
@@ -147,14 +153,18 @@ class WorldPublisher:
 
         self._mesh_topic.publish(markers)
 
-
-if __name__ == '__main__':
+def main():
     print('Start publishing vehicle footprints to RViz')
-    rospy.init_node('publish_world_models')
+
+    rclpy.init()
 
     try:
-        world_pub = WorldPublisher()
-        rospy.spin()
-    except rospy.ROSInterruptException:
+        world_pub = WorldPublisher('publish_world_models')
+        rospy.spin(world_pub)
+    except rclpy.exceptions.ROSInterruptException:
         print('caught exception')
     print('exiting')
+
+
+if __name__ == '__main__':
+    main()

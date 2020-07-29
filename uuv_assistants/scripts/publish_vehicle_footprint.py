@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,25 +14,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import print_function
-import rospy
+import rclpy
 from copy import deepcopy
 from tf_quaternion.transformations import euler_from_quaternion
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PolygonStamped, Point32
 from visualization_msgs.msg import Marker
 import numpy as np
+from rclpy.node import Node
 
-
-class VehicleFootprint:
+class VehicleFootprint(Node):
     MARKER = np.array([[0, 0.75], [-0.5, -0.25], [0.5, -0.25]])
 
-    def __init__(self):
-        self._namespace = rospy.get_namespace().replace('/', '')
+    def __init__(self, node_name):
+        super().__init__(node_name)
+        self._namespace = self.get_namespace().replace('/', '')
 
         self._scale_footprint = 10
 
-        if rospy.has_param('~scale_footprint'):
-            scale = rospy.get_param('~scale_footprint')
+        if self.has_parameter('~scale_footprint'):
+            scale = self.get_parameter('~scale_footprint').get_parameter_value().double_value
             if scale > 0:
                 self._scale_footprint = scale
             else:
@@ -42,8 +43,8 @@ class VehicleFootprint:
 
         self._scale_label = 10
 
-        if rospy.has_param('~_scale_label'):
-            scale = rospy.get_param('~_scale_label')
+        if self.has_parameter('~_scale_label'):
+            scale = self.get_parameter('~_scale_label').get_parameter_value().double_value
             if scale > 0:
                 self._scale_label = scale
             else:
@@ -52,8 +53,8 @@ class VehicleFootprint:
         print('Label marker scale factor = ', self._scale_label)
 
         self._label_x_offset = 60
-        if rospy.get_param('~label_x_offset'):
-            self._label_x_offset = rospy.get_param('~label_x_offset')
+        if self.has_parameter('~label_x_offset'):
+            self._label_x_offset = self.get_parameter('~label_x_offset').value
             
         self._label_marker = Marker()
         self._label_marker.header.frame_id = 'world'
@@ -75,11 +76,11 @@ class VehicleFootprint:
         self._label_marker.color.b = 0.0
 
         # Odometry subscriber (remap this topic in the launch file if necessary)
-        self._odom_sub = rospy.Subscriber('odom', Odometry, self.odometry_callback)
+        self._odom_sub = self.create_subscription(Odometry, 'odom', self.odometry_callback, 1)
         # Footprint marker publisher (remap this topic in the launch file if necessary)
-        self._footprint_pub = rospy.Publisher('footprint', PolygonStamped, queue_size=1)
+        self._footprint_pub = self.create_publisher(PolygonStamped, 'footprint', 1)
         # Vehicle label marker (remap this topic in the launch file if necessary)
-        self._label_pub = rospy.Publisher('label', Marker, queue_size=1)
+        self._label_pub = self.create_publisher(Marker, 'label', 1)
     
     @staticmethod
     def rot(alpha):
@@ -112,7 +113,7 @@ class VehicleFootprint:
             points.append(p)
 
         new_poly = PolygonStamped()
-        new_poly.header.stamp = rospy.Time.now()
+        new_poly.header.stamp = self.get_clock().now() #rospy.Time.now()
         new_poly.header.frame_id = 'world'
         new_poly.polygon.points = points
 
@@ -125,13 +126,16 @@ class VehicleFootprint:
 
         self._label_pub.publish(self._label_marker)
 
-if __name__ == '__main__':
+def main():
     print('Generate RViz footprint and markers for 2D visualization')
-    rospy.init_node('generate_vehicle_footprint')
+    #rospy.init_node('generate_vehicle_footprint')
 
     try:
-        node = VehicleFootprint()
-        rospy.spin()
-    except rospy.ROSInterruptException:
+        node = VehicleFootprint('generate_vehicle_footprint')
+        rclpy.spin(node)
+    except rclpy.exceptions.ROSInterruptException:
         print('caught exception')
     print('exiting')
+
+if __name__ == '__main__':
+    main()

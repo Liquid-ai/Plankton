@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,24 +14,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import print_function
-import rospy
+import rclpy
 
 
-if __name__ == '__main__':
-    rospy.init_node('set_simulation_timer')
+def main():
+    rclpy.init().init_node()
 
-    if rospy.is_shutdown():
-        rospy.ROSException('ROS master is not running!')
+    node = rclpy.create_node('set_simulation_timer')
+
+    # if not rclpy.ok():
+    #     rospy.ROSException('Something went wrong')
 
     timeout = 0.0
-    if rospy.has_param('~timeout'):
-        timeout = rospy.get_param('~timeout')
+    if node.has_parameter('~timeout'):
+        timeout = node.get_parameter('~timeout').get_parameter_value().double_value
         if timeout <= 0:
-            raise rospy.ROSException('Termination time must be a positive floating point value')
+            raise RuntimeError('Termination time must be a positive floating point value')
 
     print('Starting simulation timer - Timeout = {} s'.format(timeout))
-    rate = rospy.Rate(100)
-    while rospy.get_time() < timeout:
+    rate = node.create_rate(100)
+    #while rospy.get_time() < timeout:
+    timeTuple = node.get_clock().now().seconds_nanoseconds
+    currentTime = float(timeTuple[0]) + float(timeTuple[1]) / 1e9
+    while currentTime < timeout
         rate.sleep()
+        timeTuple = node.get_clock().now().seconds_nanoseconds
+        currentTime = float(timeTuple[0]) + float(timeTuple[1]) / 1e9
 
     print('Simulation timeout - Killing simulation...')
+
+if __name__ == '__main__':
+    main()
