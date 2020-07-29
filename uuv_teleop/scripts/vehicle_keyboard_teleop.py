@@ -187,15 +187,15 @@ class KeyBoardVehicleTeleop(Node):
         # Publish message
         self._output_pub.publish(cmd)
 
-if __name__ == '__main__':
-
+def main(node_name):
     # Wait for 5 seconds, so the instructions are the last thing to print in terminal
     time.sleep(5)
     # Start the node
     node_name = os.path.splitext(os.path.basename(__file__))[0]
     #rospy.init_node(node_name)
     #rospy.loginfo('Starting [%s] node' % node_name)
-
+    rclpy.init()
+    
     teleop = KeyBoardVehicleTeleop(node_name)
 
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
@@ -203,3 +203,7 @@ if __name__ == '__main__':
     rclpy.spin(teleop)
     teleop.get_logger().info('Shutting down [%s] node' % node_name)
     rclpy.shutdown()
+
+if __name__ == '__main__':  
+    main(node_name)
+    

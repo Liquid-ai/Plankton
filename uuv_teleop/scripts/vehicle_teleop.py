@@ -24,7 +24,7 @@ from rclpy.node import Node
 
 
 class VehicleTeleop(Node):
-    def __init__(self):
+    def __init__(self, node_name):
         super().__init__(node_name)
         # Load the mapping for each input
         self._axes = dict(x=4, y=3, z=1,
@@ -60,10 +60,10 @@ class VehicleTeleop(Node):
         # Default for the RB button of the XBox 360 controller
         self._deadman_button = -1
         if self.has_parameter('~deadman_button'):
-            self._deadman_button = int(rospy.get_param('~deadman_button'))
+            self._deadman_button = self.get_parameter('~deadman_button').get_parameter_value().integer_value
 
         # If these buttons are pressed, the arm will not move
-        if rospy.has_param('~exclusion_buttons'):
+        if self.has_parameter('~exclusion_buttons'):
             self._exclusion_buttons = self.get_parameter('~exclusion_buttons').value
             if type(self._exclusion_buttons) in [float, int]:
                 self._exclusion_buttons = [int(self._exclusion_buttons)]
@@ -97,7 +97,7 @@ class VehicleTeleop(Node):
             Bool, 'home_pressed', 1)
 
         # Joystick topic subscriber
-        self._joy_sub = self.create_subscription(Joy, 'joy', self._joy_callback)
+        self._joy_sub = self.create_subscription(Joy, 'joy', self._joy_callback, 10)
 
         # ??
         # rate = rospy.Rate(50)
@@ -183,7 +183,7 @@ class VehicleTeleop(Node):
                   ' check if the joy_id corresponds to the joystick ' 
                   'being used. message={}'.format(e))
 
-if __name__ == '__main__':
+def main(args=None):
     # Start the node
     node_name = os.path.splitext(os.path.basename(__file__))[0]
     rclpy.init()
@@ -197,3 +197,6 @@ if __name__ == '__main__':
 
     teleop.get_logger().info('Shutting down [%s] node' % node_name)
     rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
