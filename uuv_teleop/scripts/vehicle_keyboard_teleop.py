@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -187,7 +187,7 @@ class KeyBoardVehicleTeleop(Node):
         # Publish message
         self._output_pub.publish(cmd)
 
-def main(node_name):
+def main(args=None):
     # Wait for 5 seconds, so the instructions are the last thing to print in terminal
     time.sleep(5)
     # Start the node
@@ -205,5 +205,5 @@ def main(node_name):
     rclpy.shutdown()
 
 if __name__ == '__main__':  
-    main(node_name)
+    main()
     
