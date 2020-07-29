@@ -21,27 +21,21 @@ rosidl_generate_interfaces(
   DEPENDENCIES 
   #builtin_interfaces ?
   geometry_msgs 
-  std_msgs)
+  std_msgs
+)
 
-# set(INCLUDE_DIRS ${geometry_msgs_INCLUDE_DIRS} ${std_msgs_INCLUDE_DIRS}
-#   ${rosidl_default_generators_INCLUDE_DIRS} ${ament_cmake_INCLUDE_DIRS})
-# include_directories(${INCLUDE_DIRS})
-
-# set(LIBRARY_DIRS ${geometry_msgs_LIBRARY_DIRS} ${std_msgs_LIBRARY_DIRS}
-#   ${rosidl_default_generators_LIBRARY_DIRS} ${ament_cmake_LIBRARY_DIRS})
-
-# link_directories(${LIBRARY_DIRS})
-
-# set(LIBS ${geometry_msgs_LIBRARIES} ${std_msgs_LIBRARIES}
-#   ${rosidl_default_generators_LIBRARIES} ${ament_cmake_LIBRARIES})
-
-# catkin_install_python(PROGRAMS scripts/control_allocator
-#   DESTINATION lib/${PROJECT_NAME})
+ament_python_install_package(uuv_auv_actuator_interface PACKAGE_DIR src/uuv_auv_actuator_interface)
 
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
   PATTERN "*~"
-  EXCLUDE)
+  EXCLUDE
+)
+
+install(
+  PROGRAMS scripts/control_allocator
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 # ament_export_dependencies(geometry_msgs)
 # ament_export_dependencies(std_msgs)
