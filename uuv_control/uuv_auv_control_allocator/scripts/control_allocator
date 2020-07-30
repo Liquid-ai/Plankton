@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016-2019 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,34 +14,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import print_function
-import rospy
+import rclpy
 import numpy as np
 from uuv_auv_control_allocator.msg import AUVCommand
 import os
 import casadi
 from uuv_auv_actuator_interface import ActuatorManager
+from rclpy.node import Node
 
 
 class AUVControlAllocator(ActuatorManager):
-    def __init__(self):
-        super(AUVControlAllocator, self).__init__()
+    def __init__(self, node_name):
+        #super(AUVControlAllocator, self).__init__()
+        ActuatorManager.__init__(node_name)
         
         # Retrieve the output file path to store the CAM
         # matrix for future use
         self.output_dir = None
-        if rospy.has_param('~output_dir'):
-            self.output_dir = rospy.get_param('~output_dir')
+        if self.has_parameter('~output_dir'):
+            self.output_dir = self.get_parameter('~output_dir').get_parameter_value().string_value
             if not os.path.isdir(self.output_dir):
-                raise rospy.ROSException(
+                raise RuntimeError(
                     'Invalid output directory, output_dir=' + self.output_dir)
-            rospy.loginfo('output_dir=' + str(self.output_dir))
+            self.get_logger().info('output_dir=' + str(self.output_dir))
 
-        self.update_rate = rospy.get_param('~update_rate', 10)
-
-        self.timeout = rospy.get_param('~timeout', -1)
-
+        self.update_rate = self.get_parameter('~update_rate', 10).get_parameter_value().double_value
         if self.update_rate <= 0:
-            raise rospy.ROSException('Update rate must be a positive number')
+            raise RuntimeError('Update rate must be a positive number')
+
+        self.timeout = self.get_parameter('~timeout', -1).get_parameter_value().double_value       
 
         # Control allocation matrix for thruster and fin lift forces
         self.u = casadi.SX.sym('u')
@@ -54,18 +55,18 @@ class AUVControlAllocator(ActuatorManager):
         self.input_tau = np.zeros(6)        
 
         if not self.init():
-            raise rospy.ROSException('No thruster and/or fins found')
+            raise RuntimeError('No thruster and/or fins found')
       
-        self.sub = rospy.Subscriber('control_input', AUVCommand, self.control_callback)
+        self.sub = self.create_subscription(AUVCommand, 'control_input', self.control_callback, 10)
 
-        rate = rospy.Rate(self.update_rate)
+        rate = self.create_rate(self.update_rate)
 
-        self.last_update = rospy.Time.now()
+        self.last_update = self.get_clock().now()
 
-        while not rospy.is_shutdown():
+        while rclpy.ok():
             
             if self.timeout > -1:
-                if rospy.Time.now() - self.last_update > self.timeout:
+                if self.get_clock().now() - self.last_update > self.timeout:
                     self.input_surge_speed = 0.0
                     self.input_tau = np.zeros(6)            
             output = self.allocate(self.input_tau, self.input_surge_speed)            
@@ -136,15 +137,18 @@ class AUVControlAllocator(ActuatorManager):
         
         self.last_update = rospy.Time.now()
             
-
-if __name__ == '__main__':
-    rospy.init_node('auv_control_allocator')
+def main():
+    #rospy.init_node('auv_control_allocator')
+    rclpy.init()
 
     try:
-        node = AUVControlAllocator()
-        rospy.spin()
-    except rospy.ROSInterruptException:
+        node = AUVControlAllocator('auv_control_allocator')
+        rospy.spin(node)
+    except rclpy.ROSInterruptException:
         print('AUVControlAllocator::Exception')
     print('Leaving AUVControlAllocator')
 
+
+if __name__ == '__main__':
+    main()
         

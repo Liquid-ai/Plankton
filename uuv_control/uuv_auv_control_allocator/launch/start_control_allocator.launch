@@ -31,9 +31,10 @@
     <arg name="timeout" default="-1"/>
     <arg name="update_rate" default="10"/>
 
-    <group ns="$(arg uuv_name)">
+    <group>
+        <push-ros-namespace namespace="$(arg uuv_name)"/>
         <node pkg="uuv_auv_control_allocator"
-              type="control_allocator"
+              exec="control_allocator"
               name="control_allocator"
               output="screen">
             <rosparam subst_value="true">

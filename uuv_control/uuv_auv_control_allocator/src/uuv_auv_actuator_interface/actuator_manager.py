@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from .fin_model import FinModel
-import rospy
+import rclpy
 import numpy as np
+import tf2_py as tf2
 import tf2_ros
+#from tf2_py import LookupException
 from tf_quaternion.transformations import quaternion_matrix
 from uuv_thrusters.models import Thruster
 from uuv_auv_control_allocator.msg import AUVCommand
@@ -23,19 +25,21 @@ from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 from geometry_msgs.msg import Wrench, WrenchStamped
 import os
 import yaml
+from rclpy.node import Node
 
 
-class ActuatorManager(object):
+class ActuatorManager(Node):
     MAX_FINS = 4
 
+    def __init__(self, node_name):
+        super().__init__(node_name)
 
-    def __init__(self):
         # Acquiring the namespace of the vehicle
-        self.namespace = rospy.get_namespace().replace('/', '')
-        rospy.loginfo('Initialize control allocator for vehicle <%s>' % self.namespace)  
+        self.namespace = self.get_namespace().replace('/', '')
+        self.get_logger().info('Initialize control allocator for vehicle <%s>' % self.namespace)  
 
         self.tf_buffer = tf2_ros.Buffer()
-        self.listener = tf2_ros.TransformListener(self.tf_buffer)
+        self.listener = tf2_ros.TransformListener(self.tf_buffer, self)
         tf_trans_ned_to_enu = None
 
         try:
@@ -45,11 +49,11 @@ class ActuatorManager(object):
             else:
                 target = 'base_link'
                 source = 'base_link_ned'
-            rospy.loginfo('Lookup transfrom from %s to %s' % (source, target))
-            tf_trans_ned_to_enu = self.tf_buffer.lookup_transform(
-                target, source, rospy.Time(), rospy.Duration(1))
+            self.get_logger().info(('Lookup transfrom from %s to %s' % (source, target))
+            tf_trans_ned_to_enu = self.tf_buffer.lookup_transform().lookup_transform(
+                target, source, rclpy.time.Time(), rclpy.time.Duration(1))
         except Exception as e:
-            rospy.logwarn('No transform found between base_link and base_link_ned'
+            self.get_logger().warning('No transform found between base_link and base_link_ned'
                   ' for vehicle {}, message={}'.format(self.namespace, e))
             self.base_link_ned_to_enu = None
 
@@ -60,17 +64,17 @@ class ActuatorManager(object):
                  tf_trans_ned_to_enu.transform.rotation.z,
                  tf_trans_ned_to_enu.transform.rotation.w))[0:3, 0:3]
 
-            rospy.logwarn('base_link transform NED to ENU=\n{}'.format(
+            self.get_logger().warning('base_link transform NED to ENU=\n{}'.format(
                 self.base_link_ned_to_enu))
 
-        self.base_link = rospy.get_param('~base_link', 'base_link')
+        self.base_link = self.get_parameter('~base_link', 'base_link').get_parameter_value().string_value
 
         # Check if the thruster configuration is available
-        if not rospy.has_param('~thruster_config'):
-            raise rospy.ROSException('Thruster configuration not available') 
+        if not self.has_parameter('~thruster_config'):
+            raise RuntimeError('Thruster configuration not available') 
 
         # Retrieve the thruster configuration parameters
-        self.thruster_config = rospy.get_param('~thruster_config')        
+        self.thruster_config = self.get_parameter('~thruster_config').value
 
         # Check if all necessary thruster model parameter are available
         thruster_params = ['conversion_fcn_params', 'conversion_fcn', 
@@ -87,11 +91,11 @@ class ActuatorManager(object):
         self.thruster = None
 
         # Check if the fin configuration is available
-        if not rospy.has_param('~fin_config'):
-            raise rospy.ROSException('Fin configuration is not available')
+        if not self.has_parameter('~fin_config'):
+            raise RuntimeError('Fin configuration is not available')
 
         # Retrieve the fin configuration is available
-        self.fin_config = rospy.get_param('~fin_config')
+        self.fin_config = self.get_parameter('~fin_config').value
 
         # Check if all necessary fin parameters are available
         fin_params = ['fluid_density', 'lift_coefficient', 'fin_area', 
@@ -99,7 +103,7 @@ class ActuatorManager(object):
         
         for p in fin_params:
             if p not in self.fin_config:
-                raise rospy.ROSException(
+                raise RuntimeError(
                     'Parameter <%s> for fin configuration is missing' % p)
         
         self.fin_lower_limit = -np.pi / 2
@@ -111,27 +115,27 @@ class ActuatorManager(object):
             self.fin_upper_limit = self.fin_config['upper_limit']
 
         if self.fin_config['lower_limit'] >= self.fin_config['upper_limit']:
-            raise rospy.ROSException('Fin angle limits are invalid')
+            raise RuntimeError('Fin angle limits are invalid')
 
         self.fins = dict()
                 
         self.n_fins = 0
 
         if not self.find_actuators():
-            raise rospy.ROSException('No thruster and/or fins found')
+            raise RuntimeError('No thruster and/or fins found')
 
     def find_actuators(self):
         """Calculate the control allocation matrix, if one is not given."""
         
         self.ready = False
-        rospy.loginfo('ControlAllocator: updating thruster poses')
+        self.get_logger().infos('ControlAllocator: updating thruster poses')
 
         base = '%s/%s' % (self.namespace, self.base_link)
 
         frame = '%s/%s%d' % (self.namespace, self.thruster_config['frame_base'], 0)
 
-        rospy.loginfo('Lookup: Thruster transform found %s -> %s' % (base, frame))
-        trans = self.tf_buffer.lookup_transform(base, frame, rospy.Time(), rospy.Duration(1))
+        self.get_logger().info('Lookup: Thruster transform found %s -> %s' % (base, frame))
+        trans = self.tf_buffer.lookup_transform(base, frame, rclpy.time.Time(), rclpy.time.Duration(1))
         pos = np.array([trans.transform.translation.x,
                            trans.transform.translation.y,
                            trans.transform.translation.z])
@@ -139,9 +143,9 @@ class ActuatorManager(object):
                             trans.transform.rotation.y,
                             trans.transform.rotation.z,
                             trans.transform.rotation.w])
-        rospy.loginfo('Thruster transform found %s -> %s' % (base, frame))
-        rospy.loginfo('pos=' + str(pos))
-        rospy.loginfo('rot=' + str(quat))
+        self.get_logger().info('Thruster transform found %s -> %s' % (base, frame))
+        self.get_logger().info('pos=' + str(pos))
+        self.get_logger().info('rot=' + str(quat))
                 
         # Read transformation from thruster
         self.thruster = Thruster.create_thruster(
@@ -153,8 +157,8 @@ class ActuatorManager(object):
             try:
                 frame = '%s/%s%d' % (self.namespace, self.fin_config['frame_base'], i)
                 
-                rospy.loginfo('Lookup: Fin transform found %s -> %s' % (base, frame))
-                trans = self.tf_buffer.lookup_transform(base, frame, rospy.Time(), rospy.Duration(1))
+                self.get_logger().info('Lookup: Fin transform found %s -> %s' % (base, frame))
+                trans = self.tf_buffer.lookup_transform(base, frame, rclpy.time.Time(), rclpy.time.Duration(1))
                 pos = np.array([trans.transform.translation.x,
                                    trans.transform.translation.y,
                                    trans.transform.translation.z])
@@ -162,9 +166,9 @@ class ActuatorManager(object):
                                     trans.transform.rotation.y,
                                     trans.transform.rotation.z,
                                     trans.transform.rotation.w])                
-                rospy.loginfo('Fin transform found %s -> %s' % (base, frame))
-                rospy.loginfo('pos=' + str(pos))
-                rospy.loginfo('quat=' + str(quat))
+                self.get_logger().info('Fin transform found %s -> %s' % (base, frame))
+                self.get_logger().info('pos=' + str(pos))
+                self.get_logger().info('quat=' + str(quat))
 
                 fin_topic = '/%s/%s/%d/%s' % (self.namespace, 
                     self.fin_config['topic_prefix'], i, self.fin_config['topic_suffix'])
@@ -173,19 +177,20 @@ class ActuatorManager(object):
                     i,
                     pos,
                     quat,
-                    fin_topic)
+                    fin_topic,
+                    self)
 
-            except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
-                rospy.loginfo('Could not get transform from %s to %s ' % (base, frame))
+            except (tf2.LookupException, tf2.ConnectivityException, tf2.ExtrapolationException):
+                self.get_logger().info('Could not get transform from %s to %s ' % (base, frame))
                 break
 
         self.n_fins = len(self.fins.keys())
-        rospy.loginfo('# fins found: %d' % len(self.fins.keys()))
+        self.get_logger().info('# fins found: %d' % len(self.fins.keys()))
         
         for i in range(self.n_fins):
-            rospy.loginfo(i)
-            rospy.loginfo(self.fins[i].pos)
-            rospy.loginfo(self.fins[i].rot)
+            self.get_logger().info(i)
+            self.get_logger().info(self.fins[i].pos)
+            self.get_logger().info(self.fins[i].rot)
 
         self.ready = True
         return True

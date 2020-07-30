@@ -12,20 +12,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import rospy
+import rclpy
 import numpy as np
 from tf_quaternion.transformations import quaternion_matrix
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 
 
-class FinModel(object):
-    def __init__(self, index, pos, quat, topic):
+class FinModel:
+    def __init__(self, index, pos, quat, topic, node:rclpy.node.Node):
+        self.node = node
         self.id = index
         self.pos = pos
         self.quat = quat
         self.topic = topic
         self.rot = quaternion_matrix(quat)[0:3, 0:3]
-
+    
         unit_z = self.rot[:, 2]
         # Surge velocity wrt vehicle's body frame
         surge_vel = np.array([1, 0, 0])
@@ -33,11 +34,11 @@ class FinModel(object):
         # Compute the lift and drag vectors
         self.lift_vector = -1 * np.cross(unit_z, fin_surge_vel) / np.linalg.norm(np.cross(unit_z, fin_surge_vel))
         self.drag_vector = -1 * surge_vel / np.linalg.norm(surge_vel)       
-
-        self.pub = rospy.Publisher(self.topic, FloatStamped, queue_size=3)
+        
+        self.pub = self.node.create_publisher(FloatStamped, self.topic, 3)
     
     def publish_command(self, delta):
         msg = FloatStamped()
-        msg.header.stamp = rospy.Time.now()
+        msg.header.stamp = self.node.get_clock().now()#rospy.Time.now()
         msg.data = delta
         self.pub.publish(msg)
