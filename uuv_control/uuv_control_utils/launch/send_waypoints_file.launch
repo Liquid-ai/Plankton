@@ -4,7 +4,8 @@
   <arg name="start_time" default="-1"/>
   <arg name="interpolator" default="lipb"/>
 
-  <group ns="$(arg uuv_name)">
+  <group>
+    <push-ros-namespace namespace="$(arg uuv_name)"/>
     <node pkg="uuv_control_utils"
           exec="send_waypoint_file.py"
           name="send_waypoint_file"

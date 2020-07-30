@@ -11,7 +11,8 @@
   <arg name="duration" default="0"/>
   <arg name="max_forward_speed" default="0.3"/>
 
-  <group ns="$(arg uuv_name)">
+  <group>
+    <push-ros-namespace namespace="$(arg uuv_name)"/>
     <node pkg="uuv_control_utils"
       exec="start_circular_trajectory.py"
       name="start_circular_trajectory"

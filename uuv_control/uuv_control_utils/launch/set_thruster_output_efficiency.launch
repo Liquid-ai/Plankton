@@ -5,7 +5,8 @@
   <arg name="efficiency" default="1.0"/>
   <arg name="duration" default="-1"/>
 
-  <group ns="$(arg uuv_name)">
+  <group>
+    <push-ros-namespace namespace="$(arg uuv_name)"/>
     <node pkg="uuv_control_utils"
       exec="set_thruster_output_efficiency.py"
       name="set_thruster_output_efficiency_$(arg starting_time)_thruster_$(arg thruster_id)"

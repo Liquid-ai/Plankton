@@ -8,7 +8,8 @@
   <arg name="service_name" />
   <arg name="data" />
 
-  <group ns="$(arg uuv_name)">
+  <group>
+    <push-ros-namespace namespace="$(arg uuv_name)"/>
     <node name="set_scalar_parameter_$(arg service_name)"
       pkg="uuv_control_utils"
       exec="set_scalar_parameter.py"

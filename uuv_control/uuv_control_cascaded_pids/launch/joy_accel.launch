@@ -8,10 +8,11 @@
     <arg name="model_name" value="$(arg model_name)" />
   </include>
 
-  <group ns="$(arg uuv_name)">
+  <group>
+    <push-ros-namespace namespace="$(arg uuv_name)"/>
     <rosparam file="$(find uuv_control_cascaded_pid)/config/$(arg model_name)/inertial.yaml" command="load"/>
 
-    <node pkg="uuv_control_cascaded_pid" type="AccelerationControl.py" name="acceleration_control"
+    <node pkg="uuv_control_cascaded_pid" exec="AccelerationControl.py" name="acceleration_control"
           output="screen">
       <param name="tf_prefix" type="string" value="$(arg uuv_name)/" />
     </node>

@@ -7,16 +7,17 @@
     <arg name="model_name" value="$(arg model_name)" />
   </include>
 
-  <group ns="$(arg uuv_name)">
+  <group>
+    <push-ros-namespace namespace="$(arg uuv_name)"/>
     <rosparam file="$(find uuv_control_cascaded_pid)/config/$(arg model_name)/inertial.yaml" command="load"/>
     <rosparam file="$(find uuv_control_cascaded_pid)/config/$(arg model_name)/vel_pid_control.yaml" command="load"/>
 
-    <node pkg="uuv_control_cascaded_pid" type="AccelerationControl.py" name="acceleration_control"
+    <node pkg="uuv_control_cascaded_pid" exec="AccelerationControl.py" name="acceleration_control"
           output="log">
       <param name="tf_prefix" type="string" value="$(arg uuv_name)/" />
     </node>
 
-    <node pkg="uuv_control_cascaded_pid" type="VelocityControl.py" name="velocity_control"
+    <node pkg="uuv_control_cascaded_pid" exec="VelocityControl.py" name="velocity_control"
         output="log">
       <remap from="odom" to="/$(arg uuv_name)/pose_gt"/>
       <remap from="cmd_accel" to="/$(arg uuv_name)/cmd_accel"/>

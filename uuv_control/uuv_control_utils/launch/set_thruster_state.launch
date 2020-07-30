@@ -5,7 +5,8 @@
   <arg name="is_on" default="0"/>
   <arg name="duration" default="-1"/>
 
-  <group ns="$(arg uuv_name)">
+  <group>
+    <push-ros-namespace namespace="$(arg uuv_name)"/>
     <node pkg="uuv_control_utils"
       exec="set_thruster_state.py"
       name="set_thruster_state_$(arg starting_time)_$(arg thruster_id)"

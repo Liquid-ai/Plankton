@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -15,15 +15,19 @@
 # limitations under the License.
 from __future__ import print_function
 import numpy
-import rospy
+import rclpy
 
 from dynamic_reconfigure.server import Server
 from geometry_msgs.msg import Accel
 from geometry_msgs.msg import Wrench
 from rospy.numpy_msg import numpy_msg
+from rclpy.node import Node
 
-class AccelerationControllerNode:
-    def __init__(self):
+class AccelerationControllerNode(Node):
+    def __init__(self, node_name):
+
+        super().init(node_name)
+
         print('AccelerationControllerNode: initializing node')
 
         self.ready = False
@@ -32,12 +36,12 @@ class AccelerationControllerNode:
         self.mass_inertial_matrix = numpy.zeros((6, 6))
 
         # ROS infrastructure
-        self.sub_accel = rospy.Subscriber(
-          'cmd_accel', numpy_msg(Accel), self.accel_callback)
-        self.sub_force = rospy.Subscriber(
-          'cmd_force', numpy_msg(Accel), self.force_callback)
-        self.pub_gen_force = rospy.Publisher(
-          'thruster_manager/input', Wrench, queue_size=1)
+        self.sub_accel = self.create_subscription(
+          numpy_msg(Accel), 'cmd_accel', self.accel_callback, 10)
+        self.sub_force = self.create_subscription(
+          numpy_msg(Accel), 'cmd_force', self.force_callback, 10)
+        self.pub_gen_force = self.create_publisher(
+          Wrench, 'thruster_manager/input', 1)
 
         if not rospy.has_param("pid/mass"):
             raise rospy.ROSException("UUV's mass was not provided")
@@ -105,13 +109,18 @@ class AccelerationControllerNode:
 
         self.pub_gen_force.publish(force_msg)
 
-if __name__ == '__main__':
-    print('starting AccelerationControl.py')
-    rospy.init_node('acceleration_control')
+def main():
+  print('starting AccelerationControl.py')
+  #rospy.init_node('acceleration_control')
 
-    try:
-        node = AccelerationControllerNode()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
+  rclpy.init()
+
+  try:
+      node = AccelerationControllerNode('acceleration_control')
+      rclpy.spin(node)
+  except rospy.ROSInterruptException:
+    print('caught exception')
     print('exiting')
+
+if __name__ == '__main__':
+    main()
