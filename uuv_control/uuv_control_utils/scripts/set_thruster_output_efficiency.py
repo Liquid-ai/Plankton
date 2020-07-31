@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,82 +14,92 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import print_function
-import rospy
+import rclpy
 from uuv_gazebo_ros_plugins_msgs.srv import SetThrusterEfficiency
+from time_utils import time_in_float_sec
 
+def main():
+    rclpy.init()
+    node = rclpy.create_node('set_thrusters_states')
 
-if __name__ == '__main__':
-    print('Set the thruster output efficiency for vehicle, namespace=', rospy.get_namespace())
-    rospy.init_node('set_thrusters_states')
+    print('Set the thruster output efficiency for vehicle, namespace=', self.get_namespace())
 
-    if rospy.is_shutdown():
-        raise rospy.ROSException('ROS master not running!')
+    # if rospy.is_shutdown():
+    #     raise rospy.ROSException('ROS master not running!')
 
     starting_time = 0.0
-    if rospy.has_param('~starting_time'):
-        starting_time = rospy.get_param('~starting_time')
+    if node.has_parameter('~starting_time'):
+        starting_time = node.get_parameter('~starting_time').get_parameter_value().double_value
 
     print('Starting time= {} s'.format(starting_time))
 
     duration = 0.0
-    if rospy.has_param('~duration'):
-        duration = rospy.get_param('~duration')
+    if node.has_parameter('~duration'):
+        duration = node.get_parameter('~duration').get_parameter_value().double_value
 
     if duration == 0.0:
-        raise rospy.ROSException('Duration not set, leaving node...')
+        raise RuntimeError('Duration not set, leaving node...')
 
     print('Duration [s]=', ('Inf.' if duration < 0 else duration))
 
-    if rospy.has_param('~efficiency'):
-        efficiency = rospy.get_param('~efficiency')
+    if node.has_parameter('~efficiency'):
+        efficiency = node.get_parameter('~efficiency').get_parameter_value().double_value
         if efficiency < 0 or efficiency > 1:
-            raise rospy.ROSException('Invalid thruster output efficiency, leaving node...')
+            raise RuntimeError('Invalid thruster output efficiency, leaving node...')
     else:
-        raise rospy.ROSException('Thruster output efficiency not set, leaving node...')
+        raise RuntimeError('Thruster output efficiency not set, leaving node...')
 
-    if rospy.has_param('~thruster_id'):
-        thruster_id = rospy.get_param('~thruster_id')
+    if node.has_parameter('~thruster_id'):
+        thruster_id = node.get_parameter('~thruster_id').get_parameter_value().integer_value
     else:
-        raise rospy.ROSException('Thruster ID not given')
+        raise RuntimeError('Thruster ID not given')
 
     if thruster_id < 0:
-        raise rospy.ROSException('Invalid thruster ID')
+        raise RuntimeError('Invalid thruster ID')
 
     print('Setting thruster output efficiency #{} to {}'.format(thruster_id, 100 * efficiency))
 
-    vehicle_name = rospy.get_namespace().replace('/', '')
+    vehicle_name = node.get_namespace().replace('/', '')
 
     srv_name = '/%s/thrusters/%d/set_thrust_force_efficiency' % (vehicle_name, thruster_id)
-
+   
     try:
-        rospy.wait_for_service(srv_name, timeout=2)
-    except rospy.ROSException:
-        raise rospy.ROSException('Service not available! Closing node...')
+        set_eff = node.create_client(SetThrusterEfficiency, srv_name)
+    except Exception as e:
+        print('Service call failed, error=' + str(e))
+        
+    if not set_eff.wait_for_service(timeout_sec=2):
+        raise RuntimeError('Service %s not available! Closing node...' %(srv_name))
 
-    try:
-        set_eff = rospy.ServiceProxy(srv_name, SetThrusterEfficiency)
-    except rospy.ServiceException as e:
-        raise rospy.ROSException('Service call failed, error=' + e)
 
-    rate = rospy.Rate(100)
-    while rospy.get_time() < starting_time:
+    rate = node.create_rate(100)
+    while time_in_float_sec(node.get_clock().now()) < starting_time:
         rate.sleep()
 
-    success = set_eff(efficiency)
+    req = SetThrusterEfficiency.Request()
+    req.efficiency = efficiency
+    success = set_eff.call(efficiency)
 
     if success:
         print('Time={} s'.format(rospy.get_time()))
         print('Current thruster output efficiency #{}={}'.format(thruster_id, efficiency * 100))
 
     if duration > 0:
-        rate = rospy.Rate(100)
-        while rospy.get_time() < starting_time + duration:
+        rate = node.create_rate.Rate(100)
+        while time_in_float_sec(node.get_clock().now()) < starting_time + duration:
             rate.sleep()
 
-        success = set_eff(1.0)
+        req.efficiency = 1.0
+        success = set_eff.call(efficiency)
 
         if success:
-            print('Time={} s'.format(rospy.get_time()))
+            print('Time={} s'.format(time_in_float_sec(node.get_clock().now())))
             print('Returning to previous thruster output efficiency #{}={}'.format(thruster_id, efficiency * 100))
 
     print('Leaving node...')
+    
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception as e:
+        print('Something went wrong: ' + str(e))

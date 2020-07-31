@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,32 +14,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import rospy
+import rclpy
 import sys
 from uuv_control_msgs.srv import InitWaypointsFromFile
 from std_msgs.msg import String, Time
+from time_utils import time_in_float_sec
 
+def main():
+    rclpy.init()
+    node = rclpy.create_node('send_waypoint_file')
+    node.get_logger().info('Send a waypoint file, namespace=%s', node.get_namespace())
 
-if __name__ == '__main__':
-    rospy.init_node('send_waypoint_file')
-    rospy.loginfo('Send a waypoint file, namespace=%s', rospy.get_namespace())
+    # if rospy.is_shutdown():
+    #     rospy.logerr('ROS master not running!')
+    #     sys.exit(-1)
 
-    if rospy.is_shutdown():
-        rospy.logerr('ROS master not running!')
-        sys.exit(-1)
-
-    if rospy.has_param('~filename'):
-        filename = rospy.get_param('~filename')
+    if node.has_parameter('~filename'):
+        filename = node.get_parameter('~filename').get_parameter_value().string_value
     else:
-        raise rospy.ROSException('No filename found')
+        raise RuntimeError('No filename found')
 
     # If no start time is provided: start *now*.
-    start_time = rospy.Time.now().to_sec()
+    start_time = time_in_float_sec(node.get_clock().now())
     start_now = True
-    if rospy.has_param('~start_time'):
-        start_time = rospy.get_param('~start_time')
+    if node.has_parameter('~start_time'):
+        start_time = node.get_parameter('~start_time').get_parameter_value().double_value
         if start_time < 0.0:
-            rospy.logerr('Negative start time, setting it to 0.0')
+            node.get_logger().error('Negative start time, setting it to 0.0')
             start_time = 0.0
             start_now = True
         else:
@@ -47,29 +48,35 @@ if __name__ == '__main__':
     else:
         start_now = True
 
-    rospy.loginfo('Start time=%.2f s' % start_time)
+    node.get_logger().info('Start time=%.2f s' % start_time)
 
-    interpolator = rospy.get_param('~interpolator', 'lipb')
-
-    try:
-        rospy.wait_for_service('init_waypoints_from_file', timeout=30)
-    except rospy.ROSException:
-        raise rospy.ROSException('Service not available! Closing node...')
+    interpolator = node.get_parameter('~interpolator', 'lipb').get_parameter_value().string_value
 
     try:
-        init_wp = rospy.ServiceProxy(
-            'init_waypoints_from_file',
-            InitWaypointsFromFile)
-    except rospy.ServiceException as e:
-        raise rospy.ROSException('Service call failed, error=%s', str(e))
+        init_wp = node.create_client(
+            InitWaypointsFromFile,
+            'init_waypoints_from_file')
+    except Exception as e:
+        node.get_logger().error('Service call failed, error=%s', str(e))
 
-    success = init_wp(Time(rospy.Time.from_sec(start_time)),
-                      start_now,
-                      String(filename),
-                      String(interpolator))
+    try:
+        ready = init_wp.wait_for_service('init_waypoints_from_file', timeout_sec=30)
+        if not ready:
+            raise RuntimeError('Service not available! Closing node...')
+        
+    req = InitWaypointsFromFile.Request()
+    req.start_time = rclpy.time.Time(start_time).to_msg())
+    req.start_now = start_now
+    req.filename = String(filename),
+    req.interpolator = String(interpolator)
+
+    success = init_wp.call(req)
 
     if success:
-        rospy.loginfo('Waypoints file successfully received, '
+        node.get_logger().info('Waypoints file successfully received, '
                       'filename=%s', filename)
     else:
-        rospy.loginfo('Failed to send waypoints')
+        node.get_logger().info('Failed to send waypoints')
+
+if __name__ == '__main__':
+    main()
