@@ -81,7 +81,7 @@ class ActuatorManager(Node):
             'topic_prefix', 'topic_suffix', 'frame_base', 'max_thrust']
         for p in thruster_params: 
             if p not in self.thruster_config:
-                raise rospy.ROSException(
+                raise RuntimeError(
                     'Parameter <%s> for thruster conversion function is missing' % p)
 
         # Setting up the thruster topic name

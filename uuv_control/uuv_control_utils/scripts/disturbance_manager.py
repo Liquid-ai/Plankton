@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import rospy
+import rclpy
 import sys
 import numpy as np
 import logging
@@ -22,11 +22,14 @@ from uuv_world_ros_plugins_msgs.srv import *
 from gazebo_msgs.srv import ApplyBodyWrench
 from uuv_gazebo_ros_plugins_msgs.srv import SetThrusterState, SetThrusterEfficiency
 from geometry_msgs.msg import Point, WrenchStamped, Vector3
+from rclpy.node import Node
 
 
-class DisturbanceManager:
+class DisturbanceManager(Node):
 
-    def __init__(self):
+    def __init__(self, node_name):
+        super().__init__(node_name)
+
         self._logger = logging.getLogger('dp_local_planner')
         out_hdlr = logging.StreamHandler(sys.stdout)
         out_hdlr.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(module)s | %(message)s'))
@@ -47,27 +50,27 @@ class DisturbanceManager:
 
         thruster_ids = list()
 
-        if rospy.has_param('~disturbances'):
-            self._disturbances = rospy.get_param('~disturbances')
+        if self.has_parameter('~disturbances'):
+            self._disturbances = self.get_parameter('~disturbances').value
             self._logger.info(self._disturbances)
             if type(self._disturbances) != list:
-                raise rospy.ROSException('Current specifications must be '
+                raise RuntimeError('Current specifications must be '
                                          'given as a list of dict')
             for i in range(len(self._disturbances)):
                 item = self._disturbances[i]
                 if type(item) != dict:
-                    raise rospy.ROSException('Disturbance description must be'
+                    raise RuntimeError('Disturbance description must be'
                                              ' given as a dict')
                 if 'type' not in item:
-                    raise rospy.ROSException('Type of disturbance not '
+                    raise RuntimeError('Type of disturbance not '
                                              'specified')
                 if item['type'] not in specs:
-                    raise rospy.ROSException(
+                    raise RuntimeError(
                         'Invalid type of disturbance, value=%s' % item['type'])
 
                 for spec in specs[item['type']]:
                     if spec not in item:
-                        raise rospy.ROSException(
+                        raise RuntimeError(
                             'Invalid current model specification, '
                             'missing tag=%s' % spec)
 
@@ -78,7 +81,7 @@ class DisturbanceManager:
                 self._disturbances[i]['is_applied'] = False
                 self._disturbances[i]['ended'] = False
         else:
-            raise rospy.ROSException('No disturbance specifications given')
+            raise RuntimeError('No disturbance specifications given')
 
         # List all disturbances to be applied
         for i in range(len(self._disturbances)):
@@ -89,66 +92,75 @@ class DisturbanceManager:
         self._body_wrench_msg = WrenchStamped()
 
         # For body wrench disturbances, publish a topic
-        self._wrench_topic = rospy.Publisher(
-            'wrench_perturbation', WrenchStamped, queue_size=1)
+        self._wrench_topic = self.create_publisher(
+            WrenchStamped, 'wrench_perturbation', 1)
 
-        vehicle_name = rospy.get_namespace().replace('/', '')
-
-        # Test if services are reachable
-        try:
-            services = ['/hydrodynamics/set_current_velocity',
-                        '/gazebo/apply_body_wrench']
-            for item in self._disturbances:
-                if item['type'] == 'thruster_state':
-                    services.append('/%s/thrusters/%d/set_thruster_state' % (vehicle_name, item['thruster_id']))
-                elif item['type'] == 'propeller_efficiency':
-                    services.append('/%s/thrusters/%d/set_dynamic_state_efficiency' % (vehicle_name, item['thruster_id']))
-                elif item['type'] == 'thrust_efficiency':
-                    services.append('/%s/thrusters/%d/set_thrust_force_efficiency' % (vehicle_name, item['thruster_id']))
-            for s in services:
-                rospy.wait_for_service(s, timeout=10)
-        except Exception as e:
-            self._logger.error('Some services are not available! message=' + str(e))
-            self._logger.error('Closing node...')
-            sys.exit(-1)
+        vehicle_name = self.get_namespace().replace('/', '')
 
         # Obtain service proxy
         self._service_cb = dict()
+        service_list = list()
         try:
-            self._service_cb['current_velocity'] = rospy.ServiceProxy(
-                '/hydrodynamics/set_current_velocity', SetCurrentVelocity)
-            self._service_cb['wrench'] = rospy.ServiceProxy(
-                '/gazebo/apply_body_wrench', ApplyBodyWrench)
+            service_list.append(self.create_client(
+                SetCurrentVelocity, '/hydrodynamics/set_current_velocity'))
+            self._service_cb['current_velocity'] = service_list[-1]
+            service_list.append(self.create_client(
+                ApplyBodyWrench, '/gazebo/apply_body_wrench'))
+            self._service_cb['wrench'] = service_list[-1]
+
             self._service_cb['thrusters'] = dict()
             for item in self._disturbances:
                 if item['type'] == 'thruster_state':
                     if 'state' not in self._service_cb['thrusters']:
                         self._service_cb['thrusters']['state'] = dict()
-                    self._service_cb['thrusters']['state'][item['thruster_id']] = rospy.ServiceProxy(
-                        '/%s/thrusters/%d/set_thruster_state' % (vehicle_name, item['thruster_id']),
-                        SetThrusterState)
+                    service_list.append(self.create_client(
+                        SetThrusterState,
+                        '/%s/thrusters/%d/set_thruster_state' % (vehicle_name, item['thruster_id'])))
+                    self._service_cb['thrusters']['state'][item['thruster_id']] = service_list[-1]
                 elif item['type'] == 'propeller_efficiency':
                     if 'propeller_efficiency' not in self._service_cb['thrusters']:
                         self._service_cb['thrusters']['propeller_efficiency'] = dict()
-                    self._service_cb['thrusters']['propeller_efficiency'][item['thruster_id']] = rospy.ServiceProxy(
-                        '/%s/thrusters/%d/set_dynamic_state_efficiency' % (vehicle_name, item['thruster_id']),
-                        SetThrusterEfficiency)
+                    service_list.append(self.create_client(
+                        SetThrusterEfficiency,
+                        '/%s/thrusters/%d/set_dynamic_state_efficiency' % (vehicle_name, item['thruster_id'])))
+                    self._service_cb['thrusters']['propeller_efficiency'][item['thruster_id']] = service_list[-1]
                 elif item['type'] == 'thrust_efficiency':
                     if 'thrust_efficiency' not in self._service_cb['thrusters']:
                         self._service_cb['thrusters']['thrust_efficiency'] = dict()
-                    self._service_cb['thrusters']['thrust_efficiency'][item['thruster_id']] = rospy.ServiceProxy(
-                        '/%s/thrusters/%d/set_thrust_force_efficiency' % (vehicle_name, item['thruster_id']),
-                        SetThrusterEfficiency)
-        except rospy.ServiceException as e:
+                    service_list.append(self.create_client(
+                        SetThrusterEfficiency,
+                        '/%s/thrusters/%d/set_thrust_force_efficiency' % (vehicle_name, item['thruster_id'])))
+                    self._service_cb['thrusters']['thrust_efficiency'][item['thruster_id']] = service_list[-1]
+        except Exception as e:
             self._logger.info('Service call failed, error=%s' % str(e))
             sys.exit(-1)
-
-        self._wrench_timer = rospy.timer.Timer(rospy.Duration(0.1),
-                                               self._publish_wrench_disturbance)
-
-        rate = rospy.Rate(100)
-        while not rospy.is_shutdown():
-            t = rospy.get_time()
+            
+        # Test if services are reachable
+        try:
+            #self._service_cb.values()
+            # services = ['/hydrodynamics/set_current_velocity',
+            #             '/gazebo/apply_body_wrench']
+            # for item in self._disturbances:
+            #     if item['type'] == 'thruster_state':
+            #         services.append('/%s/thrusters/%d/set_thruster_state' % (vehicle_name, item['thruster_id']))
+            #     elif item['type'] == 'propeller_efficiency':
+            #         services.append('/%s/thrusters/%d/set_dynamic_state_efficiency' % (vehicle_name, item['thruster_id']))
+            #     elif item['type'] == 'thrust_efficiency':
+            #         services.append('/%s/thrusters/%d/set_thrust_force_efficiency' % (vehicle_name, item['thruster_id']))
+            for s in service_list:
+                ready = s.wait_for_service(timeout_sec=10)
+                if not ready:
+                    raise RuntimeError('Service %s not ready' % (s.srv_name))
+        except Exception as e:
+            self._logger.error('Some services are not available! message=' + str(e))
+            self._logger.error('Closing node...')
+            sys.exit(-1)
+       
+        self._wrench_timer = self.create_timer(0.1, self._publish_wrench_disturbance)
+        
+        rate = self.create_rate(100)
+        while rclpy.ok():
+            t = self.get_clock().now()
             for i in range(len(self._disturbances)):
                 d = self._disturbances[i]
                 if t > d['starting_time'] and not d['is_applied']:
@@ -181,7 +193,7 @@ class DisturbanceManager:
                         self._disturbances[i]['ended'] = True
                 elif d['is_applied'] and 'duration' in d and not d['ended']:
                     if d['duration'] > 0:
-                        if rospy.get_time() > d['starting_time'] + d['duration']:
+                        if self.get_clock().now().nanoseconds > int((d['starting_time'] + d['duration']) * 1e9):
                             ###########################################################
                             if d['type'] == 'current':
                                 # Set current to zero
@@ -209,7 +221,7 @@ class DisturbanceManager:
 
     def _publish_wrench_disturbance(self, event):
         msg = WrenchStamped()
-        msg.header.stamp = rospy.Time().now()
+        msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = 'world'
         msg.wrench.force = Vector3(*self._body_force)
         msg.wrench.torque = Vector3(*self._body_torque)
@@ -219,61 +231,96 @@ class DisturbanceManager:
 
     def set_current(self, velocity, horizontal_angle, vertical_angle):
         self._logger.info('Appying current velocity model...')
-        if self._service_cb['current_velocity'](velocity, horizontal_angle, vertical_angle):
-            self._logger.info('Current velocity changed successfully at %f s! vel= %f m/s' % (rospy.get_time(), velocity))
+        req = SetCurrentVelocity.Request()
+        req.velocity = velocity
+        req.horizontal_angle = horizontal_angle
+        req.vertical_angle = vertical_angle
+
+        if self._service_cb['current_velocity'].call(req):
+            self._logger.info('Current velocity changed successfully at %f s! vel= %f m/s' % (time_in_float_sec(self.get_clock().now()), velocity))
         else:
             self._logger.error('Failed to change current velocity')
 
     def set_body_wrench(self, force, torque, duration, starting_time):
-        ns = rospy.get_namespace().replace('/', '')
+        ns = self.get_namespace().replace('/', '')
         body_name = '%s/base_link' % ns
+
+        req = ApplyBodyWrench.Request()
 
         self._body_force = np.array([self._body_force[i] + force[i] for i in range(3)])
         self._body_torque = np.array([self._body_torque[i] + torque[i] for i in range(3)])
 
         self._body_wrench_msg = WrenchStamped()
-        self._body_wrench_msg.header.stamp = rospy.Time().now()
+        self._body_wrench_msg.header.stamp = self.get_clock().now().to_msg()
         self._body_wrench_msg.header.frame_id = 'world'
         self._body_wrench_msg.wrench.force = Vector3(*self._body_force)
         self._body_wrench_msg.wrench.torque = Vector3(*self._body_torque)
-        success = self._service_cb['wrench'](
-            body_name,
-            'world',
-            Point(0, 0, 0),
-            self._body_wrench_msg.wrench,
-            rospy.Time(secs=starting_time),
-            rospy.Duration(duration))
+
+        req.body_name = body_name
+        req.reference_frame = 'world'
+        req.reference_point = Point(0, 0, 0)
+        req.wrench = self._body_wrench_msg.wrench
+        req.start_time = rclpy.time.Time(seconds=starting_time)
+        req.duration rclpy.time.Duration(duration)
+
+        success = self._service_cb['wrench'].call(req)
 
         if success:
-            self._logger.info('Body wrench perturbation applied!, body_name=%s, t=%.2f s' % (body_name, rospy.get_time()))
+            self._logger.info('Body wrench perturbation applied!, body_name=%s, t=%.2f s' % (body_name, time_in_float_sec(self.get_clock().now())))
         else:
-            self._logger.error('Failed to apply body wrench!, body_name=%s, t=%.2f s' % (body_name, rospy.get_time()))
+            self._logger.error('Failed to apply body wrench!, body_name=%s, t=%.2f s' % (body_name, time_in_float_sec(self.get_clock().now())))
 
     def set_thruster_state(self, thruster_id, is_on):
-        if self._service_cb['thrusters']['state'][thruster_id](is_on):
-            self._logger.info('Setting state of thruster #%d, state=%s, t=%.2f s' % (thruster_id, 'ON' if is_on else 'OFF', rospy.get_time()))
+        req = SetThrusterState..Request()
+        req.on = is_on
+
+        if self._service_cb['thrusters']['state'][thruster_id].call(req):
+            time = time_in_float_sec(self.get_clock().now())
+            self._logger.info('Setting state of thruster #%d, state=%s, t=%.2f s' % (thruster_id, 'ON' if is_on else 'OFF', time))
         else:
-            self._logger.error('Setting state of thruster #%d failed! t=%.2f s' % (thruster_id, rospy.get_time()))
+            time = time_in_float_sec(self.get_clock().now())
+            self._logger.error('Setting state of thruster #%d failed! t=%.2f s' % (thruster_id, time))
 
     def set_propeller_efficiency(self, thruster_id, eff):
-        if self._service_cb['thrusters']['propeller_efficiency'][thruster_id](eff):
-            self._logger.info('Setting propeller efficiency of thruster #%d, eff=%s, t=%.2f s' % (thruster_id, eff, rospy.get_time()))
+        req = SetThrusterEfficiency.Request()
+        req.efficiency = eff
+
+        if self._service_cb['thrusters']['propeller_efficiency'][thruster_id].call(req):
+            time = time_in_float_sec(self.get_clock().now())
+            self._logger.info('Setting propeller efficiency of thruster #%d, eff=%s, t=%.2f s' % (thruster_id, eff, time))
         else:
-            self._logger.error('Setting propeller efficiency of thruster #%d failed! t=%.2f s' % (thruster_id, rospy.get_time()))
+            time = time_in_float_sec(self.get_clock().now())
+            self._logger.error('Setting propeller efficiency of thruster #%d failed! t=%.2f s' % (thruster_id, time))
 
     def set_thrust_efficiency(self, thruster_id, eff):
-        if self._service_cb['thrusters']['thrust_efficiency'][thruster_id](eff):
-            self._logger.info('Setting thrust efficiency of thruster #%d, eff=%s, t=%.2f s' % (thruster_id, eff, rospy.get_time()))
-        else:
-            self._logger.error('Setting thrust efficiency of thruster #%d failed! t=%.2f s' % (thruster_id, rospy.get_time()))
+        req = SetThrusterEfficiency.Request()
+        req.efficiency = eff
 
-if __name__ == '__main__':
+        if self._service_cb['thrusters']['thrust_efficiency'][thruster_id].call(req):
+            time = time_in_float_sec(self.get_clock().now())
+            self._logger.info('Setting thrust efficiency of thruster #%d, eff=%s, t=%.2f s' % (thruster_id, eff, time))
+        else:
+            time = time_in_float_sec(self.get_clock().now())
+            self._logger.error('Setting thrust efficiency of thruster #%d failed! t=%.2f s' % (thruster_id, time))
+
+def time_in_float_sec(time: rclpy.time.Time):
+    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
+    return f_time
+
+def main():
     print('Starting disturbance manager')
-    rospy.init_node('disturbance_manager')
+    
+    rclpy.init()
 
     try:
-        node = DisturbanceManager()
-        rospy.spin()
-    except rospy.ROSInterruptException:
+        node = DisturbanceManager('disturbance_manager')
+        rclpy.spin(node)
+    except rclpy.exceptions.ROSInterruptException:
         print('caught exception')
+    except Exception as e:
+        print(e)
+
     print('exiting')
+
+if __name__ == '__main__':
+    main()
