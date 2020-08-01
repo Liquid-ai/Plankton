@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016-2019 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -32,10 +32,10 @@ class ThrusterAllocatorNode(ThrusterManager):
     to command the thrusters.
     """
 
-    def __init__(self):
+    def __init__(self, node_name):
         """Class constructor."""
-        ThrusterManager.__init__(self)
-
+        ThrusterManager.__init__(self, node_name)
+        
         self.last_update = rospy.Time.now()
 
         # Subscriber to the wrench to be applied on the UUV
@@ -155,13 +155,15 @@ class ThrusterAllocatorNode(ThrusterManager):
         self.publish_thrust_forces(force, torque, msg.header.frame_id.split('/')[-1])
         self.last_update = rospy.Time.now()
 
-
-if __name__ == '__main__':
-    rospy.init_node('thruster_allocator')
+def main():
+    rclypy.init()
 
     try:
-        node = ThrusterAllocatorNode()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('ThrusterAllocatorNode::Exception')
+        node = ThrusterAllocatorNode('thruster_allocator')
+        rclpy.spin(node)
+    except Exception as e:
+        print('ThrusterAllocatorNode::Exception ' + str(e))
     print('Leaving ThrusterAllocatorNode')
+
+if __name__ == '__main__':
+    main()
