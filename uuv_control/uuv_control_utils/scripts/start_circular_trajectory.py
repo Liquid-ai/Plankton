@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,27 +14,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import print_function
-import rospy
+import rclpy
 import sys
 from uuv_control_msgs.srv import InitCircularTrajectory
 from numpy import pi
 from geometry_msgs.msg import Point
 from std_msgs.msg import Time
+from time_utils import time_in_float_sec
 
-
-if __name__ == '__main__':
+def main():
     print('Starting the circular trajectory creator')
-    rospy.init_node('start_circular_trajectory')
 
-    if rospy.is_shutdown():
-        print('ROS master not running!')
-        sys.exit(-1)
+    rclpy.init()
+    node = rclpy.create_node('start_circular_trajectory')
+
+    # if rospy.is_shutdown():
+    #     print('ROS master not running!')
+    #     sys.exit(-1)
 
     # If no start time is provided: start *now*.
-    start_time = rospy.Time.now().to_sec()
+    start_time = time_in_float_sec(node.get_clock().now()) #rospy.Time.now().to_sec()
     start_now = False
-    if rospy.has_param('~start_time'):
-        start_time = rospy.get_param('~start_time')
+    if node.has_parameter('~start_time'):
+        start_time = node.get_parameter('~start_time').get_parameter_value().double_value
         if start_time < 0.0:
             print('Negative start time, setting it to 0.0')
             start_time = 0.0
@@ -47,11 +49,11 @@ if __name__ == '__main__':
     params = dict()
 
     for label in param_labels:
-        if not rospy.has_param('~' + label):
+        if not node.has_parameter('~' + label):
             print('{} must be provided for the trajectory generation!'.format(label))
             sys.exit(-1)
 
-        params[label] = rospy.get_param('~' + label)
+        params[label] = node.get_parameter('~' + label).value
 
     if len(params['center']) != 3:
         print('Center of circle must have 3 components (x, y, z)')
@@ -66,31 +68,36 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     try:
-        rospy.wait_for_service('start_circular_trajectory', timeout=20)
-    except rospy.ROSException:
-        print('Service not available! Closing node...')
-        sys.exit(-1)
-
-    try:
-        traj_gen = rospy.ServiceProxy('start_circular_trajectory', InitCircularTrajectory)
-    except rospy.ServiceException as e:
+        traj_gen = node.create_client(InitCircularTrajectory, 'start_circular_trajectory')
+    except Exception as e:
         print('Service call failed, error={}'.format(e))
+        sys.exit(-1) 
+        
+    if not traj_gen.wait_for_service(timeout_sec=20):
+        print('Service %s not available! Closing node...' %(traj_gen.srv_name))
         sys.exit(-1)
 
     print('Generating trajectory that starts at t={} s'.format(start_time))
 
-    success = traj_gen(Time(rospy.Time(start_time)),
-                       start_now,
-                       params['radius'],
-                       Point(params['center'][0], params['center'][1], params['center'][2]),
-                       False,
-                       0.0,
-                       params['n_points'],
-                       params['heading_offset'] * pi / 180,
-                       params['max_forward_speed'],
-                       params['duration'])
+    req = InitCircularTrajectory.Request()
+    req.start_time = node.get_clock().now().to_msg()
+    req.start_now = start_now
+    req.radius = params['radius'],
+    req.center = Point(params['center'][0], params['center'][1], params['center'][2])
+    req.is_clockwise = False
+    req.angle_offset = 0.0
+    req.n_points = params['n_points']
+    req.heading_offset = params['heading_offset'] * pi / 180
+    req.max_forward_speed = params['max_forward_speed']
+    req.duration = params['duration']
+
+    success = traj_gen.call(req)
 
     if success:
         print('Trajectory successfully generated!')
     else:
         print('Failed')
+
+
+if __name__ == '__main__':
+    main()
