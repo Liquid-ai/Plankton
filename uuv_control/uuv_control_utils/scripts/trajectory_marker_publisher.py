@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import print_function
-import rospy
+import rclpy
 import os
 import yaml
 from datetime import datetime
@@ -25,32 +25,33 @@ from geometry_msgs.msg import PoseStamped, Point, Quaternion
 from uuv_control_msgs.msg import Trajectory, TrajectoryPoint, WaypointSet
 import uuv_trajectory_generator
 import uuv_waypoints
+from rclpy.node import Node
 
+class TrajectoryMarkerPublisher(Node):
+    def __init__(self, node_name):
+        super().__init__(node_name)
+        self._trajectory_sub = self.create_subscription(
+            Trajectory, 'trajectory', self._update_trajectory, 10)
 
-class TrajectoryMarkerPublisher:
-    def __init__(self):
-        self._trajectory_sub = rospy.Subscriber(
-            'trajectory', Trajectory, self._update_trajectory)
-
-        self._waypoints_sub = rospy.Subscriber(
-            'waypoints', WaypointSet, self._update_waypoints)
+        self._waypoints_sub = self.create_subscription(
+            WaypointSet,'waypoints', self._update_waypoints, 10)
 
         # Vehicle state flags
         self._is_auto_on = False
         self._is_traj_tracking_on = False
         self._is_station_keeping_on = False
 
-        self._automatic_mode_sub = rospy.Subscriber(
-            'automatic_on', Bool, self._update_auto_mode)
+        self._automatic_mode_sub = self.create_subscription(
+            Bool, 'automatic_on', self._update_auto_mode, 10)
 
-        self._traj_tracking_mode_sub = rospy.Subscriber(
-            'trajectory_tracking_on', Bool, self._update_traj_tracking_mode)
+        self._traj_tracking_mode_sub = self.create_subscription(
+            Bool, 'trajectory_tracking_on', self._update_traj_tracking_mode, 10)
 
-        self._station_keeping_mode_sub = rospy.Subscriber(
-            'station_keeping_on', Bool, self._update_station_keeping_mode)
+        self._station_keeping_mode_sub = self.create_subscription(
+            Bool, 'station_keeping_on', self._update_station_keeping_mode, 10)
 
-        self._reference_sub = rospy.Subscriber(
-            'reference', TrajectoryPoint, self._reference_callback)
+        self._reference_sub = self.create_subscription(
+            TrajectoryPoint, 'reference', self._reference_callback, 10)
 
         # Waypoint set received
         self._waypoints = None
@@ -58,42 +59,42 @@ class TrajectoryMarkerPublisher:
         self._trajectory = None
 
         self._output_dir = None
-        if rospy.has_param('~output_dir'):
-            self._output_dir = rospy.get_param('~output_dir')
+        if self.has_parameter('~output_dir'):
+            self._output_dir = self.get_parameter('~output_dir').get_parameter_value().string_value
             if not os.path.isdir(self._output_dir):
                 print('Invalid output directory, not saving the files, dir=', self._output_dir)
                 self._output_dir = None
             else:
-                self._output_dir = os.path.join(self._output_dir, rospy.get_namespace().replace('/', ''))
+                self._output_dir = os.path.join(self._output_dir, self.get_namespace().replace('/', ''))
                 if not os.path.isdir(self._output_dir):
                     os.makedirs(self._output_dir)
 
         # Visual marker publishers
-        self._trajectory_path_pub = rospy.Publisher(
-            'trajectory_marker', Path, queue_size=1)
+        self._trajectory_path_pub = self.create_publisher(
+            Path, 'trajectory_marker', 1)
 
-        self._waypoint_markers_pub = rospy.Publisher(
-            'waypoint_markers', MarkerArray, queue_size=1)
+        self._waypoint_markers_pub = self.create_publisher(
+            MarkerArray, 'waypoint_markers', 1)
 
-        self._waypoint_path_pub = rospy.Publisher(
-            'waypoint_path_marker', Path, queue_size=1)
+        self._waypoint_path_pub = self.create_publisher(
+            Path, 'waypoint_path_marker', 1)
 
-        self._reference_marker_pub = rospy.Publisher(
-            'reference_marker', Marker, queue_size=1)
+        self._reference_marker_pub = self.create_publisher(
+            Marker, 'reference_marker', 1)
 
-        self._update_markers_timer = rospy.Timer(
-            rospy.Duration(0.5), self._update_markers)
+        self._update_markers_timer = node.create_timer(
+            0.5, self._update_markers)
 
     def _update_markers(self, event):
         if self._waypoints is None:
             waypoint_path_marker = Path()
-            t = rospy.Time.now()
-            waypoint_path_marker.header.stamp = t
+            t_msg = self.get_clock().now().to_msg()
+            waypoint_path_marker.header.stamp = t_msg
             waypoint_path_marker.header.frame_id = 'world'
 
             waypoint_marker = MarkerArray()
             marker = Marker()
-            marker.header.stamp = t
+            marker.header.stamp = t_msg
             marker.header.frame_id = 'world'
             marker.id = 0
             marker.type = Marker.SPHERE
@@ -107,7 +108,7 @@ class TrajectoryMarkerPublisher:
         self._waypoint_markers_pub.publish(waypoint_marker)
 
         traj_marker = Path()
-        traj_marker.header.stamp = rospy.Time.now()
+        traj_marker.header.stamp = self.get_clock().now().to_msg()
         traj_marker.header.frame_id = 'world'
 
         if self._trajectory is not None:
@@ -140,7 +141,7 @@ class TrajectoryMarkerPublisher:
 
     def _reference_callback(self, msg):
         marker = Marker()
-        marker.header.stamp = rospy.Time.now()
+        marker.header.stamp = self.get_clock().now().to_msg()
         marker.header.frame_id = msg.header.frame_id
         marker.id = 0
         marker.type = Marker.SPHERE
@@ -160,11 +161,11 @@ class TrajectoryMarkerPublisher:
 
 if __name__ == '__main__':
     print('Starting trajectory and waypoint marker publisher')
-    rospy.init_node('trajectory_marker_publisher')
+    rclpy.init()
 
     try:
-        node = TrajectoryMarkerPublisher()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
+        node = TrajectoryMarkerPublisher('trajectory_marker_publisher')
+        rclpy.spin(node)
+    except Exception as e:
+        print('caught exception' + str(e))
     print('exiting')
