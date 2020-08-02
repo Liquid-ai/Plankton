@@ -56,9 +56,10 @@
     </group>
   </group>
 
-    <group ns="$(arg uuv_name)">
+    <group>
+      <push-ros-namespace namespace="$(arg uuv_name)"/>
       <node pkg="uuv_trajectory_control"
-            type="auv_geometric_tracking_controller.py"
+            exec="auv_geometric_tracking_controller.py"
             name="auv_geometric_tracking_controller"
             output="screen"
             unless="$(arg use_ned_frame)">
@@ -104,7 +105,7 @@
       </node>
 
       <node pkg="uuv_trajectory_control"
-            type="auv_geometric_tracking_controller.py"
+            exec="auv_geometric_tracking_controller.py"
             name="auv_geometric_tracking_controller"
             output="screen"
             if="$(arg use_ned_frame)">

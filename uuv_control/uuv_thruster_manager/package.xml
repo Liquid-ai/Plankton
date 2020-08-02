@@ -18,6 +18,7 @@
   <depend>std_msgs</depend>
   
   <exec_depend>tf2</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>python-yaml</exec_depend>
   <exec_depend>uuv_gazebo_ros_plugins_msgs</exec_depend>
