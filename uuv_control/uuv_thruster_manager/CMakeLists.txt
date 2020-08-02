@@ -21,39 +21,50 @@ rosidl_generate_interfaces(
   std_msgs
 )
 
-set(INCLUDE_DIRS ${std_msgs_INCLUDE_DIRS}
-  ${rosidl_default_generators_INCLUDE_DIRS} ${ament_cmake_INCLUDE_DIRS})
-include_directories(${INCLUDE_DIRS})
+# rosidl_target_interfaces(publish_address_book
+#   ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
-set(LIBRARY_DIRS ${std_msgs_LIBRARY_DIRS}
-  ${rosidl_default_generators_LIBRARY_DIRS} ${ament_cmake_LIBRARY_DIRS})
 
-link_directories(${LIBRARY_DIRS})
+# set(INCLUDE_DIRS ${std_msgs_INCLUDE_DIRS}
+#   ${rosidl_default_generators_INCLUDE_DIRS} ${ament_cmake_INCLUDE_DIRS})
+# include_directories(${INCLUDE_DIRS})
 
-set(LIBS ${std_msgs_LIBRARIES} ${rosidl_default_generators_LIBRARIES}
-  ${ament_cmake_LIBRARIES})
+# set(LIBRARY_DIRS ${std_msgs_LIBRARY_DIRS}
+#   ${rosidl_default_generators_LIBRARY_DIRS} ${ament_cmake_LIBRARY_DIRS})
 
-catkin_install_python(PROGRAMS scripts/thruster_allocator.py
-  DESTINATION lib/${PROJECT_NAME})
+# link_directories(${LIBRARY_DIRS})
+
+# set(LIBS ${std_msgs_LIBRARIES} ${rosidl_default_generators_LIBRARIES}
+#   ${ament_cmake_LIBRARIES})
+
+ament_python_install_package(uuv_thrusters PACKAGE_DIR src/uuv_thrusters)
+ament_python_install_package(uuv_thrusters.models PACKAGE_DIR src/uuv_thrusters/models)
+
+
+install(
+  PROGRAMS scripts/thruster_allocator.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 install(DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME}
   PATTERN "*~"
   EXCLUDE)
 
-if(BUILD_TESTING)
-  find_package(rostest REQUIRED)
-  foreach(T test/test_thrusters.test test/test_thruster_allocator_x_axis.test
-    test/test_thruster_allocator_y_axis.test
-    test/test_thruster_allocator_z_axis.test
-    test/test_thruster_manager_proportional_correct.test)
-    add_rostest(${T})
-  endforeach()
-endif()
+#TODO Enable tests
+# if(BUILD_TESTING)
+#   find_package(rostest REQUIRED)
+#   foreach(T test/test_thrusters.test test/test_thruster_allocator_x_axis.test
+#     test/test_thruster_allocator_y_axis.test
+#     test/test_thruster_allocator_z_axis.test
+#     test/test_thruster_manager_proportional_correct.test)
+#     add_rostest(${T})
+#   endforeach()
+# endif()
 
-ament_export_dependencies(std_msgs)
-ament_export_dependencies(rosidl_default_generators)
-ament_export_dependencies(ament_cmake)
-ament_export_include_directories(${INCLUDE_DIRS})
+# ament_export_dependencies(std_msgs)
+# ament_export_dependencies(rosidl_default_generators)
+# ament_export_dependencies(ament_cmake)
+# ament_export_include_directories(${INCLUDE_DIRS})
 
 ament_package()

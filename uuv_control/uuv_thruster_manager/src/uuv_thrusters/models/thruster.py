@@ -12,11 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import rospy
+
 import numpy
 from tf_quaternion import transformations
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 from std_msgs.msg import Header
+from rclpy.node import Node 
 
 
 class Thruster(object):
@@ -37,7 +38,8 @@ class Thruster(object):
     LABEL = ''
     DEFAULT_AXIS=numpy.array([1, 0, 0, 0])
 
-    def __init__(self, index, topic, pos, orientation, axis=DEFAULT_AXIS):
+    def __init__(self, node: Node, index, topic, pos, orientation, axis=DEFAULT_AXIS):
+        self.node = node
         self._index = index
         self._topic = topic
         self._pos = None
@@ -54,10 +56,10 @@ class Thruster(object):
                 thrust_body, torque_body)).transpose()
         self._command = 0
         self._thrust = 0
-        self._command_pub = rospy.Publisher(self._topic, FloatStamped,
-                                            queue_size=10)
+        self._command_pub = self.node.create_publisher(self._topic, FloatStamped,
+                                            10)
 
-        rospy.loginfo('Thruster #{} - {} - {}'.format(
+        self.node.get_logger().info('Thruster #{} - {} - {}'.format(
             self._index, self.LABEL, self._topic))
 
     @property
@@ -73,7 +75,7 @@ class Thruster(object):
         return self._force_dist
 
     @staticmethod
-    def create_thruster(model_name, *args, **kwargs):
+    def create_thruster(node, model_name, *args, **kwargs):
         """Factory method for the thruster models.
         
         > *Input arguments*
@@ -87,8 +89,8 @@ class Thruster(object):
         """
         for thruster in Thruster.__subclasses__():
             if model_name == thruster.LABEL:
-                return thruster(*args, **kwargs)
-        raise rospy.ROSException('Invalid thruster model')
+                return thruster(node, *args, **kwargs)
+        raise RuntimeError('Invalid thruster model')
 
     def get_command_value(self, thrust):
         """Convert desired thrust force to input command according to this
@@ -129,6 +131,6 @@ class Thruster(object):
         """
         self._update(thrust)
         output = FloatStamped()
-        output.header.stamp = rospy.Time.now()
+        output.header.stamp = self.node.get_clock().now().to_msg()
         output.data = self._command
         self._command_pub.publish(output)

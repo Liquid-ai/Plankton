@@ -15,16 +15,17 @@
 # limitations under the License.
 from __future__ import print_function
 import numpy
-import rospy
-import tf
-import tf.transformations as trans
+import rclpy
+#import tf
+#import tf.transformations as trans
 from os.path import isdir, join
 from copy import deepcopy
 import yaml
-import tf2_ros
+#import tf2_ros
 from uuv_thrusters import ThrusterManager
 from geometry_msgs.msg import Wrench, WrenchStamped
 from uuv_thruster_manager.srv import *
+from time_utils import time_in_float_sec
 
 
 class ThrusterAllocatorNode(ThrusterManager):
@@ -36,37 +37,37 @@ class ThrusterAllocatorNode(ThrusterManager):
         """Class constructor."""
         ThrusterManager.__init__(self, node_name)
         
-        self.last_update = rospy.Time.now()
+        self.last_update = self.get_clock().now()
 
         # Subscriber to the wrench to be applied on the UUV
-        self.input_sub = rospy.Subscriber('thruster_manager/input',
-                                          Wrench, self.input_callback)
+        self.input_sub = self.create_subscription(Wrench, 'thruster_manager/input',
+                                          self.input_callback, 10)
 
         # To deliver the wrench input with an option to use another body frame
         # (options: base_link and base_link_ned), use the wrench stamped
         # message
-        self.input_stamped_sub = rospy.Subscriber(
-            'thruster_manager/input_stamped', WrenchStamped,
-            self.input_stamped_callback)
-        self.thruster_info_service = rospy.Service(
-            'thruster_manager/get_thrusters_info', ThrusterManagerInfo,
+        self.input_stamped_sub = self.create_subscription(
+            WrenchStamped, 'thruster_manager/input_stamped', 
+            self.input_stamped_callback, 10)
+        self.thruster_info_service = self.create_service(
+            ThrusterManagerInfo, 'thruster_manager/get_thrusters_info',
             self.get_thruster_info)
-        self.curve_calc_service = rospy.Service(
-            'thruster_manager/get_thruster_curve', GetThrusterCurve,
+        self.curve_calc_service = self.create_service(
+            GetThrusterCurve, 'thruster_manager/get_thruster_curve',
             self.get_thruster_curve)
-        self.set_thruster_manager_config_service = rospy.Service(
-            'thruster_manager/set_config', SetThrusterManagerConfig,
+        self.set_thruster_manager_config_service = self.create_service(
+            SetThrusterManagerConfig, 'thruster_manager/set_config',
             self.set_config)
-        self.get_thruster_manager_config_service = rospy.Service(
-            'thruster_manager/get_config', GetThrusterManagerConfig,
+        self.get_thruster_manager_config_service = self.create_service(
+            GetThrusterManagerConfig, 'thruster_manager/get_config',
             self.get_config)
 
-        rate = rospy.Rate(self.config['update_rate'])
-        while not rospy.is_shutdown():
+        rate = self.create_rate(self.config['update_rate'])
+        while rclpy.ok():
             if self.config['timeout'] > 0:
                 # If a timeout is set, zero the outputs to the thrusters if
                 # there is no command signal for the length of timeout
-                if rospy.Time.now() - self.last_update > self.config['timeout']:
+                if time_in_float_sec(self.get_clock().now()) - self.last_update > self.config['timeout']:
                     print('Turning thrusters off - inactive for too long')
                     if self.thrust is not None:
                         self.thrust.fill(0)
@@ -135,7 +136,7 @@ class ThrusterAllocatorNode(ThrusterManager):
         # configured base_link reference
         self.publish_thrust_forces(force, torque)
 
-        self.last_update = rospy.Time.now()
+        self.last_update = self.get_clock().now()
 
     def input_stamped_callback(self, msg):
         """
@@ -153,7 +154,7 @@ class ThrusterAllocatorNode(ThrusterManager):
 
         # Send the frame ID for the requested wrench
         self.publish_thrust_forces(force, torque, msg.header.frame_id.split('/')[-1])
-        self.last_update = rospy.Time.now()
+        self.last_update = self.get_clock().now()
 
 def main():
     rclypy.init()

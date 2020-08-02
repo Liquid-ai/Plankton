@@ -37,14 +37,14 @@ class ThrusterProportional(Thruster):
     """
     LABEL = 'proportional'
 
-    def __init__(self, *args, **kwargs):
-        super(ThrusterProportional, self).__init__(*args)
+    def __init__(self, node, *args, **kwargs):
+        super(ThrusterProportional, self).__init__(node, *args)
 
         if 'gain' not in kwargs:
-            rospy.ROSException('Thruster gain not given')
+            RuntimeError('Thruster gain not given')
         self._gain = kwargs['gain']
-        rospy.loginfo('Thruster model:')
-        rospy.loginfo('\tGain=' + str(self._gain))
+        self.node.get_logger().info('Thruster model:')
+        self.node.get_logger().info('\tGain=' + str(self._gain))
 
     def get_command_value(self, thrust):
         """Compute the angular velocity necessary 

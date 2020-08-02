@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import rospy
 import numpy
 from .thruster import Thruster
 
@@ -46,12 +45,12 @@ class ThrusterCustom(Thruster):
     """
     LABEL = 'custom'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, node, *args, **kwargs):
         """Class constructor."""
-        super(ThrusterCustom, self).__init__(*args)
+        super(ThrusterCustom, self).__init__(node, *args)
 
         if 'input' not in kwargs or 'output' not in kwargs:
-            rospy.ROSException('Thruster input/output sample points not given')
+            RuntimeError('Thruster input/output sample points not given')
         # Vector of sample values for each angular velocity
         self._input = kwargs['input']
         # Vector of sample values for each thrust force relative to the input

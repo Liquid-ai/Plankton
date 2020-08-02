@@ -252,7 +252,7 @@ class ThrusterManager(Node):
                 self.get_logger().info('transform: ' + base + ' -> ' + frame)
                 now = self.get_clock().now() + rclpy.time.Duration(0.2)
                 self.tf_buffer.can_transform(base, frame,
-                                               now, timeout=rospy.Duration(1.0))
+                                               now, timeout=rclpy.time.Duration(1.0))
                 [pos, quat] = self.tf_buffer.lookup_transform(base, frame, now)
 
                 topic = self.config['thruster_topic_prefix'] + str(i) + \
@@ -269,7 +269,7 @@ class ThrusterManager(Node):
                         i, topic, pos, quat, self.axes[frame], **params)
                 else:
                     if idx_thruster_model >= len(self.config['conversion_fcn']):
-                        raise rospy.ROSException('Number of thrusters found and '
+                        raise RuntimeError('Number of thrusters found and '
                                                  'conversion_fcn are different')
                     params = self.config['conversion_fcn_params'][idx_thruster_model]
                     conv_fcn = self.config['conversion_fcn'][idx_thruster_model]
