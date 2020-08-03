@@ -24,8 +24,8 @@ except ImportError:
 
 
 class SymVehicle(Vehicle):
-    def __init__(self, inertial_frame_id='world'):
-        Vehicle.__init__(self, inertial_frame_id)
+    def __init__(self, node, inertial_frame_id='world'):
+        Vehicle.__init__(self, node, inertial_frame_id)
     
         if CASADI_IMPORTED:
             # Declaring state variables

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016-2019 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -15,13 +15,13 @@
 # limitations under the License.
 import math
 import numpy as np
-import rospy
+import rclpy
 from copy import deepcopy
 
 import geometry_msgs.msg as geometry_msgs
 import uuv_control_msgs.msg as uuv_control_msgs
-import tf
-import tf.transformations as trans
+# import tf
+# import tf.transformations as trans
 
 from nav_msgs.msg import Odometry
 from uuv_thrusters.models import Thruster
@@ -31,94 +31,98 @@ from uuv_control_interfaces import DPControllerLocalPlanner
 import tf2_ros
 from tf_quaternion.transformations import quaternion_matrix
 
+from rclpy.node import Node
 
-class AUVGeometricTrackingController:
-    def __init__(self):
-        self.namespace = rospy.get_namespace().replace('/', '')
-        rospy.loginfo('Initialize control for vehicle <%s>' % self.namespace)
+
+class AUVGeometricTrackingController(Node):
+    def __init__(self, node_name):
+        super().__init__(node_name)
+
+        self.namespace = self.get_namespace().replace('/', '')
+        self.get_logger().info('Initialize control for vehicle <%s>' % self.namespace)
 
         self.local_planner = DPControllerLocalPlanner(full_dof=True, thrusters_only=False,
             stamped_pose_only=False)
 
-        self.base_link = rospy.get_param('~base_link', 'base_link')
+        self.base_link = self.get_parameter('~base_link', 'base_link').get_parameter_value().string_value
 
         # Reading the minimum thrust generated
-        self.min_thrust = rospy.get_param('~min_thrust', 0)
+        self.min_thrust = self.get_parameter('~min_thrust', 0).get_parameter_value().double_value
         assert self.min_thrust >= 0
-        rospy.loginfo('Min. thrust [N]=%.2f', self.min_thrust)
+        self.get_logger().info('Min. thrust [N]=%.2f', self.min_thrust)
 
         # Reading the maximum thrust generated
-        self.max_thrust = rospy.get_param('~max_thrust', 0)
+        self.max_thrust = self.get_parameter('~max_thrust', 0).get_parameter_value().double_value
         assert self.max_thrust > 0 and self.max_thrust > self.min_thrust
-        rospy.loginfo('Max. thrust [N]=%.2f', self.max_thrust)
+        self.get_logger().info('Max. thrust [N]=%.2f', self.max_thrust)
 
         # Reading the thruster topic
-        self.thruster_topic = rospy.get_param('~thruster_topic', 'thrusters/0/input')
+        self.thruster_topic = self.get_parameter('~thruster_topic', 'thrusters/0/input').get_parameter_value().string_value
         assert len(self.thruster_topic) > 0
 
         # Reading the thruster gain
-        self.p_gain_thrust = rospy.get_param('~thrust_p_gain', 0.0)
+        self.p_gain_thrust = self.get_parameter('~thrust_p_gain', 0.0).get_parameter_value().double_value
         assert self.p_gain_thrust > 0
 
-        self.d_gain_thrust = rospy.get_param('~thrust_d_gain', 0.0)
+        self.d_gain_thrust = self.get_parameter('~thrust_d_gain', 0.0).get_parameter_value().double_value
         assert self.d_gain_thrust >= 0
 
         # Reading the roll gain
-        self.p_roll = rospy.get_param('~p_roll', 0.0)
+        self.p_roll = self.get_parameter('~p_roll', 0.0).get_parameter_value().double_value
         assert self.p_roll > 0
 
         # Reading the pitch P gain
-        self.p_pitch = rospy.get_param('~p_pitch', 0.0)
+        self.p_pitch = self.get_parameter('~p_pitch', 0.0).get_parameter_value().double_value
         assert self.p_pitch > 0
 
         # Reading the pitch D gain
-        self.d_pitch = rospy.get_param('~d_pitch', 0.0)
+        self.d_pitch = self.get_parameter('~d_pitch', 0.0).get_parameter_value().double_value
         assert self.d_pitch >= 0
 
         # Reading the yaw P gain
-        self.p_yaw = rospy.get_param('~p_yaw', 0.0)
+        self.p_yaw = self.get_parameter('~p_yaw', 0.0).get_parameter_value().double_value
         assert self.p_yaw > 0
 
         # Reading the yaw D gain
-        self.d_yaw = rospy.get_param('~d_yaw', 0.0)
+        self.d_yaw = self.get_parameter('~d_yaw', 0.0).get_parameter_value().double_value
         assert self.d_yaw >= 0
 
         # Reading the saturation for the desired pitch
-        self.desired_pitch_limit = rospy.get_param('~desired_pitch_limit', 15 * np.pi / 180)
+        self.desired_pitch_limit = self.get_parameter('~desired_pitch_limit', 15 * np.pi / 180).get_parameter_value().double_value
         assert self.desired_pitch_limit > 0
 
         # Reading the saturation for yaw error
-        self.yaw_error_limit = rospy.get_param('~yaw_error_limit', 1.0)
+        self.yaw_error_limit = self.get_parameter('~yaw_error_limit', 1.0).get_parameter_value().double_value
         assert self.yaw_error_limit > 0
 
         # Reading the number of fins
-        self.n_fins = rospy.get_param('~n_fins', 0)
+        self.n_fins = self.get_parameter('~n_fins', 0).get_parameter_value().integer_value
         assert self.n_fins > 0
 
         # Reading the mapping for roll commands
-        self.map_roll = rospy.get_param('~map_roll', [0, 0, 0, 0])
+        self.map_roll = self.get_parameter('~map_roll', [0, 0, 0, 0]).get_parameter_value().double_array_value
         assert isinstance(self.map_roll, list)
         assert len(self.map_roll) == self.n_fins
 
         # Reading the mapping for the pitch commands
-        self.map_pitch = rospy.get_param('~map_pitch', [0, 0, 0, 0])
+        self.map_pitch = self.get_parameter('~map_pitch', [0, 0, 0, 0]).get_parameter_value().double_array_value
         assert isinstance(self.map_pitch, list)
         assert len(self.map_pitch) == self.n_fins
-
+        
         # Reading the mapping for the yaw commands
-        self.map_yaw = rospy.get_param('~map_yaw', [0, 0, 0, 0])
+        self.map_yaw = self.get_parameter('~map_yaw', [0, 0, 0, 0]).get_parameter_value().double_array_value
         assert isinstance(self.map_yaw, list)
         assert len(self.map_yaw) == self.n_fins
 
         # Retrieve the thruster configuration parameters
-        self.thruster_config = rospy.get_param('~thruster_config')
+        self.thruster_config = self.get_parameter('~thruster_config').value
 
         # Check if all necessary thruster model parameter are available
         thruster_params = ['conversion_fcn_params', 'conversion_fcn',
             'topic_prefix', 'topic_suffix', 'frame_base', 'max_thrust']
         for p in thruster_params:
             if p not in self.thruster_config:
-                raise rospy.ROSException(
+                raise RuntimeError(
                     'Parameter <%s> for thruster conversion function is '
                     'missing' % p)
 
@@ -132,10 +136,10 @@ class AUVGeometricTrackingController:
         frame = '%s/%s%d' % (self.namespace, self.thruster_config['frame_base'], 0)
 
         self.tf_buffer = tf2_ros.Buffer()
-        self.listener = tf2_ros.TransformListener(self.tf_buffer)
+        self.listener = tf2_ros.TransformListener(self.tf_buffer, self)
 
-        rospy.loginfo('Lookup: Thruster transform found %s -> %s' % (base, frame))
-        trans = self.tf_buffer.lookup_transform(base, frame, rospy.Time(), rospy.Duration(5))
+        self.get_logger().info('Lookup: Thruster transform found %s -> %s' % (base, frame))
+        trans = self.tf_buffer.lookup_transform(base, frame, rclpy.time.Time(), rclpy.time.Duration(5))
         pos = np.array([trans.transform.translation.x,
                         trans.transform.translation.y,
                         trans.transform.translation.z])
@@ -143,25 +147,25 @@ class AUVGeometricTrackingController:
                          trans.transform.rotation.y,
                          trans.transform.rotation.z,
                          trans.transform.rotation.w])
-        rospy.loginfo('Thruster transform found %s -> %s' % (base, frame))
-        rospy.loginfo('pos=' + str(pos))
-        rospy.loginfo('rot=' + str(quat))
-
+        self.get_logger().info('Thruster transform found %s -> %s' % (base, frame))
+        self.get_logger().info('pos=' + str(pos))
+        self.get_logger().info('rot=' + str(quat))
+        
         # Read transformation from thruster
         self.thruster = Thruster.create_thruster(
             self.thruster_config['conversion_fcn'], 0,
             self.thruster_topic, pos, quat,
             **self.thruster_config['conversion_fcn_params'])
 
-        rospy.loginfo('Thruster configuration=\n' + str(self.thruster_config))
-        rospy.loginfo('Thruster input topic=' + self.thruster_topic)
+        self.get_logger().info('Thruster configuration=\n' + str(self.thruster_config))
+        self.get_logger().info('Thruster input topic=' + self.thruster_topic)
 
-        self.max_fin_angle = rospy.get_param('~max_fin_angle', 0.0)
+        self.max_fin_angle = self.get_parameter('~max_fin_angle', 0.0).get_parameter_value().double_value
         assert self.max_fin_angle > 0
 
         # Reading the fin input topic prefix
-        self.fin_topic_prefix = rospy.get_param('~fin_topic_prefix', 'fins')
-        self.fin_topic_suffix = rospy.get_param('~fin_topic_suffix', 'input')
+        self.fin_topic_prefix = self.get_parameter('~fin_topic_prefix', 'fins').get_parameter_value().string_value
+        self.fin_topic_suffix = self.get_parameter('~fin_topic_suffix', 'input').get_parameter_value().string_value
 
         self.rpy_to_fins = np.vstack((self.map_roll, self.map_pitch, self.map_yaw)).T
 
@@ -170,17 +174,17 @@ class AUVGeometricTrackingController:
         for i in range(self.n_fins):
             topic = '%s/%d/%s' % (self.fin_topic_prefix, i, self.fin_topic_suffix)
             self.pub_cmd.append(
-              rospy.Publisher(topic, FloatStamped, queue_size=10))
+              self.create_publisher(FloatStamped, topic, 10))
 
-        self.odometry_sub = rospy.Subscriber(
-            'odom', Odometry, self.odometry_callback)
+        self.odometry_sub = self.create_subscription(
+            Odometry, 'odom', self.odometry_callback, 10)
 
-        self.reference_pub = rospy.Publisher(
-            'reference', TrajectoryPoint, queue_size=1)
+        self.reference_pub = self.create_publisher(
+            TrajectoryPoint, 'reference', 1)
 
         # Publish error (for debugging)
-        self.error_pub = rospy.Publisher(
-            'error', TrajectoryPoint, queue_size=1)
+        self.error_pub = self.create_publisher(
+            TrajectoryPoint, 'error', 1)
 
     @staticmethod
     def unwrap_angle(t):
@@ -210,12 +214,12 @@ class AUVGeometricTrackingController:
         self.local_planner.update_vehicle_pose(pos, quat)
 
         # Compute the desired position
-        t = rospy.Time.now().to_sec()
+        t = time_in_float_sec(self.get_clock().now())
         des = self.local_planner.interpolate(t)
 
         # Publish the reference
         ref_msg = TrajectoryPoint()
-        ref_msg.header.stamp = rospy.Time.now()
+        ref_msg.header.stamp = self.get_clock().now().to_msg()
         ref_msg.header.frame_id = self.local_planner.inertial_frame_id
         ref_msg.pose.position = geometry_msgs.Vector3(*des.p)
         ref_msg.pose.orientation = geometry_msgs.Quaternion(*des.q)
@@ -238,7 +242,7 @@ class AUVGeometricTrackingController:
 
         # Generate error message
         error_msg = TrajectoryPoint()
-        error_msg.header.stamp = rospy.Time.now()
+        error_msg.header.stamp = self.get_clock().now().to_msg()
         error_msg.header.frame_id = self.local_planner.inertial_frame_id
         error_msg.pose.position = geometry_msgs.Vector3(*e_p)
         error_msg.pose.orientation = geometry_msgs.Quaternion(
@@ -291,7 +295,7 @@ class AUVGeometricTrackingController:
 
         cmd = FloatStamped()
         for i in range(self.n_fins):
-            cmd.header.stamp = rospy.Time.now()
+            cmd.header.stamp = self.get_clock().now().to_msg()
             cmd.header.frame_id = '%s/fin%d' % (self.namespace, i)
             cmd.data = min(fins[i], self.max_fin_angle)
             cmd.data = max(cmd.data, -self.max_fin_angle)
@@ -299,13 +303,19 @@ class AUVGeometricTrackingController:
 
         self.error_pub.publish(error_msg)
 
+def time_in_float_sec(time: Time):
+    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
+    return f_time
 
-if __name__ == '__main__':
+def main():
     print('Starting AUV trajectory tracker')
-    rospy.init_node('auv_geometric_tracking_controller')
+    rclpy.init()
 
     try:
-        node = AUVGeometricTrackingController()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
+        node = AUVGeometricTrackingController('auv_geometric_tracking_controller')
+        rclpy.spin(node)
+    except Exception as e:
+        print('caught exception: ' + str(e)) 
+
+if __name__ == '__main__':
+    main()

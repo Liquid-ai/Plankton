@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016-2019 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,15 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import print_function
-import roslib
+
 import numpy as np
 import matplotlib.pyplot as plt
 import uuv_trajectory_generator
 import time
 from geometry_msgs.msg import Point
 from mpl_toolkits.mplot3d import Axes3D
-
-roslib.load_manifest('uuv_trajectory_control')
 
 """
 Demo file to demonstrate the waypoint interpolation method with generation of
@@ -121,8 +119,8 @@ def run_generator(waypoint_set, interp_method):
     ax.set_title('Angular accelerations - ' + interp_method)
     ax.set_xlim(pnts[0].t, pnts[-1].t)
 
-if __name__ == '__main__':
-    # For a helical trajectory
+def main():
+        # For a helical trajectory
     wp_set = uuv_trajectory_generator.WaypointSet()
     # Add some waypoints at the beginning
     wp_set.add_waypoint(uuv_trajectory_generator.Waypoint(-10, -12, -36, 0.5),
@@ -142,3 +140,5 @@ if __name__ == '__main__':
 
     plt.show()
 
+if __name__ == '__main__':
+    main()

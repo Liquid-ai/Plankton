@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016-2019 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import rospy
+import rclpy
 import numpy as np
 from uuv_control_interfaces import DPPIDControllerBase
 from uuv_control_msgs.srv import *
@@ -83,13 +83,16 @@ class ROV_MBFLController(DPPIDControllerBase):
         return True
 
 
-if __name__ == '__main__':
+def main():
     print('Starting Modelbased Feedback Linearization Controller')
-    rospy.init_node('rov_mb_fl_controller')
+    rclpy.init()
 
     try:
-        node = ROV_MBFLController()
-        rospy.spin()
+        node = ROV_MBFLController('rov_mb_fl_controller')
+        rclpy.spin(node)
     except rospy.ROSInterruptException:
         print('caught exception')
     print('exiting')
+
+if __name__ == '__main__':
+    main()

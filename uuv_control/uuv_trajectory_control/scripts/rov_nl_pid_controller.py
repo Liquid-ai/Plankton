@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016-2019 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import rospy
+import rclpy
 import numpy as np
 from uuv_control_interfaces import DPPIDControllerBase
 from geometry_msgs.msg import Wrench, Vector3
@@ -33,17 +33,17 @@ class ROV_NLPIDController(DPPIDControllerBase):
 
     _LABEL = 'MIMO Nonlinear PID Controller with Acceleration Feedback'
 
-    def __init__(self):
-        DPPIDControllerBase.__init__(self, True)
+    def __init__(self, node_name):
+        DPPIDControllerBase.__init__(self, node_name, True)
         self._logger.info('Initializing: ' + self._LABEL)
         # Feedback acceleration gain
         self._Hm = np.eye(6)
-        if rospy.has_param('Hm'):
-            hm = rospy.get_param('Hm')
+        if self.has_parameter('Hm'):
+            hm = self.get_parameter('Hm').value
             if len(hm) == 6:
                 self._Hm = self._vehicle_model.Mtotal +  np.diag(hm)
             else:
-                raise rospy.ROSException('Invalid feedback acceleration gain coefficients')
+                raise RuntimeError('Invalid feedback acceleration gain coefficients')
 
         self._tau = np.zeros(6)
         # Acceleration feedback term
@@ -74,13 +74,15 @@ class ROV_NLPIDController(DPPIDControllerBase):
         self.publish_control_wrench(self._tau)
         return True
 
-
-if __name__ == '__main__':
-    rospy.init_node('rov_nl_pid_controller')
+def main():
+    rclpy.init()
 
     try:
-        node = ROV_NLPIDController()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
-    print('exiting')
+        node = ROV_NLPIDController('rov_nl_pid_controller')
+        rclpy.spin(node)
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+    print('exiting')    
+
+if __name__ == '__main__':
+    main()

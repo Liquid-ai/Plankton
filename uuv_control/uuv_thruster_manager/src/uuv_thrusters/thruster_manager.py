@@ -156,11 +156,11 @@ class ThrusterManager(Node):
                     self.config['thruster_topic_suffix']
                 if list not in [type(params), type(conv_fcn)]:
                     thruster = Thruster.create_thruster(
-                        conv_fcn, i, topic, None, None,
+                        self, conv_fcn, i, topic, None, None,
                         **params)
                 else:
                     thruster = Thruster.create_thruster(
-                        conv_fcn[i], i, topic, None, None,
+                        self, conv_fcn[i], i, topic, None, None,
                         **params[i])
 
                 if thruster is None:
@@ -265,7 +265,7 @@ class ThrusterManager(Node):
                 if equal_thrusters:
                     params = self.config['conversion_fcn_params']
                     thruster = Thruster.create_thruster(
-                        self.config['conversion_fcn'],
+                        self, self.config['conversion_fcn'],
                         i, topic, pos, quat, self.axes[frame], **params)
                 else:
                     if idx_thruster_model >= len(self.config['conversion_fcn']):
@@ -274,6 +274,7 @@ class ThrusterManager(Node):
                     params = self.config['conversion_fcn_params'][idx_thruster_model]
                     conv_fcn = self.config['conversion_fcn'][idx_thruster_model]
                     thruster = Thruster.create_thruster(
+                        self
                         conv_fcn,
                         i, topic, pos, quat, self.axes[frame],
                         **params)

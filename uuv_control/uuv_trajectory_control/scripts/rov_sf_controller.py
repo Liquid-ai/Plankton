@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016-2019 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -13,10 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import rospy
+import rclpy
 import numpy as np
 from uuv_control_interfaces import DPControllerBase
 
+def time_in_float_sec(time: Time):
+    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
+    return f_time
 
 class ROV_SFController(DPControllerBase):
     """
@@ -34,19 +37,19 @@ class ROV_SFController(DPControllerBase):
 
     _LABEL = 'Singularity-free tracking controller'
 
-    def __init__(self):
-        DPControllerBase.__init__(self, True)
+    def __init__(self, node_name):
+        DPControllerBase.__init__(self, node_name, True)
         self._tau = np.zeros(6)
         self._logger.info('Initializing: ' + self._LABEL)
 
         self._Kd = np.zeros(shape=(6, 6))
 
-        if rospy.has_param('~Kd'):
-            coefs = rospy.get_param('~Kd')
+        if self.has_parameter('~Kd'):
+            coefs = rclpy.get_parameter('~Kd').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._Kd = np.diag(coefs)
             else:
-                raise rospy.ROSException('Kd coefficients: 6 coefficients '
+                raise RuntimeError('Kd coefficients: 6 coefficients '
                                          'needed')
 
         self._logger.info('Kd=\n' + str(self._Kd))
@@ -54,24 +57,24 @@ class ROV_SFController(DPControllerBase):
         # Build delta matrix
         self._delta = np.zeros(shape=(6, 6))
 
-        l = rospy.get_param('~lambda', [0.0])
+        l = self.get_parameter('~lambda', [0.0]).get_parameter_value().double_array_value
 
         if len(l) == 1:
             self._delta[0:3, 0:3] = l[0] * np.eye(3)
         elif len(l) == 3:
             self._delta[0:3, 0:3] = np.diag(l)
         else:
-            raise rospy.ROSException(
+            raise RuntimeError(
                 'lambda: either a scalar or a 3 element vector must be provided')
 
-        c = rospy.get_param('~c', [0.0])
+        c = self.get_parameter('~c', [0.0]).get_parameter_value().double_array_value
 
         if len(c) == 1:
             self._delta[3:6, 3:6] = c[0] * np.eye(3)
         elif len(c) == 3:
             self._delta[3:6, 3:6] = np.diag(c)
         else:
-            raise rospy.ROSException(
+            raise RuntimeError(
                 'c: either a scalar or a 3 element vector must be provided')
 
         self._logger.info('delta=\n' + str(self._delta))
@@ -86,7 +89,7 @@ class ROV_SFController(DPControllerBase):
         if not self._is_init:
             return False
 
-        t = rospy.Time.now().to_sec()
+        t = time_in_float_sec(self.get_clock().now())
 
         # Compute the generalized pose error vector using the quaternion
         # orientation error
@@ -133,12 +136,15 @@ class ROV_SFController(DPControllerBase):
         return True
 
 
-if __name__ == '__main__':
-    rospy.init_node('rov_sf_controller')
+def main():
+    rclpy.init()
 
     try:
-        node = ROV_SFController()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
+        node = ROV_SFController('rov_sf_controller')
+        rclpy.spin(node)
+    except Exception as e:
+        print('Caught exception: ' + str(e))
     print('exiting')
+
+if __name__ == '__main__':
+    main()

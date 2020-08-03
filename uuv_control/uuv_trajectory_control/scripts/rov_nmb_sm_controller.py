@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016-2019 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -13,10 +13,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import rospy
+import rclpy
 import numpy as np
 from uuv_control_interfaces import DPControllerBase
 from uuv_control_msgs.srv import *
+
+def time_in_float_sec(time: Time):
+    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
+    return f_time
 
 
 class ROV_NMB_SMController(DPControllerBase):
@@ -34,8 +38,8 @@ class ROV_NMB_SMController(DPControllerBase):
 
     _LABEL = 'Model-free Sliding Mode Controller'
 
-    def __init__(self):
-        DPControllerBase.__init__(self, is_model_based=False)
+    def __init__(self, node_name):
+        DPControllerBase.__init__(self, node_name, is_model_based=False)
         self._logger.info('Initializing: ' + self._LABEL)
         self._first_pass = True
         self._t_init = 0.0
@@ -51,48 +55,48 @@ class ROV_NMB_SMController(DPControllerBase):
         # Overall proportional gains
         self._slope = np.zeros(6)
 
-        if rospy.has_param('~K'):
-            coefs = rospy.get_param('~K')
+        if self.has_parameter('~K'):
+            coefs = self.get_parameter('~K').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._K = np.array(coefs)
             else:
-                raise rospy.ROSException('K coefficients: 6 coefficients '
+                raise RuntimeError('K coefficients: 6 coefficients '
                                          'needed')
 
         self._logger.info('K=' + str(self._K))
 
-        if rospy.has_param('~Kd'):
-            coefs = rospy.get_param('~Kd')
+        if self.has_parameter('~Kd'):
+            coefs = self.get_parameter('~Kd').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._Kd = np.array(coefs)
             else:
-                raise rospy.ROSException('Kd coefficients: 6 coefficients '
+                raise RuntimeError('Kd coefficients: 6 coefficients '
                                          'needed')
 
         self._logger.info('Kd=' + str(self._Kd))
 
-        if rospy.has_param('~Ki'):
-            coefs = rospy.get_param('~Ki')
+        if self.has_parameter('~Ki'):
+            coefs = self.get_parameter('~Ki').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._Ki = np.array(coefs)
             else:
-                raise rospy.ROSException('Ki coeffcients: 6 coefficients '
+                raise RuntimeError('Ki coeffcients: 6 coefficients '
                                          'needed')
         self._logger.info('Ki=' + str(self._Ki))
 
-        if rospy.has_param('~slope'):
-            coefs = rospy.get_param('~slope')
+        if self.has_parameter('~slope'):
+            coefs = self.get_parameter('~slope').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._slope = np.array(coefs)
             else:
-                raise rospy.ROSException('Slope coefficients: 6 coefficients '
+                raise RuntimeError('Slope coefficients: 6 coefficients '
                                          'needed')
 
         self._logger.info('slope=' + str(self._slope))
 
         self._sat_epsilon = 0.8
-        if rospy.has_param('~sat_epsilon'):
-            self._sat_epsilon = max(0.0, rospy.get_param('~sat_epsilon'))
+        if self.has_parameter('~sat_epsilon'):
+            self._sat_epsilon = max(0.0, self.get_parameter('~sat_epsilon').get_parameter_value().double_value)
 
         self._logger.info('Saturation limits=' + str(self._sat_epsilon))
 
@@ -104,13 +108,13 @@ class ROV_NMB_SMController(DPControllerBase):
 
         self._tau = np.zeros(6)
 
-        self._services['set_sm_controller_params'] = rospy.Service(
-            'set_sm_controller_params',
+        self._services['set_sm_controller_params'] = self.create_service(
             SetSMControllerParams,
+            'set_sm_controller_params',
             self.set_sm_controller_params_callback)
-        self._services['get_sm_controller_params'] = rospy.Service(
-            'get_sm_controller_params',
+        self._services['get_sm_controller_params'] = self.create_service(
             GetSMControllerParams,
+            'get_sm_controller_params',
             self.get_sm_controller_params_callback)
 
         self._is_init = True
@@ -122,7 +126,7 @@ class ROV_NMB_SMController(DPControllerBase):
         self._t_init = 0.0
         self._s_linear_b_init = np.array([0, 0, 0])
         self._s_angular_b_init = np.array([0, 0, 0])
-        self._prev_t = rospy.get_time()
+        self._prev_t = time_in_float_sec(self.get_clock().now())
         self._summ_sign_sn_linear_b = np.array([0, 0, 0])
         self._summ_sign_sn_angular_b = np.array([0, 0, 0])
         self._prev_sign_sn_linear_b = np.array([0, 0, 0])
@@ -142,7 +146,7 @@ class ROV_NMB_SMController(DPControllerBase):
     def update_controller(self):
         if not self._is_init:
             return False
-        t = rospy.Time.now().to_sec()
+        t = time_in_float_sec(self.get_clock().now())
 
         dt = t - self._prev_t
         if self._prev_t < 0.0:
@@ -217,13 +221,16 @@ class ROV_NMB_SMController(DPControllerBase):
                 output[i] = vec[i]
         return output
 
-if __name__ == '__main__':
+def main():
     print('Starting Non-model-based Sliding Mode Controller')
-    rospy.init_node('rov_nmb_sm_controller')
+    rclpy.init()
 
     try:
-        node = ROV_NMB_SMController()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
+        node = ROV_NMB_SMController('rov_nmb_sm_controller')
+        rclpy.spin(node)
+    except Exception as e:
+        print('Caught exception: ' + str(e))
     print('exiting')
+
+if __name__ == '__main__':
+    main()

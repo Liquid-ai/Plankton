@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-import rospy
+import rclpy
 from uuv_control_msgs.srv import *
 from .dp_controller_base import DPControllerBase
 
@@ -24,7 +24,8 @@ class DPPIDControllerBase(DPControllerBase):
     in other for a controller to work.
     """
 
-    def __init__(self, *args):
+    def __init__(self, node_name, *args):
+        super().__init__(node_name)
         # Start the super class
         DPControllerBase.__init__(self, *args)
         self._logger.info('Initializing: PID controller')
@@ -39,43 +40,43 @@ class DPPIDControllerBase(DPControllerBase):
         # Error for the vehicle pose
         self._error_pose = np.zeros(6)
 
-        if rospy.has_param('~Kp'):
-            Kp_diag = rospy.get_param('~Kp')
+        if self.has_parameter.has_param('~Kp'):
+            Kp_diag = self.get_parameter('~Kp').get_parameter_value().double_array_value
             if len(Kp_diag) == 6:
                 self._Kp = np.diag(Kp_diag)
             else:
-                raise rospy.ROSException('Kp matrix error: 6 coefficients '
+                raise RuntimeError('Kp matrix error: 6 coefficients '
                                          'needed')
 
         self._logger.info('Kp=' + str([self._Kp[i, i] for i in range(6)]))
 
-        if rospy.has_param('~Kd'):
-            Kd_diag = rospy.get_param('~Kd')
+        if self.has_parameter('~Kd'):
+            Kd_diag = self.get_parameter('~Kd').get_parameter_value().double_array_value
             if len(Kd_diag) == 6:
                 self._Kd = np.diag(Kd_diag)
             else:
-                raise rospy.ROSException('Kd matrix error: 6 coefficients '
+                raise RuntimeError('Kd matrix error: 6 coefficients '
                                          'needed')
 
         self._logger.info('Kd=' + str([self._Kd[i, i] for i in range(6)]))
 
-        if rospy.has_param('~Ki'):
-            Ki_diag = rospy.get_param('~Ki')
+        if self.has_parameter('~Ki'):
+            Ki_diag = self.get_parameter('~Ki').get_parameter_value().double_array_value
             if len(Ki_diag) == 6:
                 self._Ki = np.diag(Ki_diag)
             else:
-                raise rospy.ROSException('Ki matrix error: 6 coefficients '
+                raise RuntimeError('Ki matrix error: 6 coefficients '
                                          'needed')
 
         self._logger.info('Ki=' + str([self._Ki[i, i] for i in range(6)]))
 
-        self._services['set_pid_params'] = rospy.Service(
-            'set_pid_params',
+        self._services['set_pid_params'] = self.create_service(
             SetPIDParams,
+            'set_pid_params',
             self.set_pid_params_callback)
-        self._services['get_pid_params'] = rospy.Service(
-            'get_pid_params',
+        self._services['get_pid_params'] = self.create_service(
             GetPIDParams,
+            'get_pid_params',
             self.get_pid_params_callback)
 
         self._logger.info('PID controller ready!')

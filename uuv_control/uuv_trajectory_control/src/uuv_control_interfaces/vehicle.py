@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import print_function
-import rospy
+import rclpy
 import numpy as np
 from nav_msgs.msg import Odometry
 from copy import deepcopy
-from rospy.numpy_msg import numpy_msg
+
+#TODO Numpy msg...
+#from rospy.numpy_msg import numpy_msg
+
 from tf_quaternion.transformations import quaternion_from_euler, euler_from_quaternion, \
     quaternion_matrix, rotation_matrix, is_same_transform
 from ._log import get_logger
@@ -26,6 +29,8 @@ try:
     casadi_exists = True
 except ImportError:
     casadi_exists = False
+
+from rclpy.node import Node
 
 
 def cross_product_operator(x):
@@ -43,11 +48,12 @@ class Vehicle(object):
 
     _INSTANCE = None
 
-    def __init__(self, inertial_frame_id='world'):
+    def __init__(self, node: Node, inertial_frame_id='world'):
         """Class constructor."""
+        self.node = node
         assert inertial_frame_id in ['world', 'world_ned']
         # Reading current namespace
-        self._namespace = rospy.get_namespace()
+        self._namespace = self.node.get_namespace()
 
         self._inertial_frame_id = inertial_frame_id
         self._body_frame_id = None
@@ -62,11 +68,11 @@ class Vehicle(object):
             import tf2_ros
 
             tf_buffer = tf2_ros.Buffer()
-            listener = tf2_ros.TransformListener(tf_buffer)
+            listener = tf2_ros.TransformListener(tf_buffer, self.node)
 
             tf_trans_ned_to_enu = tf_buffer.lookup_transform(
-                'world', 'world_ned', rospy.Time(),
-                rospy.Duration(10))
+                'world', 'world_ned', rclpy.time.Time(),
+                rclpy.time.Duration(10))
             
             self.q_ned_to_enu = np.array(
                 [tf_trans_ned_to_enu.transform.rotation.x,
@@ -87,66 +93,67 @@ class Vehicle(object):
                                 str(self.transform_ned_to_enu))
 
         self._mass = 0
-        if rospy.has_param('~mass'):
-            self._mass = rospy.get_param('~mass')
+        if self.node.has_parameter('~mass'):
+            self._mass = self.node.get_parameter('~mass').get_parameter_value().double_value
             if self._mass <= 0:
-                raise rospy.ROSException('Mass has to be positive')
+                raise RuntimeError('Mass has to be positive')
 
         self._inertial = dict(ixx=0, iyy=0, izz=0, ixy=0, ixz=0, iyz=0)
-        if rospy.has_param('~inertial'):
-            inertial = rospy.get_param('~inertial')
+        if self.node.has_parameter('~inertial'):
+            inertial = self.node.get_parameter('~inertial').value
             for key in self._inertial:
                 if key not in inertial:
-                    raise rospy.ROSException('Invalid moments of inertia')
+                    raise RuntimeError('Invalid moments of inertia')
             self._inertial = inertial
 
         self._cog = [0, 0, 0]
-        if rospy.has_param('~cog'):
-            self._cog = rospy.get_param('~cog')
+        if self.node.has_parameter('~cog'):
+            self._cog = self.node.get_parameter('~cog').get_parameter_value().double_array_value
             if len(self._cog) != 3:
-                raise rospy.ROSException('Invalid center of gravity vector')
+                raise RuntimeError('Invalid center of gravity vector')
 
         self._cob = [0, 0, 0]
-        if rospy.has_param('~cog'):
-            self._cob = rospy.get_param('~cob')
+        #bug fix wrt the original code
+        if self.node.has_parameter('~cob'):
+            self._cob = self.node.get_parameter('~cob').get_parameter_value().double_array_value
             if len(self._cob) != 3:
-                raise rospy.ROSException('Invalid center of buoyancy vector')
+                raise RuntimeError('Invalid center of buoyancy vector')
 
         self._body_frame = 'base_link'
-        if rospy.has_param('~base_link'):
-            self._body_frame = rospy.get_param('~base_link')
+        if self.node.has_parameter('~base_link'):
+            self._body_frame = self.node.get_parameter('~base_link').get_parameter_value().string_value
 
         self._volume = 0.0
-        if rospy.has_param('~volume'):
-            self._volume = rospy.get_param('~volume')
+        if self.node.has_parameter('~volume'):
+            self._volume = self.node.get_parameter('~volume').get_parameter_value().double_value
             if self._volume <= 0:
-                raise rospy.ROSException('Invalid volume')
+                raise RuntimeError('Invalid volume')
 
         # Fluid density
         self._density = 1028.0
-        if rospy.has_param('~density'):
-            self._density = rospy.get_param('~density')
+        if self.node.has_parameter('~density'):
+            self._density = self.node.get_parameter('~density').get_parameter_value().double_value
             if self._density <= 0:
-                raise rospy.ROSException('Invalid fluid density')
+                raise RuntimeError('Invalid fluid density')
 
         # Bounding box
         self._height = 0.0
         self._length = 0.0
         self._width = 0.0
-        if rospy.has_param('~height'):
-            self._height = rospy.get_param('~height')
+        if self.node.has_parameter('~height'):
+            self._height = self.node.get_parameter('~height').get_parameter_value().double_value
             if self._height <= 0:
-                raise rospy.ROSException('Invalid height')
+                raise RuntimeError('Invalid height')
 
-        if rospy.has_param('~length'):
-            self._length = rospy.get_param('~length')
+        if self.node.has_parameter('~length'):
+            self._length = self.node.get_parameter('~length').get_parameter_value().double_value
             if self._length <= 0:
-                raise rospy.ROSException('Invalid length')
+                raise RuntimeError('Invalid length')
 
-        if rospy.has_param('~width'):
-            self._width = rospy.get_param('~width')
+        if self.node.has_parameter('~width'):
+            self._width = self.node.get_parameter('~width').get_parameter_value().double_value
             if self._width <= 0:
-                raise rospy.ROSException('Invalid width')
+                raise RuntimeError('Invalid width')
 
 
         # Calculating the rigid-body mass matrix
@@ -160,10 +167,10 @@ class Vehicle(object):
 
         # Loading the added-mass matrix
         self._Ma = np.zeros((6, 6))
-        if rospy.has_param('~Ma'):
-            self._Ma = np.array(rospy.get_param('~Ma'))
+        if self.node.has_parameter('~Ma'):
+            self._Ma = np.array(self.node.get_parameter('~Ma').value)
             if self._Ma.shape != (6, 6):
-                raise rospy.ROSException('Invalid added mass matrix')
+                raise RuntimeError('Invalid added mass matrix')
 
         # Sum rigid-body and added-mass matrices
         self._Mtotal = np.zeros(shape=(6, 6))
@@ -180,29 +187,29 @@ class Vehicle(object):
 
         # Loading the linear damping coefficients
         self._linear_damping = np.zeros(shape=(6, 6))
-        if rospy.has_param('~linear_damping'):
-            self._linear_damping = np.array(rospy.get_param('~linear_damping'))
+        if self.node.has_parameter('~linear_damping'):
+            self._linear_damping = np.array(self.node.get_parameter('~linear_damping').value)
             if self._linear_damping.shape == (6,):
                 self._linear_damping = np.diag(self._linear_damping)
             if self._linear_damping.shape != (6, 6):
-                raise rospy.ROSException('Linear damping must be given as a 6x6 matrix or the diagonal coefficients')
+                raise RuntimeError('Linear damping must be given as a 6x6 matrix or the diagonal coefficients')
 
         # Loading the nonlinear damping coefficients
         self._quad_damping = np.zeros(shape=(6,))
-        if rospy.has_param('~quad_damping'):
-            self._quad_damping = np.array(rospy.get_param('~quad_damping'))
+        if self.node.has_parameter('~quad_damping'):
+            self._quad_damping = np.array(self.node.get_parameter('~quad_damping').value)
             if self._quad_damping.shape != (6,):
-                raise rospy.ROSException('Quadratic damping must be given defined with 6 coefficients')
+                raise RuntimeError('Quadratic damping must be given defined with 6 coefficients')
 
         # Loading the linear damping coefficients proportional to the forward speed
         self._linear_damping_forward_speed = np.zeros(shape=(6, 6))
-        if rospy.has_param('~linear_damping_forward_speed'):
+        if self.node.has_parameter('~linear_damping_forward_speed'):
             self._linear_damping_forward_speed = np.array(
-                rospy.get_param('~linear_damping_forward_speed'))
+                self.node.get_parameter('~linear_damping_forward_speed').value)
             if self._linear_damping_forward_speed.shape == (6,):
                 self._linear_damping_forward_speed = np.diag(self._linear_damping_forward_speed)
             if self._linear_damping_forward_speed.shape != (6, 6):
-                raise rospy.ROSException(
+                raise RuntimeError(
                     'Linear damping proportional to the '
                     'forward speed must be given as a 6x6 '
                     'matrix or the diagonal coefficients')
@@ -512,7 +519,7 @@ class Vehicle(object):
     def _update_coriolis(self, vel=None):
         if vel is not None:
             if vel.shape != (6,):
-                raise rospy.ROSException('Velocity vector has the wrong '
+                raise RuntimeError('Velocity vector has the wrong '
                                          'dimension')
             nu = vel
         else:
@@ -534,7 +541,7 @@ class Vehicle(object):
     def _update_damping(self, vel=None):
         if vel is not None:
             if vel.shape != (6,):
-                raise rospy.ROSException('Velocity vector has the wrong '
+                raise RuntimeError('Velocity vector has the wrong '
                                          'dimension')
             # Assume the input velocity is already given in the SNAME convention
             nu = vel
@@ -601,7 +608,7 @@ class Vehicle(object):
         """
         if acc is not None:
             if acc.shape != (6,):
-                raise rospy.ROSException('Acceleration vector must have 6 '
+                raise RuntimeError('Acceleration vector must have 6 '
                                          'elements')
             # It is assumed the input acceleration is given in the SNAME convention
             nu_dot = acc
@@ -612,7 +619,7 @@ class Vehicle(object):
 
         if vel is not None:
             if vel.shape != (6,):
-                raise rospy.ROSException('Velocity vector must have 6 '
+                raise RuntimeError('Velocity vector must have 6 '
                                          'elements')
             # It is assumed the input velocity is given in the SNAME convention
             nu = vel
@@ -682,7 +689,7 @@ class Vehicle(object):
         # angular velocity -> world frame
 
         if self._inertial_frame_id != msg.header.frame_id:
-            raise rospy.ROSException('The inertial frame ID used by the '
+            raise RuntimeError('The inertial frame ID used by the '
                                      'vehicle model does not match the '
                                      'odometry frame ID, vehicle=%s, odom=%s' %
                                      (self._inertial_frame_id,

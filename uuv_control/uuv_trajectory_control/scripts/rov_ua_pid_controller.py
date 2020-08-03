@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016-2019 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-import rospy
+import rclpy
 from uuv_control_msgs.srv import *
 from uuv_control_interfaces.dp_controller_base import DPControllerBase
 
@@ -25,9 +25,9 @@ class ROVUnderActuatedPIDController(DPControllerBase):
     update_controller must be overridden in other for a controller to work.
     """
 
-    def __init__(self, *args):
+    def __init__(self, node_name, *args):
         # Start the super class
-        DPControllerBase.__init__(self, *args)
+        DPControllerBase.__init__(self, node_name, *args)
         self._logger.info('Initializing: Underactuated PID controller')
         # Proportional gains
         self._Kp = np.zeros(shape=(4, 4))
@@ -40,43 +40,43 @@ class ROVUnderActuatedPIDController(DPControllerBase):
         # Error for the vehicle pose
         self._error_pose = np.zeros(4)
 
-        if rospy.has_param('~Kp'):
-            Kp_diag = rospy.get_param('~Kp')
+        if self.has_parameter('~Kp'):
+            Kp_diag = self.get_parameter('~Kp').get_parameter_value().double_array_value
             if len(Kp_diag) == 4:
                 self._Kp = np.diag(Kp_diag)
             else:
-                raise rospy.ROSException('Kp matrix error: 4 coefficients '
+                raise RuntimeError('Kp matrix error: 4 coefficients '
                                          'needed')
 
         self._logger.info('Kp=' + str([self._Kp[i, i] for i in range(4)]))
 
-        if rospy.has_param('~Kd'):
-            Kd_diag = rospy.get_param('~Kd')
+        if self.has_parameter('~Kd'):
+            Kd_diag = self.get_parameter('~Kd').get_parameter_value().double_array_value
             if len(Kd_diag) == 4:
                 self._Kd = np.diag(Kd_diag)
             else:
-                raise rospy.ROSException('Kd matrix error: 4 coefficients '
+                raise RuntimeError('Kd matrix error: 4 coefficients '
                                          'needed')
 
         self._logger.info('Kd=' + str([self._Kd[i, i] for i in range(4)]))
 
-        if rospy.has_param('~Ki'):
-            Ki_diag = rospy.get_param('~Ki')
+        if self.has_parameter('~Ki'):
+            Ki_diag = self.get_parameter('~Ki').get_parameter_value().double_array_value
             if len(Ki_diag) == 4:
                 self._Ki = np.diag(Ki_diag)
             else:
-                raise rospy.ROSException('Ki matrix error: 4 coefficients '
+                raise RuntimeError('Ki matrix error: 4 coefficients '
                                          'needed')
 
         self._logger.info('Ki=' + str([self._Ki[i, i] for i in range(4)]))
 
-        self._services['set_pid_params'] = rospy.Service(
-            'set_pid_params',
+        self._services['set_pid_params'] = self.create_service(
             SetPIDParams,
+            'set_pid_params',
             self.set_pid_params_callback)
-        self._services['get_pid_params'] = rospy.Service(
-            'get_pid_params',
+        self._services['get_pid_params'] = self.create_service(
             GetPIDParams,
+            'get_pid_params',
             self.get_pid_params_callback)
 
         self._is_init = True
@@ -130,11 +130,11 @@ class ROVUnderActuatedPIDController(DPControllerBase):
 
 if __name__ == '__main__':
     print('Starting Underactuated PID Controller')
-    rospy.init_node('rov_ua_pid_controller')
+    rclpy.init()
 
     try:
-        node = ROVUnderActuatedPIDController()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
-    print('exiting')
+        node = ROVUnderActuatedPIDController('rov_ua_pid_controller')
+        rclpy.spin(node)
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+    print('Exiting')

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016-2019 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,17 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import print_function
-import rospy
+import rclpy
 import numpy as np
 from uuv_control_interfaces import DPControllerBase
 from uuv_control_msgs.srv import *
 from uuv_control_interfaces.vehicle import cross_product_operator
 
+def time_in_float_sec(time: Time):
+    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
+    return f_time
+
 class ROV_MB_SMController(DPControllerBase):
     _LABEL = 'Model-based Sliding Mode Controller'
 
-    def __init__(self):
-        DPControllerBase.__init__(self, True)
+    def __init__(self, node_name):
+        DPControllerBase.__init__(self, node_name, True)
         self._logger.info('Initializing: ' + self._LABEL)
 
         # Lambda - Slope of the Sliding Surface
@@ -45,104 +49,104 @@ class ROV_MB_SMController(DPControllerBase):
         # Drift prevent - Drift prevention slope
         self._drift_prevent = 0
 
-        if rospy.has_param('~lambda'):
-            coefs = rospy.get_param('~lambda')
+        if self.has_parameter('~lambda'):
+            coefs = self.get_parameter('~lambda').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._lambda = np.array(coefs)
             else:
-                raise rospy.ROSException('lambda coefficients: 6 coefficients '
+                raise RuntimeError('lambda coefficients: 6 coefficients '
                                          'needed')
         print('lambda=', self._lambda)
 
-        if rospy.has_param('~rho_constant'):
-            coefs = rospy.get_param('~rho_constant')
+        if self.has_parameter('~rho_constant'):
+            coefs = self.get_parameter('~rho_constant').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._rho_constant = np.array(coefs)
             else:
-                raise rospy.ROSException('rho_constant coefficients: 6 coefficients '
+                raise RuntimeError('rho_constant coefficients: 6 coefficients '
                                          'needed')
         print('rho_constant=', self._rho_constant)
 
-        if rospy.has_param('~k'):
-            coefs = rospy.get_param('~k')
+        if self.has_parameter('~k'):
+            coefs = self.get_parameter('~k').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._k = np.array(coefs)
             else:
-                raise rospy.ROSException('k coefficients: 6 coefficients '
+                raise RuntimeError('k coefficients: 6 coefficients '
                                          'needed')
         print('k=', self._k)
 
-        if rospy.has_param('~c'):
-            coefs = rospy.get_param('~c')
+        if self.has_parameter('~c'):
+            coefs = self.get_parameter('~c').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._c = np.array(coefs)
             else:
-                raise rospy.ROSException('c coefficients: 6 coefficients '
+                raise RuntimeError('c coefficients: 6 coefficients '
                                          'needed')
         print('c=', self._c)
 
-        if rospy.has_param('~adapt_slope'):
-            coefs = rospy.get_param('~adapt_slope')
+        if self.has_parameter('~adapt_slope'):
+            coefs = self.get_parameter('~adapt_slope').get_parameter_value().double_array_value
             if len(coefs) == 3:
                 self._adapt_slope = np.array(coefs)
             else:
-                raise rospy.ROSException('adapt_slope coefficients: 6 coefficients '
+                raise RuntimeError('adapt_slope coefficients: 6 coefficients '
                                          'needed')
         print('adapt_slope=', self._adapt_slope)
 
-        if rospy.has_param('~rho_0'):
-            coefs = rospy.get_param('~rho_0')
+        if self.has_parameter('~rho_0'):
+            coefs = self.get_parameter('~rho_0').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._rho_0 = np.array(coefs)
             else:
-                raise rospy.ROSException('rho_0 coefficients: 6 coefficients '
+                raise RuntimeError('rho_0 coefficients: 6 coefficients '
                                          'needed')
         print('rho_0=', self._rho_0)
 
-        if rospy.has_param('~drift_prevent'):
-            scalar = rospy.get_param('~drift_prevent')
+        if self.has_parameter('~drift_prevent'):
+            scalar = self.get_parameter('~drift_prevent').get_parameter_value().double_value
             if not isinstance(scalar, list):
                 self._drift_prevent = scalar
             else:
-                raise rospy.ROSException('drift_prevent needs to be a scalar value')
+                raise RuntimeError('drift_prevent needs to be a scalar value')
 
         print('drift_prevent=', self._drift_prevent)
 
         # Enable(1) / disable(0) integral term in the sliding surface
-        if rospy.has_param('~enable_integral_term'):
-            self._sliding_int = rospy.get_param('~enable_integral_term')
+        if self.has_parameter('~enable_integral_term'):
+            self._sliding_int = self.get_parameter('~enable_integral_term').get_parameter_value().integer_value
         else:
             self._sliding_int = 0
 
         # Enable(1) / disable(0) adaptive uncertainty upper boundaries for
         # robust control
-        if rospy.has_param('~adaptive_bounds'):
-            self._adaptive_bounds = rospy.get_param('~adaptive_bounds')
+        if self.has_parameter('~adaptive_bounds'):
+            self._adaptive_bounds = self.get_parameter('~adaptive_bounds').get_parameter_value().integer_value
         else:
             self._adaptive_bounds = 1
 
         # Enable(1) / disable(0) constant uncertainty upper boundaries for
         # robust control
-        if rospy.has_param('~constant_bound'):
-            self._constant_bound = rospy.get_param('~constant_bound')
+        if self.has_parameter('~constant_bound'):
+            self._constant_bound = self.get_parameter('~constant_bound').get_parameter_value().integer_value
         else:
             self._constant_bound = 1
 
         # Enable(1) / disable(0) equivalent control term
-        if rospy.has_param('~ctrl_eq'):
-            self._ctrl_eq = rospy.get_param('~ctrl_eq')
+        if self.has_parameter('~ctrl_eq'):
+            self._ctrl_eq = self.get_parameter('~ctrl_eq').get_parameter_value().integer_value
         else:
             self._ctrl_eq = 1
 
         # Enable(1) / disable(0) linear control term
-        if rospy.has_param('~ctrl_lin'):
-            self._ctrl_lin = rospy.get_param('~ctrl_lin')
+        if self.has_parameter('~ctrl_lin'):
+            self._ctrl_lin = self.get_parameter('~ctrl_lin').get_parameter_value().integer_value
         else:
             self._ctrl_lin = 1
 
         # Enable(1) / disable(0) robust control term
-        if rospy.has_param('~ctrl_robust'):
-            self._ctrl_robust = rospy.get_param('~ctrl_robust')
+        if self.has_parameter('~ctrl_robust'):
+            self._ctrl_robust = self.get_parameter('~ctrl_robust').get_parameter_value().integer_value
         else:
             self._ctrl_robust = 1
         # Integrator component
@@ -172,14 +176,14 @@ class ROV_MB_SMController(DPControllerBase):
         # Total control
         self._tau = np.zeros(6)
 
-        self._services['set_mb_sm_controller_params'] = rospy.Service(
-            'set_mb_sm_controller_params',
+        self._services['set_mb_sm_controller_params'] = self.create_service(
             SetMBSMControllerParams,
+            'set_mb_sm_controller_params',
             self.set_mb_sm_controller_params_callback)
 
-        self._services['get_mb_sm_controller_params'] = rospy.Service(
-            'get_mb_sm_controller_params',
+        self._services['get_mb_sm_controller_params'] = self.create_service(
             GetMBSMControllerParams,
+            'get_mb_sm_controller_params',
             self.get_mb_sm_controller_params_callback)
         self._is_init = True
         self._logger.info(self._LABEL + ' ready')
@@ -223,7 +227,7 @@ class ROV_MB_SMController(DPControllerBase):
     def update_controller(self):
         if not self._is_init:
             return False
-        t = rospy.Time.now().to_sec()
+        t = time_in_float_sec(self.get_clock().now())
 
         dt = t - self._prev_t
         if self._prev_t < 0.0:
@@ -288,14 +292,18 @@ class ROV_MB_SMController(DPControllerBase):
         self.publish_control_wrench(self._tau)
 
         self._prev_t = t
+        
 
-if __name__ == '__main__':
+def main():
     print('Starting Model-based Sliding Mode Controller')
-    rospy.init_node('rov_mb_sm_controller')
+    rclpy.init()
 
     try:
-        node = ROV_MB_SMController()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
+        node = ROV_MB_SMController('rov_mb_sm_controller')
+        rclpy.spin(node)
+    except Exception as e:
+        print('Caught exception: ' + str(e))
     print('exiting')
+
+if __name__ == '__main__':
+    main()
