@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -14,10 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import roslib
 
 PKG = 'uuv_trajectory_control'
-roslib.load_manifest(PKG)
 
 import sys
 import unittest

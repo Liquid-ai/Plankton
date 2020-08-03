@@ -29,7 +29,8 @@ velocity and acceleration profile using a constant rate.
 
 def run_generator(waypoint_set, interp_method):
     # Initialize the trajectory generator
-    gen = uuv_trajectory_generator.WPTrajectoryGenerator(full_dof=False)
+    namespace = ''
+    gen = uuv_trajectory_generator.WPTrajectoryGenerator(namespace, full_dof=False)
     gen.set_interp_method(interp_method)
     gen.init_waypoints(waypoint_set)
 
@@ -120,7 +121,7 @@ def run_generator(waypoint_set, interp_method):
     ax.set_xlim(pnts[0].t, pnts[-1].t)
 
 def main():
-        # For a helical trajectory
+    # For a helical trajectory
     wp_set = uuv_trajectory_generator.WaypointSet()
     # Add some waypoints at the beginning
     wp_set.add_waypoint(uuv_trajectory_generator.Waypoint(-10, -12, -36, 0.5),

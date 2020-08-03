@@ -107,7 +107,7 @@ class DPControllerLocalPlanner(object):
         self._lock = Lock()
 
         self._traj_interpolator = uuv_trajectory_generator.TrajectoryGenerator(
-            full_dof=full_dof, stamped_pose_only=stamped_pose_only)
+            self.node, full_dof=full_dof, stamped_pose_only=stamped_pose_only)
 
         # Max. allowed forward speed
         self._max_forward_speed = node.get_parameter('~max_forward_speed', 1.0).get_parameter_value().double_value
@@ -376,7 +376,7 @@ class DPControllerLocalPlanner(object):
             wps = self._traj_interpolator.get_waypoints()
             if wps is not None:
                 wps.inertial_frame_id = self.inertial_frame_id
-                self._waypoints_msg = wps.to_message()
+                self._waypoints_msg = wps.to_message(self.node)
                 self._waypoints_msg.header.frame_id = self.inertial_frame_id
         msg = self._traj_interpolator.get_trajectory_as_message()
         if msg is not None:

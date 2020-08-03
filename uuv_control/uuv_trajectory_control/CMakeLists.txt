@@ -6,7 +6,7 @@ project(uuv_trajectory_control)
 #   set(CMAKE_CXX_STANDARD 14)
 # endif()
 
-# find_package(ament_cmake REQUIRED)
+find_package(ament_cmake REQUIRED)
 
 # set(INCLUDE_DIRS ${ament_cmake_INCLUDE_DIRS})
 # include_directories(${INCLUDE_DIRS})
@@ -42,12 +42,12 @@ install(DIRECTORY launch config
   EXCLUDE)
 
 #TODO Re-enable testing
-if(BUILD_TESTING)
-  find_package(rostest REQUIRED)
-  foreach(T test/test_python_api.test)
-    add_rostest(${T})
-  endforeach()
-endif()
+# if(BUILD_TESTING)
+#   find_package(rostest REQUIRED)
+#   foreach(T test/test_python_api.test)
+#     add_rostest(${T})
+#   endforeach()
+# endif()
 
 # ament_export_dependencies(ament_cmake)
 # ament_export_include_directories(${INCLUDE_DIRS})

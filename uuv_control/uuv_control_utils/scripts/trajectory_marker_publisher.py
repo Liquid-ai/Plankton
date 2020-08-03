@@ -100,9 +100,9 @@ class TrajectoryMarkerPublisher(Node):
             marker.type = Marker.SPHERE
             marker.action = 3
         else:
-            waypoint_path_marker = self._waypoints.to_path_marker()
+            waypoint_path_marker = self._waypoints.to_path_marker(self)
             waypoint_path_marker.header.frame_id = self._waypoints.inertial_frame_id
-            waypoint_marker = self._waypoints.to_marker_list()
+            waypoint_marker = self._waypoints.to_marker_list(self)
 
         self._waypoint_path_pub.publish(waypoint_path_marker)
         self._waypoint_markers_pub.publish(waypoint_marker)

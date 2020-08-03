@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import rospy
+import rclpy
 import numpy as np
 from copy import deepcopy
 from geometry_msgs.msg import Vector3, PoseStamped, Quaternion
@@ -23,6 +23,8 @@ from .wp_trajectory_generator import WPTrajectoryGenerator
 from .trajectory_point import TrajectoryPoint
 from tf_quaternion.transformations import euler_from_quaternion
 from ._log import get_logger
+
+from rclpy.node import Node
 
 
 class TrajectoryGenerator(object):
@@ -36,7 +38,8 @@ class TrajectoryGenerator(object):
     the output trajectory will set velocity and acceleration references
     as zero.
     """
-    def __init__(self, full_dof=False, stamped_pose_only=False):
+    def __init__(self, node: Node, full_dof=False, stamped_pose_only=False):
+        self.node = node
         self._logger = get_logger()
         self._points = None
         self._time = None
@@ -44,7 +47,7 @@ class TrajectoryGenerator(object):
         self._is_full_dof = full_dof
         self._stamped_pose_only = stamped_pose_only
         self._wp_interp_on = False
-        self._wp_interp = WPTrajectoryGenerator(
+        self._wp_interp = WPTrajectoryGenerator(node.get_namespace(),
             full_dof=full_dof, stamped_pose_only=stamped_pose_only)
 
         self._has_started = False
@@ -122,7 +125,7 @@ class TrajectoryGenerator(object):
             return None
         msg = uuv_control_msgs.Trajectory()
         try:
-            msg.header.stamp = rospy.Time.now()
+            msg.header.stamp = self.get_clock().now().to_msg()
         except:
             self._logger.warning(
                 'A ROS node was not initialized, no '
@@ -272,7 +275,7 @@ class TrajectoryGenerator(object):
             return None
         msg = uuv_control_msgs.Trajectory()
         try:
-            msg.header.stamp = rospy.Time.now()
+            msg.header.stamp = self.get_clock().now().to_msg()
             set_timestamps = True
         except:
             set_timestamps = False
@@ -284,7 +287,7 @@ class TrajectoryGenerator(object):
             for p in self._points:
                 p_msg = uuv_control_msgs.TrajectoryPoint()
                 if set_timestamps:
-                    p_msg.header.stamp = rospy.Time(p.t)
+                    p_msg.header.stamp = rclpy.time.Time(p.t)
                 p_msg.pose.position = Vector3(*p.p)
                 p_msg.pose.orientation = Quaternion(*p.q)
                 p_msg.velocity.linear = Vector3(*p.v)
@@ -298,7 +301,7 @@ class TrajectoryGenerator(object):
                 pnt = self._wp_interp.interpolate(ti)
                 p_msg = uuv_control_msgs.TrajectoryPoint()
                 if set_timestamps:
-                    p_msg.header.stamp = rospy.Time(pnt.t)
+                    p_msg.header.stamp = rclpy.time.Time(pnt.t)
                 p_msg.pose.position = Vector3(*pnt.p)
                 p_msg.pose.orientation = Quaternion(*pnt.q)
                 p_msg.velocity.linear = Vector3(*pnt.v)
@@ -311,7 +314,7 @@ class TrajectoryGenerator(object):
     def get_path_message(self):
         path_msg = Path()
         try:
-            path_msg.header.stamp = rospy.Time.now()
+            path_msg.header.stamp = self.get_clock().now().to_msg()
             set_timestamps = True
         except:
             set_timestamps = False
@@ -324,7 +327,7 @@ class TrajectoryGenerator(object):
         for point in self._local_planner.points:
             pose = PoseStamped()
             if set_timestamps:
-                pose.header.stamp = rospy.Time(point.t)
+                pose.header.stamp = rclpy.time.Time(point.t)
             pose.pose.position = Vector3(*point.p)
             pose.pose.orientation = Quaternion(*point.q)
             path_msg.poses.append(pose)

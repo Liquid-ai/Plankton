@@ -12,13 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import rospy
+import rclpy
 import numpy as np
 from uuv_control_msgs.msg import TrajectoryPoint as TrajectoryPointMsg
 import geometry_msgs.msg as geometry_msgs
 from tf_quaternion.transformations import quaternion_from_euler, euler_from_quaternion, quaternion_matrix
 
-
+def time_in_float_sec(time: Time):
+    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
+    return f_time
 class TrajectoryPoint(object):
     """Trajectory point data structure.
     
@@ -188,7 +190,7 @@ class TrajectoryPoint(object):
         """
         p_msg = TrajectoryPointMsg()
         # FIXME Sometimes the time t stored is NaN
-        p_msg.header.stamp = rospy.Time(self.t)
+        p_msg.header.stamp = rclpy.time.Time(self.t)
         p_msg.pose.position = geometry_msgs.Vector3(*self.p)
         p_msg.pose.orientation = geometry_msgs.Quaternion(*self.q)
         p_msg.velocity.linear = geometry_msgs.Vector3(*self.v)
@@ -205,7 +207,7 @@ class TrajectoryPoint(object):
         
         * `msg` (*type:* `uuv_control_msgs/TrajectoryPoint`): Input trajectory message
         """
-        t = msg.header.stamp.to_sec()
+        t = time_in_float_sec(msg.header.stamp)
         p = msg.pose.position
         q = msg.pose.orientation
         v = msg.velocity.linear

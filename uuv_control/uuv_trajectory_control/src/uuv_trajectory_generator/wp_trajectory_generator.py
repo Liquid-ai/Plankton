@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from rospy import get_namespace
 import numpy as np
 from copy import deepcopy
 import logging
@@ -25,7 +24,6 @@ from tf_quaternion.transformations import quaternion_multiply, quaternion_invers
     quaternion_conjugate, quaternion_about_axis
 
 from .path_generator import PathGenerator
-
 
 class WPTrajectoryGenerator(object):
     """Class that generates a trajectory from the interpolated path generated
@@ -47,14 +45,14 @@ class WPTrajectoryGenerator(object):
     * `stamped_pose_only` (*type:* `bool`, *default:* `False`): Generate only position 
     and quaternion vectors, velocities and accelerations are set to zero
     """
-    def __init__(self, full_dof=False, use_finite_diff=True,
+    def __init__(self, namespace, full_dof=False, use_finite_diff=True,
                  interpolation_method='cubic',
                  stamped_pose_only=False):
         """Class constructor."""
         self._logger = logging.getLogger('wp_trajectory_generator')
         out_hdlr = logging.StreamHandler(sys.stdout)
         out_hdlr.setFormatter(logging.Formatter(
-            get_namespace().replace('/', '').upper() + ' -- %(asctime)s | %(levelname)s | %(module)s | %(message)s'))
+            namespace.replace('/', '').upper() + ' -- %(asctime)s | %(levelname)s | %(module)s | %(message)s'))
         out_hdlr.setLevel(logging.INFO)
         self._logger.addHandler(out_hdlr)
         self._logger.setLevel(logging.INFO)
