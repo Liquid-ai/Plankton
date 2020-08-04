@@ -22,8 +22,6 @@ import os
 PKG = 'uuv_descriptions'
 NAME = 'test_urdf_files'
 
-import roslib
-roslib.load_manifest(PKG)
 
 
 def call_xacro(xml_file):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
@@ -27,18 +27,20 @@
 #   (See comments below for more details.)
 from __future__ import print_function
 
-import rospy, sys, os, time
+import rclpy, sys, os, time
 import string
 import warnings
 import re
 
-from gazebo_ros import gazebo_interface
+#from gazebo_ros import gazebo_interface
 
 from gazebo_msgs.msg import *
 from gazebo_msgs.srv import *
 from std_srvs.srv import Empty
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Wrench
 import tf.transformations as tft
+
+from rclpy.node import Node
 
 
 try:
@@ -59,6 +61,81 @@ model_database_template = """<sdf version="1.4">
     </include>
   </world>
 </sdf>"""
+
+
+
+
+
+#TODO Totally not sure...
+# Wrappers around the services provided by rosified gazebo
+from gazebo_msgs.srv import SetModelConfiguration
+from gazebo_msgs.srv import SpawnModel as GazeboSpawnModel
+#import gazebo_msgs.srv._spawn_model as GazeboSpawnModel
+from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Wrench
+
+
+def spawn_sdf_model_client(node: Node, model_name, model_xml, robot_namespace, initial_pose, reference_frame, gazebo_namespace):
+    node.get_logger().info("Waiting for service %s/spawn_sdf_model"%gazebo_namespace)
+    
+    try:
+      spawn_sdf_model = node.create_client(GazeboSpawnModel, gazebo_namespace+'/spawn_sdf_model')
+      spawn_sdf_model.wait_for_service()
+      node.get_logger().info("Calling service %s/spawn_sdf_model"%gazebo_namespace)
+      req = GazeboSpawnModel.Request()
+      req.model_name = model_name
+      req.model_xml = model_xml
+      req.robot_namespace = robot_namespace
+      req.initial_pose = initial_pose
+      req.reference_frame = reference_frame
+      resp = spawn_sdf_model.call(req)
+      node.get_logger().info("Spawn status: %s"%resp.status_message)
+
+    except Exception as e:
+      print("Service call failed: %s" % str(e))
+
+def spawn_urdf_model_client(node:Node, model_name, model_xml, robot_namespace, initial_pose, reference_frame, gazebo_namespace):
+    node.get_logger().info("Waiting for service %s/spawn_urdf_model"%gazebo_namespace)    
+    try:
+      spawn_urdf_model = node.create_client(GazeboSpawnModel, gazebo_namespace+'/spawn_urdf_model')
+      spawn_urdf_model.wait_for_service()
+      node.get_logger().info("Calling service %s/spawn_urdf_model"%gazebo_namespace)
+      req = GazeboSpawnModel.Request()
+      req.model_name = model_name
+      req.model_xml = model_xml
+      req.robot_namespace = robot_namespace
+      req.initial_pose = initial_pose
+      req.reference_frame = reference_frame
+      resp = spawn_urdf_model.call(req)
+      
+      node.get_logger().info("Spawn status: %s"%resp.status_message)
+
+    except Exception as e:
+      print("Service call failed: %s" % str(e))
+
+def set_model_configuration_client(node:Node, model_name, model_param_name, joint_names, joint_positions, gazebo_namespace):
+    node.get_logger().info("Waiting for service %s/set_model_configuration"%gazebo_namespace)
+    
+    node.get_logger().info("temporary hack to **fix** the -J joint position option (issue #93), sleeping for 1 second to avoid race condition.")
+    time.sleep(1)
+    try:
+      set_model_configuration = node.create_client(SetModelConfiguration, gazebo_namespace+'/set_model_configuration')
+      set_model_configuration.wait_for_service()
+      node.get_logger().info("Calling service %s/set_model_configuration"%gazebo_namespace)
+      req = SetModelConfiguration.Request()
+      req.model_name = model_name
+      req.urdf_param_name = model_param_name
+      req.joint_names = joint_names
+      req.joint_positions = joint_positions
+      set_model_configuration.call(req)
+      node.get_logger().info("Set model configuration status: %s"%resp.status_message)
+
+    except rException as e:
+      print("Service call failed: %s" % str(e))
+
+
+
+
+
 
 
 def usage():
@@ -97,9 +174,11 @@ def usage():
     ''')
     sys.exit(1)
 
-class SpawnModel():
+class SpawnModel(Node):
 
-    def __init__(self):
+    def __init__(self, node_name):
+        super().__init__(node_name)
+
         self.initial_xyz             = [0,0,0]
         self.initial_rpy             = [0,0,0]
         self.initial_geo             = [None,None,None]
@@ -109,7 +188,7 @@ class SpawnModel():
         self.param_name              = ""
         self.database_name           = ""
         self.model_name              = ""
-        self.robot_namespace         = rospy.get_namespace()
+        self.robot_namespace         = self.get_namespace()
         self.gazebo_namespace        = "/gazebo"
         self.reference_frame         = ""
         self.unpause_physics         = False
@@ -158,7 +237,7 @@ class SpawnModel():
                         sys.exit(0)
                     else:
                         self.param_name = sys.argv[i+1]
-                        rospy.loginfo('Parameter name: %s', self.param_name)
+                        self.get_logger().info('Parameter name: %s', self.param_name)
             if sys.argv[i] == '-file':
                 if len(sys.argv) > i+1:
                     if self.param_name != "" or self.database_name != "":
@@ -242,18 +321,18 @@ class SpawnModel():
 
         # Modification for UUV Simulator:
         # Added chance to overrule initial pose via ros parameters.
-        if rospy.has_param('xref'):
-            self.initial_xyz[0] = float(rospy.get_param('xref'))
-        if rospy.has_param('yref'):
-            self.initial_xyz[1] = float(rospy.get_param('yref'))
-        if rospy.has_param('zref'):
-            self.initial_xyz[2] = float(rospy.get_param('zref'))
-        if rospy.has_param('rollref'):
-            self.initial_rpy[0] = float(rospy.get_param('rollref'))
-        if rospy.has_param('pitchref'):
-            self.initial_rpy[1] = float(rospy.get_param('pitchref'))
-        if rospy.has_param('yawref'):
-            self.initial_rpy[2] = float(rospy.get_param('yawref'))
+        if self.has_parameter('xref'):
+            self.initial_xyz[0] = float(self.get_parameter('xref').get_parameter_value().double_value)
+        if self.has_parameter('yref'):
+            self.initial_xyz[1] = float(self.get_parameter('yref').get_parameter_value().double_value)
+        if self.has_parameter('zref'):
+            self.initial_xyz[2] = float(self.get_parameter('zref').get_parameter_value().double_value)
+        if self.has_parameter('rollref'):
+            self.initial_rpy[0] = float(self.get_parameter('rollref').get_parameter_value().double_value)
+        if self.has_parameter('pitchref'):
+            self.initial_rpy[1] = float(self.get_parameter('pitchref').get_parameter_value().double_value)
+        if self.has_parameter('yawref'):
+            self.initial_rpy[2] = float(self.get_parameter('yawref').get_parameter_value().double_value)
 
     def checkForModel(self, model):
         for n in model.name:
@@ -266,53 +345,53 @@ class SpawnModel():
 
     def callSpawnService(self):
         # wait for model to exist
-        rospy.init_node('spawn_model')
+        #rospy.init_node('spawn_model')
 
         if not self.wait_for_model == "":
-            rospy.Subscriber("%s/model_states" % self.gazebo_namespace, ModelStates, self.checkForModel)
-            r = rospy.Rate(10)
-            while not rospy.is_shutdown() and not self.wait_for_model_exists:
+            self.create_subscription(ModelStates, "%s/model_states" % self.gazebo_namespace, , self.checkForModel, 10)
+            r = self.create_rate.Rate(10)
+            while rclpy.ok() and not self.wait_for_model_exists:
                 r.sleep()
 
-        if rospy.is_shutdown():
+        if not rclpy.ok():
             sys.exit(0)
 
         if len(self.file_name) > 0:
-            rospy.loginfo("Loading model xml from file")
+            self.get_logger().info("Loading model xml from file")
             if os.path.exists(self.file_name):
                 if os.path.isdir(self.file_name):
-                    rospy.logerr("Error: file name is an invalid path, %s", self.file_name)
+                    self.get_logger().error("Error: file name is an invalid path, %s", self.file_name)
                     sys.exit(0)
                 if not os.path.isfile(self.file_name):
-                    rospy.logerr("Error: unable to open file %s", self.file_name)
+                    self.get_logger().error("Error: unable to open file %s", self.file_name)
                     sys.exit(0)
             else:
-                rospy.logerr("Error: file does not exist", self.file_name)
+                self.get_logger().error("Error: file does not exist", self.file_name)
                 sys.exit(0)
             # load file
             f = open(self.file_name, 'r')
             model_xml = f.read()
             if model_xml == "":
-                rospy.logerr("Error: file is empty", self.file_name)
+                self.get_logger().error("Error: file is empty", self.file_name)
                 sys.exit(0)
 
         # ROS Parameter
         elif len(self.param_name) > 0:
-            rospy.loginfo("Loading model xml from ros parameter")
-            model_xml = rospy.get_param(self.param_name)
+            self.get_logger().info("Loading model xml from ros parameter")
+            model_xml = self.get_parameter(self.param_name).get_parameter_value().string_value
             if model_xml == "":
-                rospy.logerr("Error: param does not exist or is empty")
+                self.get_logger().error("Error: param does not exist or is empty")
                 sys.exit(0)
 
         # Gazebo Model Database
         elif len(self.database_name) > 0:
-            rospy.loginfo("Loading model xml from Gazebo Model Database")
+            self.get_logger().info("Loading model xml from Gazebo Model Database")
             model_xml = self.createDatabaseCode(self.database_name)
             if model_xml == "":
-                rospy.logerr("Error: an error occured generating the SDF file")
+                self.get_logger().error("Error: an error occured generating the SDF file")
                 sys.exit(0)
         else:
-            rospy.logerr("Error: user specified param or filename is an empty string")
+            self.get_logger().error("Error: user specified param or filename is an empty string")
             sys.exit(0)
 
         if self.package_to_model:
@@ -321,11 +400,11 @@ class SpawnModel():
         # Setting initial pose
         initial_pose = Pose()
         if None not in self.initial_geo and None not in self.ref_geo and use_pymap:
-            rospy.loginfo('Using the geodetic coordinates to spawn the model')
-            rospy.loginfo('Geodetic coordinates: (%.7f, %.7f, %.2f)',
+            self.get_logger().info('Using the geodetic coordinates to spawn the model')
+            self.get_logger().info('Geodetic coordinates: (%.7f, %.7f, %.2f)',
                           self.initial_geo[0], self.initial_geo[1],
                           self.initial_geo[2])
-            rospy.loginfo('Geodetic reference: (%.7f, %.7f, %.2f)',
+            self.get_logger().info('Geodetic reference: (%.7f, %.7f, %.2f)',
                           self.ref_geo[0], self.ref_geo[1], self.ref_geo[2])
             enu_pos = pymap3d.geodetic2enu(
                 self.initial_geo[0], self.initial_geo[1], self.initial_geo[2],
@@ -334,12 +413,12 @@ class SpawnModel():
             initial_pose.position.y = enu_pos[1]
             initial_pose.position.z = enu_pos[2]
         else:
-            rospy.loginfo('Using the ENU coordinates to spawn the model')
+            self.get_logger().info('Using the ENU coordinates to spawn the model')
             initial_pose.position.x = self.initial_xyz[0]
             initial_pose.position.y = self.initial_xyz[1]
             initial_pose.position.z = self.initial_xyz[2]
 
-        rospy.loginfo('Initial position wrt the world frame:'
+        self.get_logger().info('Initial position wrt the world frame:'
                       ' (%.2f, %.2f, %.2f)' %
                       (initial_pose.position.x, initial_pose.position.y,
                        initial_pose.position.z))
@@ -357,7 +436,7 @@ class SpawnModel():
             success = gazebo_interface.spawn_sdf_model_client(self.model_name, model_xml, self.robot_namespace,
                                                               initial_pose, self.reference_frame, self.gazebo_namespace)
         else:
-            rospy.logerr("Error: should not be here in spawner helper script, there is a bug")
+            self.get_logger().error("Error: should not be here in spawner helper script, there is a bug")
             sys.exit(0)
 
         # set model configuration before unpause if user requested
@@ -365,25 +444,31 @@ class SpawnModel():
             try:
                 success = gazebo_interface.set_model_configuration_client(self.model_name, self.param_name,
                                                                           self.joint_names, self.joint_positions, self.gazebo_namespace)
-            except rospy.ServiceException as e:
-                rospy.logerr("Set model configuration service call failed: %s", str(e))
+            except Exception as e:
+                self.get_logger().error("Set model configuration service call failed: %s", str(e))
 
         # unpause physics if user requested
         if self.unpause_physics:
-            rospy.wait_for_service('%s/unpause_physics'%(self.gazebo_namespace))
             try:
-                unpause_physics = rospy.ServiceProxy('%s/unpause_physics'%(self.gazebo_namespace), Empty)
-                unpause_physics()
-            except rospy.ServiceException as e:
-                rospy.logerr("unpause physics service call failed: %s", str(e))
+                unpause_physics = self.create_client(Empty, '%s/unpause_physics'%(self.gazebo_namespace))
+                unpause_physics.wait_for_service()
+                req = Empty.Request()
+                unpause_physics.call(req)
+            except Exception as e:
+                self.get_logger().error("unpause physics service call failed: %s", str(e))
         return
 
-
-if __name__ == "__main__":
+def main():
     if len(sys.argv) < 2:
         print(usage())
     else:
         print("spawn_model script started") # make this a print incase roscore has not been started
-        sm = SpawnModel()
+        rclpy.init()
+        sm = SpawnModel('spawn_model')
         sm.parseUserInputs()
         sm.callSpawnService()
+
+        rclpy.shutdown()
+
+if __name__ == "__main__":
+    main()

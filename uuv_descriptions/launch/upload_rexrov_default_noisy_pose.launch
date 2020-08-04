@@ -13,7 +13,8 @@
   <arg name="pose_noise" default="0.02"/>
   <arg name="world_frame" default="world"/> <!-- This should actually be "/world". See https://github.com/ros-simulation/gazebo_ros_pkgs/pull/324 -->
 
-  <group ns="$(arg namespace)">
+  <group>
+    <push-ros-namespace namespace= "$(arg namespace)"/>
     <param name="robot_description"
       command="$(find xacro)/xacro '$(find uuv_descriptions)/robots/rexrov_default_noisy_pose.xacro' --inorder
         debug:=$(arg debug)
@@ -22,13 +23,13 @@
         inertial_reference_frame:=$(arg world_frame)" />
 
     <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
-    <node name="urdf_spawner" pkg="uuv_descriptions" type="spawn_model" respawn="false" output="screen"
+    <node name="urdf_spawner" pkg="uuv_descriptions" exec="spawn_model" respawn="false" output="screen"
           args="-urdf -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg roll) -P $(arg pitch) -Y $(arg yaw) -model $(arg namespace) -param /$(arg namespace)/robot_description"/>
 
     <!-- A joint state publisher plugin already is started with the model, no need to use the default joint state publisher -->
 
     <!-- Publish robot model for ROS -->
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen">
+    <node name="robot_state_publisher" pkg="robot_state_publisher" exec="robot_state_publisher" respawn="true" output="screen">
       <param name="robot_description" value="/$(arg namespace)/robot_description" />
       <param name="publish_frequency" value="5" />
     </node>
