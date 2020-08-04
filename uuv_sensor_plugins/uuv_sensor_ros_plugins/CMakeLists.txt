@@ -372,6 +372,7 @@ list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_dvl_plugin)
 
 add_library(uuv_gazebo_ros_magnetometer_plugin src/MagnetometerROSPlugin.cpp
   src/ROSBasePlugin.cpp src/ROSBaseModelPlugin.cpp)
+add_dependencies(uuv_gazebo_ros_magnetometer_plugin uuv_sensor_gazebo_msgs)
 target_link_libraries(uuv_gazebo_ros_magnetometer_plugin ${LIBS}
   ${GAZEBO_LIBRARIES})
 list(APPEND UUV_SENSOR_ROS_PLUGINS_LIST uuv_gazebo_ros_magnetometer_plugin)
