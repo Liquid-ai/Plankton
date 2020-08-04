@@ -1,21 +1,14 @@
 cmake_minimum_required(VERSION 3.5)
 project(uuv_tutorials)
 
-# Add support for C++11
-# if(NOT CMAKE_CXX_STANDARD)
-#   set(CMAKE_CXX_STANDARD 11)
-# endif()
-
 find_package(ament_cmake REQUIRED)
 
-# set(INCLUDE_DIRS ${ament_cmake_INCLUDE_DIRS})
-# include_directories(${INCLUDE_DIRS})
-
-# set(LIBRARY_DIRS ${ament_cmake_LIBRARY_DIRS})
-
-# link_directories(${LIBRARY_DIRS})
-
-# set(LIBS ${ament_cmake_LIBRARIES})
+# add_dependencies(
+#     uuv_tutorials 
+#         uuv_tutorial_disturbances 
+#         uuv_tutorial_dp_controller 
+#         uuv_tutorial_seabed_world
+# )
 
 # ament_export_dependencies(ament_cmake)
 # ament_export_include_directories(${INCLUDE_DIRS})

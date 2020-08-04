@@ -22,11 +22,12 @@
   <exec_depend>uuv_gazebo_ros_plugins</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>uuv_assistants</exec_depend>
-  <exec_depend>xacro</exec_depend>
+  <!--TODO change dependencies-->
+  <!-- <exec_depend>xacro</exec_depend>
 
   <test_depend>rosunit</test_depend>
   <test_depend>rostest</test_depend>
-  <test_depend>xacro</test_depend>
+  <test_depend>xacro</test_depend> -->
 
   <export>
     <build_type>ament_cmake</build_type>

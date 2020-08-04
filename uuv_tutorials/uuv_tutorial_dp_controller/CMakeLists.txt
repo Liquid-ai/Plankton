@@ -17,7 +17,7 @@ find_package(ament_cmake REQUIRED)
 
 # set(LIBS ${ament_cmake_LIBRARIES})
 
-catkin_install_python(PROGRAMS scripts/tutorial_dp_controller.py
+install(PROGRAMS scripts/tutorial_dp_controller.py
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch
