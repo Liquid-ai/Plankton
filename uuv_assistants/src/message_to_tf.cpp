@@ -237,7 +237,12 @@ void imuCallback(sensor_msgs::msg::Imu::SharedPtr imu) {
 
 int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("message_to_tf");
+  //Add node options to auto declare parameters from launch files and cmd line
+  auto node = rclcpp::Node::make_shared("message_to_tf",
+                              rclcpp::NodeOptions().allow_undeclared_parameters(true).
+                              automatically_declare_parameters_from_overrides(true)
+  );
+
   g_footprint_frame_id = "base_footprint";
   g_stabilized_frame_id = "base_stabilized";
   // g_position_frame_id = "base_position";
@@ -254,12 +259,14 @@ int main(int argc, char** argv) {
   node->get_parameter("child_frame_id", g_child_frame_id);
 
   // get topic from the commandline
-  if (argc > 1) {
-      g_topic = argv[1];
-      g_odometry_topic.clear();
-      g_pose_topic.clear();
-      g_imu_topic.clear();
-  }
+  // Currently useless + cmd line args are not removed (use 
+  // init_and_remove_arguments instead of init)
+  // if (argc > 1) {
+  //     g_topic = argv[1];
+  //     g_odometry_topic.clear();
+  //     g_pose_topic.clear();
+  //     g_imu_topic.clear();
+  // }
 
   g_publish_roll_pitch = true;
   node->get_parameter("publish_roll_pitch", g_publish_roll_pitch);
@@ -280,6 +287,7 @@ int main(int argc, char** argv) {
       subscribers++;
   }
   if (!g_topic.empty()) {
+     //
       RCLCPP_FATAL(node->get_logger(), "Multicallbacks from ROS 1 not yet implemented");
       //sub4 = node.subscribe(g_topic, 10, &multiCallback);
       subscribers++;

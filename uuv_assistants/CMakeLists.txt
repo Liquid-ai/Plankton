@@ -39,8 +39,9 @@ install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
   PATTERN "*~" EXCLUDE)
 
+#Needs to be installed in lib and not bin folder in order to be found by ament
 install(TARGETS uuv_message_to_tf
-  DESTINATION bin/${PROJECT_NAME})
+  DESTINATION lib/${PROJECT_NAME})
 
 install(
   PROGRAMS scripts/publish_footprints.py
