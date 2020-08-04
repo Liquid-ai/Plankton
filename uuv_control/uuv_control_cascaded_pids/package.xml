@@ -16,11 +16,11 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>dynamic_reconfigure</depend>
+  <!-- <depend>dynamic_reconfigure</depend> -->
 
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>nav_msgs</exec_depend>
-  <exec_depend>tf</exec_depend>
+  <!-- <exec_depend>tf</exec_depend> -->
   <exec_depend>rclpy</exec_depend>
   <exec_depend>python-numpy</exec_depend>
 
