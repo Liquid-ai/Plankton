@@ -18,7 +18,7 @@ find_package(ament_cmake REQUIRED)
 
 # set(LIBS ${gazebo_ros_LIBRARIES} ${ament_cmake_LIBRARIES})
 
-install(DIRECTORY launch media worlds models
+install(DIRECTORY config launch media worlds models
   DESTINATION share/${PROJECT_NAME}
   PATTERN "*~"
   EXCLUDE)

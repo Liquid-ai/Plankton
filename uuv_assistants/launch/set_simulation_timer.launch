@@ -3,9 +3,10 @@
 
     <node node-name="simulation_timeout" pkg="uuv_assistants" exec="set_simulation_timer.py" required="true"
           output="screen">
-        <rosparam subst_value="true">
+        <param name="timeout" value="$(var timeout)"/>
+        <!-- <rosparam subst_value="true">
             timeout: $(arg timeout)
-        </rosparam>
+        </rosparam> -->
     </node>
 </launch>
 
