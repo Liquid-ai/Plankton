@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -15,22 +15,28 @@
 # limitations under the License.
 
 import numpy
-import rospy
-import tf
-import tf.transformations as trans
+import rclpy
+# import tf
+# import tf.transformations as trans
 from PIDRegulator import PIDRegulator
 
 from dynamic_reconfigure.server import Server
 from uuv_control_cascaded_pid.cfg import PositionControlConfig
 import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
+
+#TODO numpy_msg...
 from rospy.numpy_msg import numpy_msg
 
+from rclpy.node import Node
 
-class PositionControllerNode:
-    def __init__(self):
+#It seems that the file is not used...
+
+class PositionControllerNode(Node):
+    def __init__(self, node_name):
         print('PositionControllerNode: initializing node')
 
+        super().__init__(node_name)
         self.config = {}
 
         self.pos_des = numpy.zeros(3)
@@ -44,10 +50,10 @@ class PositionControllerNode:
         self.pid_forward = PIDRegulator(1, 0, 0, 1)
 
         # ROS infrastructure
-        self.listener = tf.TransformListener()
-        self.sub_cmd_pose = rospy.Subscriber('cmd_pose', numpy_msg(geometry_msgs.PoseStamped), self.cmd_pose_callback)
-        self.sub_odometry = rospy.Subscriber('odom', numpy_msg(Odometry), self.odometry_callback)
-        self.pub_cmd_vel = rospy.Publisher('cmd_vel', geometry_msgs.Twist, queue_size=10)
+        #self.listener = tf.TransformListener()
+        self.sub_cmd_pose = self.create_subscription(numpy_msg(geometry_msgs.PoseStamped), 'cmd_pose', self.cmd_pose_callback, 10)
+        self.sub_odometry = self.create_subscription(numpy_msg(Odometry), 'odom', self.odometry_callback, 10)
+        self.pub_cmd_vel = self.create_publisher(geometry_msgs.Twist,'cmd_vel', 10)
         self.srv_reconfigure = Server(PositionControlConfig, self.config_callback)
 
     def cmd_pose_callback(self, msg):

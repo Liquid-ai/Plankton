@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -16,18 +16,28 @@
 
 import math
 import numpy
-import rospy
-import tf.transformations as trans
+import rclpy
+#import tf.transformations as trans
 from PID import PIDRegulator
 
-from dynamic_reconfigure.server import Server
-from uuv_control_cascaded_pid.cfg import PositionControlConfig
+#from dynamic_reconfigure.server import Server
+#from uuv_control_cascaded_pid.cfg import PositionControlConfig
 import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
+#TODO numpy msg...
 from rospy.numpy_msg import numpy_msg
 
-class PositionControllerNode:
-    def __init__(self):
+from rcl_interfaces.msg import SetParametersResult
+from rclpy.parameter import Parameter
+from rclpy.node import Node
+
+def time_in_float_sec(time: Time):
+    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
+    return f_time
+
+class PositionControllerNode(Node):
+    def __init__(self, node_name):
+        super().__init__(node_name)
         print('PositionControllerNode: initializing node')
 
         self.config = {}
@@ -41,11 +51,22 @@ class PositionControllerNode:
         self.pid_rot = PIDRegulator(1, 0, 0, 1)
         self.pid_pos = PIDRegulator(1, 0, 0, 1)
 
+        self.declare_parameter("pos_p", 1.)
+        self.declare_parameter("pos_i", 0.0)
+        self.declare_parameter("pos_d", 0.0)
+        self.declare_parameter("pos_sat", 10.0)
+
+        self.declare_parameter("rot_p", 1.)
+        self.declare_parameter("rot_i", 0.0)
+        self.declare_parameter("rot_d", 0.0)
+        self.declare_parameter("rot_sat", 3.0)
+
         # ROS infrastructure
-        self.sub_cmd_pose = rospy.Subscriber('cmd_pose', numpy_msg(geometry_msgs.PoseStamped), self.cmd_pose_callback)
-        self.sub_odometry = rospy.Subscriber('odom', numpy_msg(Odometry), self.odometry_callback)
-        self.pub_cmd_vel = rospy.Publisher('cmd_vel', geometry_msgs.Twist, queue_size=10)
-        self.srv_reconfigure = Server(PositionControlConfig, self.config_callback)
+        self.sub_cmd_pose = self.create_subscription(numpy_msg(geometry_msgs.PoseStamped), 'cmd_pose', self.cmd_pose_callback, 10)
+        self.sub_odometry = self.create_subscription(numpy_msg(Odometry), 'odom', self.odometry_callback, 10)
+        self.pub_cmd_vel = self.create_publisher(geometry_msgs.Twist, 'cmd_vel', 10)
+        #self.srv_reconfigure = Server(PositionControlConfig, self.config_callback)
+        self.add_on_set_parameters_callback(self.cb_params)
 
     def cmd_pose_callback(self, msg):
         """Handle updated set pose callback."""
@@ -72,7 +93,7 @@ class PositionControllerNode:
             self.initialized = True
 
         # Compute control output:
-        t = msg.header.stamp.to_sec()
+        t = time_in_float_sec(msg.header.stamp)
 
         # Position error
         e_pos_world = self.pos_des - p
@@ -111,13 +132,25 @@ class PositionControllerNode:
         return config
 
 
-if __name__ == '__main__':
-    print('starting PositionControl.py')
-    rospy.init_node('position_control')
+   def cb_params(self, data):
+        for parameter in data:
+            #if parameter.name == "name":
+            if parameter.type_ == Parameter.Type.DOUBLE:
+                self.config[parameter.name] = parameter.value
+
+        self.get_logger().warn("Parameters dynamically changed...")
+        return SetParametersResult(successful=True)
+
+def main():
+    print('Starting PositionControl.py')
+    rclpy.init()
 
     try:
-        node = PositionControllerNode()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
-    print('exiting')
+        node = PositionControllerNode('position_control')
+        rclpy.spin(node)
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+    print('Exiting')
+
+if __name__ == '__main__':
+    main()

@@ -34,8 +34,8 @@ class WorldPublisher(Node):
             self._get_model_state = self.create_client(GetModelState, '/gazebo/get_model_state')
             ready = self._get_model_state.wait_for_service(timeout_sec=100)
             if not ready:
-                raise rclpy.exceptions.InvalidServiceNameException('service is unavailable')
-        except rclpy.exceptions.InvalidServiceNameException
+                raise RuntimeError('service is unavailable')
+        except RuntimeError:
             print('/gazebo/get_model_state service is unavailable')
             sys.exit()
 
@@ -49,7 +49,7 @@ class WorldPublisher(Node):
         self._mesh_topic = self.create_publisher(MarkerArray, '/world_models', 1)
 
         rate = self.create_rate(0.1)
-        while rclpy.ok():)
+        while rclpy.ok():
             self.publish_meshes()
             rate.sleep()
 

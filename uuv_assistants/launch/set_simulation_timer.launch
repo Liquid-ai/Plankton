@@ -1,7 +1,7 @@
 <launch>
     <arg name="timeout" />
 
-    <node name="simulation_timeout" pkg="uuv_assistants" exec="set_simulation_timer.py" required="true"
+    <node node-name="simulation_timeout" pkg="uuv_assistants" exec="set_simulation_timer.py" required="true"
           output="screen">
         <rosparam subst_value="true">
             timeout: $(arg timeout)

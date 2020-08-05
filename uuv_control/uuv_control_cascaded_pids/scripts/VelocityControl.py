@@ -15,21 +15,30 @@
 # limitations under the License.
 
 import numpy
-import rospy
-from dynamic_reconfigure.server import Server
+import rclpy
+#from dynamic_reconfigure.server import Server
+
 import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
-import tf.transformations as trans
+#import tf.transformations as trans
+#TODO numpy_msg...
 from rospy.numpy_msg import numpy_msg
 
 # Modules included in this package
 from PID import PIDRegulator
 from uuv_control_cascaded_pid.cfg import VelocityControlConfig
 
+from rclpy.node import Node
 
-class VelocityControllerNode:
-    def __init__(self):
+
+def time_in_float_sec(time: Time):
+    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
+    return f_time
+
+class VelocityControllerNode(Node):
+    def __init__(self, node_name):
         print('VelocityControllerNode: initializing node')
+        super().__init__(node_name)
 
         self.config = {}
 
@@ -40,11 +49,25 @@ class VelocityControllerNode:
         self.pid_angular = PIDRegulator(1, 0, 0, 1)
         self.pid_linear = PIDRegulator(1, 0, 0, 1)
 
+        
+        self.declare_parameter("linear_p", 1.)
+        self.declare_parameter("linear_i", 0.0)
+        self.declare_parameter("linear_d", 0.0)
+        self.declare_parameter("linear_sat", 10.0)
+
+        self.declare_parameter("angular_p", 1.)
+        self.declare_parameter("angular_i", 0.0)
+        self.declare_parameter("angular_d", 0.0)
+        self.declare_parameter("angular_sat", 3.0)
+
+        self.declare_parameter("odom_vel_in_world", True)
+
         # ROS infrastructure
-        self.sub_cmd_vel = rospy.Subscriber('cmd_vel', numpy_msg(geometry_msgs.Twist), self.cmd_vel_callback)
-        self.sub_odometry = rospy.Subscriber('odom', numpy_msg(Odometry), self.odometry_callback)
-        self.pub_cmd_accel = rospy.Publisher('cmd_accel', geometry_msgs.Accel, queue_size=10)
-        self.srv_reconfigure = Server(VelocityControlConfig, self.config_callback)
+        self.sub_cmd_vel = self.create_subscription(numpy_msg(geometry_msgs.Twist), 'cmd_vel', self.cmd_vel_callback, 10)
+        self.sub_odometry = self.create_subscription(numpy_msg(Odometry), 'odom', self.odometry_callback, 10)
+        self.pub_cmd_accel = self.create_publisher( geometry_msgs.Accel, 'cmd_accel', 10)
+        #self.srv_reconfigure = Server(VelocityControlConfig, self.config_callback)
+        self.add_on_set_parameters_callback(self.cb_params)
 
     def cmd_vel_callback(self, msg):
         """Handle updated set velocity callback."""
@@ -76,7 +99,7 @@ class VelocityControllerNode:
             v_angular = R_bw.dot(v_angular)
 
         # Compute compute control output:
-        t = msg.header.stamp.to_sec()
+        t = time_in_float_sec(msg.header.stamp)
         e_v_linear = (self.v_linear_des - v_linear)
         e_v_angular = (self.v_angular_des - v_angular)
 
@@ -99,14 +122,23 @@ class VelocityControllerNode:
 
         return config
 
+     def cb_params(self, data):
+        for parameter in data:
+            self.config[parameter.name] = parameter.value
 
-if __name__ == '__main__':
-    print('starting VelocityControl.py')
-    rospy.init_node('velocity_control')
+        self.get_logger().warn("Parameters dynamically changed...")
+        return SetParametersResult(successful=True)
+
+def main():
+    print('Starting VelocityControl.py')
+    rclpy.init()
 
     try:
-        node = VelocityControllerNode()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
-    print('exiting')
+        node = VelocityControllerNode('velocity_control')
+        rclpy.spin(node)
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+    print('Exiting')
+
+if __name__ == '__main__':
+    main()

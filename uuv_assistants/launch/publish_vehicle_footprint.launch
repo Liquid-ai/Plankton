@@ -7,7 +7,7 @@
 
     <group>
         <push-ros-namespace namespace="$(arg uuv_name)"/>
-        <node name="publish_footprints" 
+        <node node-name="publish_footprints" 
               pkg="uuv_assistants" 
               exec="publish_vehicle_footprint.py" 
               output="screen">

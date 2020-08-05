@@ -43,14 +43,14 @@ class AccelerationControllerNode(Node):
         self.pub_gen_force = self.create_publisher(
           Wrench, 'thruster_manager/input', 1)
 
-        if not rospy.has_param("pid/mass"):
-            raise rospy.ROSException("UUV's mass was not provided")
+        if not self.has_parameter("pid/mass"):
+            raise RuntimeError("UUV's mass was not provided")
 
-        if not rospy.has_param("pid/inertial"):
-            raise rospy.ROSException("UUV's inertial was not provided")
+        if not self.has_parameter("pid/inertial"):
+            raise RuntimeError("UUV's inertial was not provided")
 
-        self.mass = rospy.get_param("pid/mass")
-        self.inertial = rospy.get_param("pid/inertial")
+        self.mass = self.get_parameter("pid/mass").value
+        self.inertial = self.get_parameter("pid/inertial").value
 
         # update mass, moments of inertia
         self.inertial_tensor = numpy.array(
@@ -118,9 +118,9 @@ def main():
   try:
       node = AccelerationControllerNode('acceleration_control')
       rclpy.spin(node)
-  except rospy.ROSInterruptException:
-    print('caught exception')
-    print('exiting')
+  except Exception as e:
+    print('Caught exception:' + str(e))
+    print('Exiting')
 
 if __name__ == '__main__':
     main()
