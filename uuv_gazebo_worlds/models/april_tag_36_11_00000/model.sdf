@@ -47,7 +47,7 @@
         </geometry>
         <material>
           <script>
-            <uri>file://Media/materials/scripts/fiducials.material</uri>
+            <uri>file://media/materials/scripts/fiducials.material</uri>
             <name>AprilTag/Tag36_11_00000</name>
           </script>
         </material>

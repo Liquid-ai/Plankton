@@ -30,13 +30,13 @@
         <pose>1572.54103 348.600098 0 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>file://Media/models/sea_surface_1000m_x_1000m.dae</uri>
+            <uri>file://media/models/sea_surface_1000m_x_1000m.dae</uri>
             <scale>4.124 2.853 1</scale>
           </mesh>
         </geometry>
         <material>
           <script>
-            <uri>file://Media/materials/scripts/waves.material</uri>
+            <uri>file://media/materials/scripts/waves.material</uri>
             <name>UUVSimulator/SimpleWaves</name>
           </script>
         </material>
@@ -46,13 +46,13 @@
         <pose>1572.54103 348.600098 0 3.14 0 0</pose>
         <geometry>
           <mesh>
-            <uri>file://Media/models/sea_surface_1000m_x_1000m.dae</uri>
+            <uri>file://media/models/sea_surface_1000m_x_1000m.dae</uri>
             <scale>4.124 2.853 1</scale>
           </mesh>
         </geometry>
         <material>
           <script>
-            <uri>file://Media/materials/scripts/water.material</uri>
+            <uri>file://media/materials/scripts/water.material</uri>
             <name>UUVSimulator/StaticWater</name>
           </script>
         </material>

@@ -33,7 +33,7 @@
         </geometry>
         <material>
           <script>
-            <uri>file://Media/materials/scripts/sand.material</uri>
+            <uri>file://media/materials/scripts/sand.material</uri>
             <name>UUVSimulator/SandAndStones</name>
           </script>
           <emissive>

@@ -93,7 +93,7 @@
         </geometry>
         <material>
           <script>
-            <uri>file://Media/materials/scripts/fiducials.material</uri>
+            <uri>file://media/materials/scripts/fiducials.material</uri>
             <name>Aruco/Tag1</name>
           </script>
         </material>
@@ -183,7 +183,7 @@
         </geometry>
         <material>
           <script>
-            <uri>file://Media/materials/scripts/fiducials.material</uri>
+            <uri>file://media/materials/scripts/fiducials.material</uri>
             <name>Aruco/Tag2</name>
           </script>
         </material>
@@ -274,7 +274,7 @@
         </geometry>
         <material>
           <script>
-            <uri>file://Media/materials/scripts/fiducials.material</uri>
+            <uri>file://media/materials/scripts/fiducials.material</uri>
             <name>Aruco/Tag3</name>
           </script>
         </material>
@@ -364,7 +364,7 @@
         </geometry>
         <material>
           <script>
-            <uri>file://Media/materials/scripts/fiducials.material</uri>
+            <uri>file://media/materials/scripts/fiducials.material</uri>
             <name>Aruco/Tag4</name>
           </script>
         </material>
@@ -454,7 +454,7 @@
         </geometry>
         <material>
           <script>
-            <uri>file://Media/materials/scripts/fiducials.material</uri>
+            <uri>file://media/materials/scripts/fiducials.material</uri>
             <name>Aruco/Tag5</name>
           </script>
         </material>
