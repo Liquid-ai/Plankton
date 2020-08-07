@@ -36,7 +36,7 @@ def main():
     if(timeout > 0):
         time.sleep(timeout)
 
-    print('Simulation timeout - Killing simulation...')
+    node.get_logger().info('Simulation timeout - Killing simulation...')
 
     rclpy.shutdown()
 
