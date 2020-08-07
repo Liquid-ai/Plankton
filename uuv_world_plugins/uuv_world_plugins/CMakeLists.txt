@@ -16,8 +16,11 @@ find_package(ament_cmake REQUIRED)
 
 include_directories(include)
 
-add_library(uuv_underwater_current_plugin src/UnderwaterCurrentPlugin.cpp
-  src/GaussMarkovProcess.cpp)
+add_library(uuv_underwater_current_plugin SHARED 
+  src/UnderwaterCurrentPlugin.cpp
+  src/GaussMarkovProcess.cpp
+)
+
 ament_target_dependencies(uuv_underwater_current_plugin
   gazebo_dev
   gazebo_msgs

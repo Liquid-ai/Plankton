@@ -10,65 +10,68 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+find_package(ament_cmake REQUIRED)
+find_package(gazebo_dev REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(uuv_gazebo_plugins REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(tf2 REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(ament_cmake REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(visualization_msgs REQUIRED)
 find_package(uuv_gazebo_ros_plugins_msgs REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(gazebo_dev REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
-set(BASE_LIBS 
+set(BASE_LIBS  
+  ament_cmake 
+  gazebo_dev
+  geometry_msgs 
+  rclcpp 
+  sensor_msgs 
+  std_msgs 
+  tf2 
   tf2_ros 
   uuv_gazebo_plugins 
-  geometry_msgs 
-  tf2 
-  std_msgs 
-  ament_cmake
-  sensor_msgs 
-  visualization_msgs 
   uuv_gazebo_ros_plugins_msgs 
-  rclcpp 
-  gazebo_dev 
+  visualization_msgs 
 )
 
 include_directories(include)
 
+link_directories(${GAZEBO_LIBRARY_DIRS})
+
 set(UUV_GAZEBO_ROS_PLUGINS_LIST "")
 
-add_library(uuv_fin_ros_plugin src/FinROSPlugin.cpp)
+add_library(uuv_fin_ros_plugin SHARED src/FinROSPlugin.cpp)
 ament_target_dependencies(
   uuv_fin_ros_plugin
   ${BASE_LIBS}
 )
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_fin_ros_plugin)
 
-add_library(uuv_thruster_ros_plugin src/ThrusterROSPlugin.cpp)
+add_library(uuv_thruster_ros_plugin SHARED src/ThrusterROSPlugin.cpp)
 ament_target_dependencies(uuv_thruster_ros_plugin ${BASE_LIBS})
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_thruster_ros_plugin)
 
-add_library(uuv_underwater_object_ros_plugin src/UnderwaterObjectROSPlugin.cpp)
+add_library(uuv_underwater_object_ros_plugin SHARED src/UnderwaterObjectROSPlugin.cpp)
 ament_target_dependencies(uuv_underwater_object_ros_plugin ${BASE_LIBS})
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_underwater_object_ros_plugin)
 
-add_library(uuv_joint_state_publisher src/JointStatePublisher.cpp)
+add_library(uuv_joint_state_publisher SHARED src/JointStatePublisher.cpp)
 ament_target_dependencies(uuv_joint_state_publisher ${BASE_LIBS})
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_joint_state_publisher)
 
-add_library(uuv_accelerations_test_plugin src/AccelerationsTestPlugin.cpp)
+add_library(uuv_accelerations_test_plugin SHARED src/AccelerationsTestPlugin.cpp)
 ament_target_dependencies(uuv_accelerations_test_plugin ${BASE_LIBS})
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST uuv_accelerations_test_plugin)
 
-add_library(linear_battery_ros_plugin src/LinearBatteryROSPlugin.cpp)
+add_library(linear_battery_ros_plugin SHARED src/LinearBatteryROSPlugin.cpp)
 ament_target_dependencies(linear_battery_ros_plugin ${BASE_LIBS})
+#Check if it is necessary
 target_link_libraries(linear_battery_ros_plugin LinearBatteryPlugin)
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST linear_battery_ros_plugin)
 
-add_library(custom_battery_consumer_ros_plugin src/CustomBatteryConsumerROSPlugin.cpp)
+add_library(custom_battery_consumer_ros_plugin SHARED src/CustomBatteryConsumerROSPlugin.cpp)
 ament_target_dependencies(custom_battery_consumer_ros_plugin ${BASE_LIBS})
 list(APPEND UUV_GAZEBO_ROS_PLUGINS_LIST custom_battery_consumer_ros_plugin)
 

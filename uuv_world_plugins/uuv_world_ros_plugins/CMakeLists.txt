@@ -30,10 +30,10 @@ set(LIBS
 
 include_directories(include)
 
-add_library(uuv_underwater_current_ros_plugin src/UnderwaterCurrentROSPlugin.cpp)
+add_library(uuv_underwater_current_ros_plugin SHARED src/UnderwaterCurrentROSPlugin.cpp)
 ament_target_dependencies(uuv_underwater_current_ros_plugin ${LIBS})
 
-add_library(uuv_sc_ros_interface_plugin src/SphericalCoordinatesROSInterfacePlugin.cpp)
+add_library(uuv_sc_ros_interface_plugin SHARED src/SphericalCoordinatesROSInterfacePlugin.cpp)
 ament_target_dependencies(uuv_sc_ros_interface_plugin ${LIBS})
 
 install(

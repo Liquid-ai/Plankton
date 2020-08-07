@@ -61,23 +61,23 @@ list(APPEND UUV_GAZEBO_PLUGINS_LIST uuv_gazebo_plugins_msgs)
 add_library(uuv_dynamics SHARED src/Dynamics.cpp)
 list(APPEND UUV_GAZEBO_PLUGINS_LIST uuv_dynamics)
 
-add_library(uuv_fin_plugin src/LiftDragModel.cpp src/FinPlugin.cpp)
+add_library(uuv_fin_plugin SHARED src/LiftDragModel.cpp src/FinPlugin.cpp)
 target_link_libraries(uuv_fin_plugin uuv_dynamics uuv_gazebo_plugins_msgs
   ${LIBS} ${Boost_LIBRARIES})
 list(APPEND UUV_GAZEBO_PLUGINS_LIST uuv_fin_plugin)
 
-add_library(uuv_underwater_object_plugin src/HydrodynamicModel.cpp
+add_library(uuv_underwater_object_plugin SHARED src/HydrodynamicModel.cpp
   src/BuoyantObject.cpp src/UnderwaterObjectPlugin.cpp)
 target_link_libraries(uuv_underwater_object_plugin ${LIBS} ${EIGEN3_LIBRARIES})
 list(APPEND UUV_GAZEBO_PLUGINS_LIST uuv_underwater_object_plugin)
 
-add_library(uuv_thruster_plugin src/ThrusterConversionFcn.cpp
+add_library(uuv_thruster_plugin SHARED src/ThrusterConversionFcn.cpp
   src/ThrusterPlugin.cpp)
 target_link_libraries(uuv_thruster_plugin uuv_dynamics uuv_gazebo_plugins_msgs
   ${LIBS} ${Boost_LIBRARIES})
 list(APPEND UUV_GAZEBO_PLUGINS_LIST uuv_thruster_plugin)
 
-add_library(umbilical_plugin src/UmbilicalModel.cpp src/UmbilicalPlugin.cpp)
+add_library(umbilical_plugin SHARED src/UmbilicalModel.cpp src/UmbilicalPlugin.cpp)
 target_link_libraries(umbilical_plugin ${LIBS} ${Boost_LIBRARIES})
 list(APPEND UUV_GAZEBO_PLUGINS_LIST umbilical_plugin)
 
