@@ -15,33 +15,59 @@
 # limitations under the License.
 from __future__ import print_function
 import rclpy
+import time
 
+node = None
+
+def callback():
+    node.get_logger().info('Simulation timeout - Killing simulation...')
+    #rclpy.shutdown()
 
 def main():
-    rclpy.init().init_node()
-
-    node = rclpy.create_node('set_simulation_timer')
+    rclpy.init()
+    global node
+    node = rclpy.create_node('set_simulation_timer', 
+                             allow_undeclared_parameters=True, 
+                             automatically_declare_parameters_from_overrides=True)
 
     # if not rclpy.ok():
     #     rospy.ROSException('Something went wrong')
 
     timeout = 0.0
-    if node.has_parameter('~timeout'):
-        timeout = node.get_parameter('~timeout').get_parameter_value().double_value
+    if node.has_parameter('timeout'):
+        timeout = node.get_parameter('timeout').get_parameter_value().double_value
         if timeout <= 0:
-            raise RuntimeError('Termination time must be a positive floating point value')
+            raise RuntimeError('Termination time must be a positive floating point value (X.Y)')
 
-    print('Starting simulation timer - Timeout = {} s'.format(timeout))
-    rate = node.create_rate(100)
-    #while rospy.get_time() < timeout:
-    timeTuple = node.get_clock().now().seconds_nanoseconds
-    currentTime = float(timeTuple[0]) + float(timeTuple[1]) / 1e9
-    while currentTime < timeout
-        rate.sleep()
-        timeTuple = node.get_clock().now().seconds_nanoseconds
-        currentTime = float(timeTuple[0]) + float(timeTuple[1]) / 1e9
+    node.get_logger().info('Starting simulation timer - Timeout = {} s'.format(timeout))
+    # timeout=5.0
+    # if timeout > 0.0:
+    #     time.sleep(timeout)
+    # timer = node.create_timer(timeout, callback)
+    # rclpy.spin(node)
+
+    if(timeout > 0):
+        time.sleep(timeout)
+
+
+    # rate = node.create_rate(100)
+    # #while rospy.get_time() < timeout:
+    # timeTuple = node.get_clock().now().seconds_nanoseconds()
+    # currentTime = float(timeTuple[0]) + float(timeTuple[1]) / 1e9
+    
+    # while currentTime < timeout:
+    #     rate.sleep()
+    #     timeTuple = node.get_clock().now().seconds_nanoseconds
+    #     currentTime = float(timeTuple[0]) + float(timeTuple[1]) / 1e9
+    #     print(currentTime)
 
     print('Simulation timeout - Killing simulation...')
 
+    rclpy.shutdown()
+
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+        print('Exiting')

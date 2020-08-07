@@ -1,12 +1,10 @@
 <launch>
     <arg name="timeout" />
 
+    <!-- FIXME Required is not defined in the xml -->
     <node node-name="simulation_timeout" pkg="uuv_assistants" exec="set_simulation_timer.py" required="true"
           output="screen">
         <param name="timeout" value="$(var timeout)"/>
-        <!-- <rosparam subst_value="true">
-            timeout: $(arg timeout)
-        </rosparam> -->
     </node>
 </launch>
 
