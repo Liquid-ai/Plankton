@@ -18,7 +18,7 @@ import rclpy
 import sys
 from tf_quaternion.transformations import quaternion_from_euler
 from visualization_msgs.msg import Marker, MarkerArray
-from gazebo_msgs.srv import GetModelState
+from gazebo_msgs.srv import GetEntityState
 from rclpy.node import Node
 
 
@@ -30,13 +30,13 @@ class WorldPublisher(Node):
 
         try:
             # Handle for retrieving model properties
-            
-            self._get_model_state = self.create_client(GetModelState, '/gazebo/get_model_state')
-            ready = self._get_model_state.wait_for_service(timeout_sec=100)
+            service_name = '/gazebo/get_entity_state'
+            self.get_entity_state = self.create_client(GetEntityState, service_name)
+            ready = self.get_entity_state.wait_for_service(timeout_sec=100)
             if not ready:
                 raise RuntimeError('service is unavailable')
         except RuntimeError:
-            print('/gazebo/get_model_state service is unavailable')
+            print('%s service is unavailable' % service_name)
             sys.exit()
 
         if self.has_parameter('~meshes'):
@@ -82,15 +82,18 @@ class WorldPublisher(Node):
 
                 if 'model' in models[model]:
                     model_name = models[model]['model']
-                    prop = self._get_model_state(model_name, '')
+                    req = GetEntityState.Request()
+                    req._name = model_name
+                    req.reference_frame = ''
+                    prop = self.get_entity_state.call(req)
                     if prop.success:
-                        new_model['position'] = [prop.pose.position.x,
-                                                 prop.pose.position.y,
-                                                 prop.pose.position.z]
-                        new_model['orientation'] = [prop.pose.orientation.x,
-                                                    prop.pose.orientation.y,
-                                                    prop.pose.orientation.z,
-                                                    prop.pose.orientation.w]
+                        new_model['position'] = [prop.state.pose.position.x,
+                                                 prop.state.pose.position.y,
+                                                 prop.state.pose.position.z]
+                        new_model['orientation'] = [prop.state.pose.orientation.x,
+                                                    prop.state.pose.orientation.y,
+                                                    prop.state.pose.orientation.z,
+                                                    prop.state.pose.orientation.w]
                     else:
                         print('Model %s not found in the current Gazebo scenario' % model)
                 else:
@@ -161,9 +164,9 @@ def main():
     try:
         world_pub = WorldPublisher('publish_world_models')
         rospy.spin(world_pub)
-    except rclpy.exceptions.ROSInterruptException:
-        print('caught exception')
-    print('exiting')
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+    print('Exiting')
 
 
 if __name__ == '__main__':
