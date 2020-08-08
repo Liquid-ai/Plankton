@@ -29,6 +29,8 @@
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/physics/World.hh>
 
+#include <gazebo_ros/node.hpp>
+
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 
@@ -111,7 +113,7 @@ namespace uuv_simulator_ros
     private: std::map<std::string, rclcpp::ServiceBase::SharedPtr> worldServices;
 
     /// \brief Pointer to this ROS node's handle.
-    private: rclcpp::Node::UniquePtr myRosNode;
+    private: gazebo_ros::Node::SharedPtr myRosNode;
 
     /// \brief Connection for callbacks on update world.
     private: gazebo::event::ConnectionPtr rosPublishConnection;

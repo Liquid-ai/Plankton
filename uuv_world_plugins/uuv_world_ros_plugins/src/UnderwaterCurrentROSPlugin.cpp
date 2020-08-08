@@ -34,7 +34,6 @@ UnderwaterCurrentROSPlugin::~UnderwaterCurrentROSPlugin()
     this->rosPublishConnection);
 #endif
 
-  rclcpp::shutdown();
   //this->rosNode->shutdown();
 }
 
@@ -70,7 +69,9 @@ void UnderwaterCurrentROSPlugin::Load(gazebo::physics::WorldPtr _world,
 
   gzmsg << "UnderwaterCurrentROSPlugin::namespace=" << this->ns << std::endl;
 
-  myRosNode =  rclcpp::Node::make_unique(this->ns);
+  //Node's namespace is set automatically from the sdf file
+  myRosNode =  gazebo_ros::Node::Get(_sdf);//rclcpp::Node::make_unique(this->ns);
+  //auto nsNode = myRosNode->create_sub_node(this->ns); //The 
   //this->rosNode.reset(new ros::NodeHandle(this->ns));
 
   // Advertise the flow velocity as a stamped twist message
@@ -133,7 +134,7 @@ void UnderwaterCurrentROSPlugin::Load(gazebo::physics::WorldPtr _world,
       std::bind(&UnderwaterCurrentROSPlugin::UpdateVertAngle, this, _1, _2));
 
   this->rosPublishConnection = gazebo::event::Events::ConnectWorldUpdateBegin(
-    boost::bind(&UnderwaterCurrentROSPlugin::OnUpdateCurrentVel, this));
+    std::bind(&UnderwaterCurrentROSPlugin::OnUpdateCurrentVel, this));
 }
 
 /////////////////////////////////////////////////

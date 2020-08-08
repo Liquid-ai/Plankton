@@ -18,7 +18,6 @@
 #ifndef __SC_ROS_INTERFACE_PLUGIN_HH__
 #define __SC_ROS_INTERFACE_PLUGIN_HH__
 
-#include <boost/scoped_ptr.hpp>
 #include <gazebo/gazebo.hh>
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/common/SphericalCoordinates.hh>
@@ -26,6 +25,8 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/vector3.hpp>
+
+#include <gazebo_ros/node.hpp>
 
 #include <uuv_world_ros_plugins_msgs/srv/set_origin_spherical_coord.hpp>
 #include <uuv_world_ros_plugins_msgs/srv/get_origin_spherical_coord.hpp>
@@ -70,7 +71,7 @@ class SphericalCoordinatesROSInterfacePlugin : public WorldPlugin
       uuv_world_ros_plugins_msgs::srv::TransformFromSphericalCoord::Response::SharedPtr _res);
 
   /// \brief Pointer to this ROS node's handle.
-  protected: rclcpp::Node::UniquePtr myRosNode;
+  protected: gazebo_ros::Node::SharedPtr myRosNode;
 
   /// \brief Connection for callbacks on update world.
   protected: event::ConnectionPtr rosPublishConnection;

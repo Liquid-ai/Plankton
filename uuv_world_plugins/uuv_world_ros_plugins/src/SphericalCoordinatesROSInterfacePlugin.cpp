@@ -34,8 +34,7 @@ SphericalCoordinatesROSInterfacePlugin::~SphericalCoordinatesROSInterfacePlugin(
 #else
   event::Events::DisconnectWorldUpdateBegin(this->rosPublishConnection);
 #endif
-  //TODO Do we have to shutdown ?
-  rclcpp::shutdown();
+
   //this->rosNode->shutdown();
 }
 
@@ -59,7 +58,7 @@ void SphericalCoordinatesROSInterfacePlugin::Load(
 
   this->world = _world;
 
-  myRosNode = rclcpp::Node::make_unique("");
+  myRosNode =  gazebo_ros::Node::Get(_sdf);
   //this->rosNode.reset(new ros::NodeHandle(""));
 
   // Advertise the service to get origin of the world in spherical coordinates
