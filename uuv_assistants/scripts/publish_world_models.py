@@ -24,7 +24,14 @@ from rclpy.node import Node
 
 class WorldPublisher(Node):
     def __init__(self, node_name):
-        super().__init__(node_name)
+        super().__init__(node_name,
+                        allow_undeclared_parameters=True, 
+                        automatically_declare_parameters_from_overrides=True)
+
+        self.get_logger().info(node_name + ': start publishing vehicle footprints to RViz')
+
+        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        self.set_parameters([sim_time])
 
         self._model_paths = dict()
 
@@ -36,56 +43,68 @@ class WorldPublisher(Node):
             if not ready:
                 raise RuntimeError('service is unavailable')
         except RuntimeError:
-            print('%s service is unavailable' % service_name)
+            self.get_logger().error('%s service is unavailable' % service_name)
             sys.exit()
 
-        if self.has_parameter('~meshes'):
-            meshes = self.get_parameter('~meshes').value
+        self.get_logger().info('here 1')
+     
+        meshes = self.get_parameters_by_prefix('meshes')
+        if meshes != None:
+        #if self.has_parameter('meshes'):
+            #meshes = self.get_parameter('meshes').value
             if type(meshes) != dict:
                 raise RuntimeError('A list of mesh filenames is required')
+    
+            meshes = self.parse_nested_params(meshes, '.')
 
             self.add_meshes(meshes)
 
         self._mesh_topic = self.create_publisher(MarkerArray, '/world_models', 1)
 
-        rate = self.create_rate(0.1)
-        while rclpy.ok():
-            self.publish_meshes()
-            rate.sleep()
+        self.timer = self.create_timer(10, self.publish_meshes)
+        # rate = self.create_rate(0.1)
+        # while rclpy.ok():
+        #     self.publish_meshes()
+        #     rate.sleep()
 
     def add_meshes(self, models):
         for model in models:
             if model in self._model_paths:
-                print('Model %s already exists' % model)
+                self.get_logger().info('Model %s already exists' % model)
                 continue
 
             new_model = dict()
 
-            new_model['position'] = [0, 0, 0]
-            new_model['orientation'] = [0, 0, 0, 1]
-            new_model['scale'] = [1, 1, 1]
+            new_model['position'] = [0., 0., 0.]
+            new_model['orientation'] = [0., 0., 0., 1.]
+            new_model['scale'] = [1., 1., 1.]
 
+            #It would probably be cleaner not to consider maps of maps, but rather 
+            #to create a function to parse arg1.arg2.arg3
+            meshes = self.get_parameters_by_prefix('meshes')
             if 'pose' in models[model]:
                 if 'position' in models[model]['pose']:
-                    if len(models[model]['pose']['position']) == 3:
-                        new_model['position'] = models[model]['pose']['position']
+                    val = models[model]['pose']['position'].value
+                    if len(val) == 3:
+                        new_model['position'] = models[model]['pose']['position'].value
                 if 'orientation' in models[model]['pose']:
-                    if len(models[model]['pose']['orientation']) == 3:
-                        new_model['orientation'] = quaternion_from_euler(*models[model]['pose']['orientation'])
+                    if len(models[model]['pose']['orientation'].value) == 3:
+                        new_model['orientation'] = quaternion_from_euler(*models[model]['pose']['orientation'].value)
 
             if 'scale' in models[model]:
-                if len(models[model]['scale']) == 3:
-                    new_model['scale'] = models[model]['scale']
+                if len(models[model]['scale'].value) == 3:
+                    new_model['scale'] = models[model]['scale'].value
 
             if 'mesh' in models[model]:
-                new_model['mesh'] = models[model]['mesh']
+                new_model['mesh'] = models[model]['mesh'].value
 
                 if 'model' in models[model]:
-                    model_name = models[model]['model']
+                    model_name = models[model]['model'].value
                     req = GetEntityState.Request()
                     req._name = model_name
                     req.reference_frame = ''
                     prop = self.get_entity_state.call(req)
+                    self.get_logger().warn('and this is ' + str(prop))
                     if prop.success:
                         new_model['position'] = [prop.state.pose.position.x,
                                                  prop.state.pose.position.y,
@@ -95,25 +114,25 @@ class WorldPublisher(Node):
                                                     prop.state.pose.orientation.z,
                                                     prop.state.pose.orientation.w]
                     else:
-                        print('Model %s not found in the current Gazebo scenario' % model)
+                        self.get_logger().info('Model %s not found in the current Gazebo scenario' % model)
                 else:
-                    print('Information about the model %s for the mesh %s could not be '
+                    self.get_logger().info('Information about the model %s for the mesh %s could not be '
                           'retrieved' % (model, models[model]['mesh']))
             elif 'plane' in models[model]:
                 new_model['plane'] = [1, 1, 1]
                 if 'plane' in models[model]:
-                    if len(models[model]['plane']) == 3:
-                        new_model['plane'] = models[model]['plane']
+                    if len(models[model]['plane'].value) == 3:
+                        new_model['plane'] = models[model]['plane'].value
                     else:
-                        print('Invalid scale vector for ' + model)
+                        self.get_logger().warn('Invalid scale vector for ' + model)
             else:
                 continue
 
             self._model_paths[model] = new_model
-            print('New model being published: %s' % model)
-            print('\t Position: ' + str(self._model_paths[model]['position']))
-            print('\t Orientation: ' + str(self._model_paths[model]['orientation']))
-            print('\t Scale: ' + str(self._model_paths[model]['scale']))
+            self.get_logger().info('New model being published: %s' % model)
+            self.get_logger().info('\t Position: ' + str(self._model_paths[model]['position']))
+            self.get_logger().info('\t Orientation: ' + str(self._model_paths[model]['orientation']))
+            self.get_logger().info('\t Scale: ' + str(self._model_paths[model]['scale']))
 
     def publish_meshes(self):
         markers = MarkerArray()
@@ -135,7 +154,7 @@ class WorldPublisher(Node):
                 marker.scale.z = self._model_paths[model]['plane'][2]
 
             marker.header.frame_id = 'world'
-            marker.header.stamp = self.get_clock().now()#rospy.get_rostime()
+            marker.header.stamp = self.get_clock().now().to_msg()#rospy.get_rostime()
             marker.ns = ''
             marker.id = i
             marker.action = Marker.ADD
@@ -156,6 +175,79 @@ class WorldPublisher(Node):
 
         self._mesh_topic.publish(markers)
 
+
+    def merge_dicts(self, a, b):
+        """merges b into a and return merged result
+
+        NOTE: tuples and arbitrary objects are not handled as it is totally ambiguous what should happen"""
+        key = None
+        try:
+            if a is None or isinstance(a, str) or isinstance(a, int) or isinstance(a, float):
+                # border case for first run or if a is a primitive
+                a = b
+            elif isinstance(a, list):
+                # lists can be only appended
+                if isinstance(b, list):
+                    # merge lists
+                    a.extend(b)
+                else:
+                    # append to list
+                    a.append(b)
+            elif isinstance(a, dict):
+                # dicts must be merged
+                if isinstance(b, dict):
+                    for key in b:
+                        if key in a:
+                            a[key] = self.merge_dicts(a[key], b[key])
+                        else:
+                            a[key] = b[key]
+                else:
+                    raise RuntimeError('Cannot merge non-dict "%s" into dict "%s"' % (b, a))
+            else:
+                raise RuntimeError('NOT IMPLEMENTED "%s" into "%s"' % (b, a))
+        except TypeError as e:
+            raise Runtime('TypeError "%s" in key "%s" when merging "%s" into "%s"' % (e, key, b, a))
+        return a
+    
+            
+    def parse_nested_params(self, this_list, separator: str = "."):
+        """
+        Dictionary from parameters
+        """
+        
+        parameters_with_prefix = {}
+
+        for parameter_name, param_value in this_list.items():
+            dotFound = True
+        
+            dict_ = {}
+            key_list = []
+            while dotFound:
+                dotFound = False
+                key = ""
+                index  = str(parameter_name).find(separator)
+                if index != -1:
+                    dotFound = True
+                    key = parameter_name[:index]
+                    key_list.insert(0, key)
+
+                    #dict_.update({key: {}})
+                    parameter_name = parameter_name[index + 1:]
+                else:
+                    key_list.insert(0, parameter_name)
+
+            for i, key in enumerate(key_list):
+                if i == 0:
+                    dict_.update({key: param_value})
+                else:
+                    dict_ = ({key: dict_})
+            if len(parameters_with_prefix.keys()) == 0:
+                parameters_with_prefix = dict_
+            else:
+                parameters_with_prefix = self.merge_dicts(parameters_with_prefix, dict_)
+        return parameters_with_prefix
+
+
 def main():
     print('Start publishing vehicle footprints to RViz')
 
@@ -163,11 +255,10 @@ def main():
 
     try:
         world_pub = WorldPublisher('publish_world_models')
-        rospy.spin(world_pub)
+        rclpy.spin(world_pub)
     except Exception as e:
         print('Caught exception: ' + str(e))
     print('Exiting')
-
 
 if __name__ == '__main__':
     main()
