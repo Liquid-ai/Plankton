@@ -1,3 +1,6 @@
+<!-- Migration notes for ROS 2 say "arg" should not contain "value" attribute
+but the source code ros2/launch/actions/include_launch_description.py 
+clearly show it is not the cas-->
 <launch>
     <arg name="gui" default="true"/>
     <arg name="paused" default="false"/>
