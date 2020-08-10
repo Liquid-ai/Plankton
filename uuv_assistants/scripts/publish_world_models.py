@@ -103,21 +103,28 @@ class WorldPublisher(Node):
                     req = GetEntityState.Request()
                     req._name = model_name
                     req.reference_frame = ''
-                    prop = self.get_entity_state.call(req)
-                    self.get_logger().warn('and this is ' + str(prop))
-                    if prop.success:
-                        new_model['position'] = [prop.state.pose.position.x,
-                                                 prop.state.pose.position.y,
-                                                 prop.state.pose.position.z]
-                        new_model['orientation'] = [prop.state.pose.orientation.x,
-                                                    prop.state.pose.orientation.y,
-                                                    prop.state.pose.orientation.z,
-                                                    prop.state.pose.orientation.w]
+                    self.get_logger().debug('Asking to: ' + self.get_entity_state.srv_name + 
+                                            ' model: ' + model_name)
+                    future = self.get_entity_state.call_async(req)
+                    rclpy.spin_until_future_complete(self, future)
+                    if future.result() is not None:
+                        prop = future.result()
+                        self.get_logger().warn('and this is ' + str(prop))
+                        if prop.success:
+                            new_model['position'] = [prop.state.pose.position.x,
+                                                    prop.state.pose.position.y,
+                                                    prop.state.pose.position.z]
+                            new_model['orientation'] = [prop.state.pose.orientation.x,
+                                                        prop.state.pose.orientation.y,
+                                                        prop.state.pose.orientation.z,
+                                                        prop.state.pose.orientation.w]
+                        else:
+                            self.get_logger().info('Model %s not found in the current Gazebo scenario' % model)
                     else:
-                        self.get_logger().info('Model %s not found in the current Gazebo scenario' % model)
+                        raise RuntimeError('Exception while calling service: %s' % future.exception())
                 else:
                     self.get_logger().info('Information about the model %s for the mesh %s could not be '
-                          'retrieved' % (model, models[model]['mesh']))
+                          'retrieved' % (model, models[model]['mesh'].value))
             elif 'plane' in models[model]:
                 new_model['plane'] = [1, 1, 1]
                 if 'plane' in models[model]:
@@ -129,10 +136,12 @@ class WorldPublisher(Node):
                 continue
 
             self._model_paths[model] = new_model
-            self.get_logger().info('New model being published: %s' % model)
-            self.get_logger().info('\t Position: ' + str(self._model_paths[model]['position']))
-            self.get_logger().info('\t Orientation: ' + str(self._model_paths[model]['orientation']))
-            self.get_logger().info('\t Scale: ' + str(self._model_paths[model]['scale']))
+            self.get_logger().info(
+                '\nNew model being published: %s' % model +
+                '\n\t Position: ' + str(self._model_paths[model]['position']) +
+                '\n\t Orientation: ' + str(self._model_paths[model]['orientation'])+
+                '\n\t Scale: ' + str(self._model_paths[model]['scale'])
+            )
 
     def publish_meshes(self):
         markers = MarkerArray()
