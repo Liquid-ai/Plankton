@@ -20,9 +20,9 @@ Underwater environment with the ODE physics engine configured for vehicles using
         <arg name="verbose" value="true"/>
     </include>
 
-    <!-- <include file="$(find-pkg-share uuv_assistants)/launch/publish_world_ned_frame.launch"/>
+    <include file="$(find-pkg-share uuv_assistants)/launch/publish_world_ned_frame.launch"/>
 
-    <node name="publish_world_models"
+    <node node-name="publish_world_models"
         pkg="uuv_assistants"
         exec="publish_world_models.py"
         output="screen">
@@ -35,5 +35,5 @@ Underwater environment with the ODE physics engine configured for vehicles using
             <arg name="timeout" value="$(var timeout)"/>
             <arg name="use_sim_time" value="$(var use_sim_time)"/>
         </include>
-    </group> -->
+    </group>
 </launch>

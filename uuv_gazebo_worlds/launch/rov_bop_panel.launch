@@ -3,9 +3,10 @@
     <arg name="y" default="-1"/>
     <arg name="z" default="-4"/>
     <arg name="angle" default="0"/>
+   
     <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
-    <include file="$(find uuv_gazebo_worlds)/launch/empty_underwater_world.launch"/>
+    <include file="$(find-pkg-share uuv_gazebo_worlds)/launch/empty_underwater_world.launch"/>
 
-    <node name="sdf_spawner" pkg="gazebo_ros" exec="spawn_model" output="screen"
-          args="-sdf -x $(arg x) -y $(arg y) -z $(arg z) -P 1.57 -Y $(arg angle) -model rov_bop_panel -database rov_bop_panel"/>
+    <node node-name="sdf_spawner" pkg="gazebo_ros" exec="spawn_entity.py" output="screen"
+          args="-x $(var x) -y $(var y) -z $(var z) -P 1.57 -Y $(var angle) -entity rov_bop_panel -database rov_bop_panel"/>
 </launch>

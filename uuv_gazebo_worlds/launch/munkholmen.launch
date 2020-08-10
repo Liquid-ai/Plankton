@@ -1,38 +1,25 @@
 <launch>
   <arg name="paused" default="false"/>
   <arg name="gui" default="true"/>
+  <arg name="use_sim_time" default="true"/>
 
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="worlds/munkholmen.world"/>
-    <arg name="paused" value="false"/>
-    <arg name="use_sim_time" value="true"/>
-    <arg name="gui" value="$(arg gui)"/>
+  <include file="$(find-pkg-share gazebo_ros)/launch/gazebo.launch.py">
+    <arg name="world" value="worlds/munkholmen.world"/>
+    <arg name="pause" value="$(var paused)"/>
+    <arg name="use_sim_time" value="$(var use_sim_time)"/>
+    <arg name="gui" value="$(var gui)"/>
     <arg name="headless" value="false"/>
     <arg name="debug" value="false"/>
     <arg name="verbose" value="true" />
   </include>
 
-  <include file="$(find uuv_assistants)/launch/publish_world_ned_frame.launch"/>
+  <include file="$(find-pkg-share uuv_assistants)/launch/publish_world_ned_frame.launch"/>
   
-  <node name="publish_world_models"
+  <node node-name="publish_world_models"
         pkg="uuv_assistants"
         exec="publish_world_models.py"
         output="screen">
-        <rosparam subst_value="true">
-            meshes:
-                seabed:
-                    mesh: package://uuv_gazebo_worlds/models/munkholmen_seabed/meshes/seabed.dae
-                    pose:
-                      position: [0, 0, 0]
-                island:
-                    mesh: package://uuv_gazebo_worlds/models/munkholmen/meshes/munkholmen.dae
-                    pose:
-                      position: [-103.391, -121.403, 0]
-                herkules_ship_wreck:
-                    mesh: package://uuv_gazebo_worlds/models/herkules_ship_wreck/meshes/herkules.dae
-                    pose:
-                      position: [1052.025, 158.035, -50]
-                      orientation: [0, 0, 5.24]
-        </rosparam>
+        <param from="$(find-pkg-share uuv_gazebo_worlds)/config/munkholmen.yaml"/>
+        <param name="use_sim_time" value="$(var use_sim_time)"/>
   </node>
 </launch>

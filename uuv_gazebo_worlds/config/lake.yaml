@@ -1,0 +1,6 @@
+publish_world_models:
+    ros__parameters:
+      meshes:
+        lake:
+          mesh: package://uuv_gazebo_worlds/models/lake/meshes/LakeBottom.dae
+          model: lake

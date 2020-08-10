@@ -85,6 +85,10 @@
       <uri>model://herkules_ship_wreck</uri>
       <pose>1052.025 158.035 -50 0 0 1.57</pose>
     </include>
+
+    <plugin name="gazebo_ros" filename="libgazebo_ros_state.so">
+      <namespace>gazebo</namespace>
+    </plugin>
     
     <plugin name="underwater_current_plugin" filename="libuuv_underwater_current_ros_plugin.so">
       <namespace>hydrodynamics</namespace>

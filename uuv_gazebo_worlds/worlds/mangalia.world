@@ -82,6 +82,10 @@
       <pose>-572.0074568380 537.7086925743 0 0 0 0</pose>
     </include>
 
+    <plugin name="gazebo_ros" filename="libgazebo_ros_state.so">
+      <namespace>gazebo</namespace>
+    </plugin>
+
     <plugin name="underwater_current_plugin" filename="libuuv_underwater_current_ros_plugin.so">
       <namespace>hydrodynamics</namespace>
       <constant_current>

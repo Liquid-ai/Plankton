@@ -1,30 +1,25 @@
 <launch>
   <arg name="paused" default="false"/>
   <arg name="gui" default="true"/>
+  <arg name="use_sim_time" default="true"/>
 
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="worlds/mangalia_manipulation.world"/>
-    <arg name="paused" value="false"/>
-    <arg name="use_sim_time" value="true"/>
-    <arg name="gui" value="$(arg gui)"/>
+  <include file="$(find-pkg-share gazebo_ros)/launch/gazebo.launch.py">
+    <arg name="world" value="worlds/mangalia_manipulation.world"/>
+    <arg name="pause" value="$(var paused)"/>
+    <arg name="use_sim_time" value="$(var use_sim_time)"/>
+    <arg name="gui" value="$(var gui)"/>
     <arg name="headless" value="false"/>
     <arg name="debug" value="false"/>
     <arg name="verbose" value="true" />
   </include>
 
-  <include file="$(find uuv_assistants)/launch/publish_world_ned_frame.launch"/>
+  <include file="$(find-pkg-share uuv_assistants)/launch/publish_world_ned_frame.launch"/>
 
-  <node name="publish_world_models"
+  <node node-name="publish_world_models"
         pkg="uuv_assistants"
         exec="publish_world_models.py"
         output="screen">
-        <rosparam subst_value="true">
-            meshes:
-                mangalia:
-                    mesh: package://uuv_gazebo_worlds/models/mangalia/meshes/MangaliaTerrain.dae
-                    pose:
-                      position: [-572.0074568380, 537.7086925743, -5]
-                    scale: [1, 1, 2]
-        </rosparam>
+        <param from="$(find-pkg-share uuv_gazebo_worlds)/config/mangalia.yaml"/>
+        <param name="use_sim_time" value="$(var use_sim_time)"/>
   </node>
 </launch>

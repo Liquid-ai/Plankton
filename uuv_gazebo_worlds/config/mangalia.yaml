@@ -1,0 +1,8 @@
+publish_world_models:
+    ros__parameters:
+      meshes:
+        mangalia:
+          mesh: package://uuv_gazebo_worlds/models/mangalia/meshes/MangaliaTerrain.dae
+          pose:
+            position: [-572.0074568380, 537.7086925743, -5.]
+          scale: [1., 1., 2.]

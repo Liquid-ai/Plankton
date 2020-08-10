@@ -1,0 +1,26 @@
+publish_world_models:
+    ros__parameters:
+      meshes:
+        heightmap:
+          mesh: package://uuv_gazebo_worlds/models/sand_heightmap/meshes/heightmap.dae
+          model: sand_heightmap
+        seafloor:
+          plane: [2000., 2000., 0.1]
+          pose:
+            position: [0., 0., -100.]
+        north:
+          plane: [0.1, 2000., 100.]
+          pose:
+            position: [1000., 0., -50.]
+        south:
+          plane: [0.1, 2000., 100.]
+          pose:
+            position: [-1000., 0., -50.]
+        west:
+          plane: [2000., 0.1, 100.]
+          pose:
+            position: [0., -1000., -50.]
+        east:
+          plane: [2000., 0.1, 100.]
+          pose:
+            position: [0., 1000., -50.]

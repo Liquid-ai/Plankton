@@ -1,0 +1,15 @@
+publish_world_models:
+    ros__parameters:
+      meshes:
+        herkules_seabed:
+          mesh: package://uuv_gazebo_worlds/models/herkules_seabed/meshes/herkules_seabed.dae
+          #model: "herkules_seabed"
+          pose:
+            position: [0., 0., -60.]
+          scale: [4., 4., 1.]
+        herkules_ship_wreck:
+          mesh: package://uuv_gazebo_worlds/models/herkules_ship_wreck/meshes/herkules.dae
+          #model: model://herkules_ship_wreck
+          pose:
+            position: [0., 0., -60.]
+            orientation: [0., 0., 1.57]
