@@ -12,16 +12,16 @@
   <arg name="namespace" default="rexrov"/>
   <arg name="use_ned_frame" default="false"/>
 
-  <include file="$(find uuv_descriptions)/launch/upload_rexrov_$(arg mode).launch">
-    <arg name="debug" value="$(arg debug)"/>
-    <arg name="x" value="$(arg x)"/>
-    <arg name="y" value="$(arg y)"/>
-    <arg name="z" value="$(arg z)"/>
-    <arg name="roll" value="$(arg roll)"/>
-    <arg name="pitch" value="$(arg pitch)"/>
-    <arg name="yaw" value="$(arg yaw)"/>
-    <arg name="use_ned_frame" value="$(arg use_ned_frame)"/>
-    <arg name="namespace" value="$(arg namespace)"/>
+  <include file="$(find-pkg-share uuv_descriptions)/launch/upload_rexrov_$(var mode).launch">
+    <arg name="debug" value="$(var debug)"/>
+    <arg name="x" value="$(var x)"/>
+    <arg name="y" value="$(var y)"/>
+    <arg name="z" value="$(var z)"/>
+    <arg name="roll" value="$(var roll)"/>
+    <arg name="pitch" value="$(var pitch)"/>
+    <arg name="yaw" value="$(var yaw)"/>
+    <arg name="use_ned_frame" value="$(var use_ned_frame)"/>
+    <arg name="namespace" value="$(var namespace)"/>
   </include>
 
 </launch>

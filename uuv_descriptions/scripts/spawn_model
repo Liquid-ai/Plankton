@@ -38,7 +38,7 @@ from gazebo_msgs.msg import *
 from gazebo_msgs.srv import *
 from std_srvs.srv import Empty
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Wrench
-import tf.transformations as tft
+import tf_quaternion.transformations as tft
 
 from rclpy.node import Node
 
@@ -177,7 +177,9 @@ def usage():
 class SpawnModel(Node):
 
     def __init__(self, node_name):
-        super().__init__(node_name)
+        super().__init__(node_name, 
+                        allow_undeclared_parameters=True, 
+                        automatically_declare_parameters_from_overrides=True)
 
         self.initial_xyz             = [0,0,0]
         self.initial_rpy             = [0,0,0]
@@ -237,7 +239,7 @@ class SpawnModel(Node):
                         sys.exit(0)
                     else:
                         self.param_name = sys.argv[i+1]
-                        self.get_logger().info('Parameter name: %s', self.param_name)
+                        self.get_logger().info('Parameter name: %s' % self.param_name)
             if sys.argv[i] == '-file':
                 if len(sys.argv) > i+1:
                     if self.param_name != "" or self.database_name != "":
@@ -348,7 +350,7 @@ class SpawnModel(Node):
         #rospy.init_node('spawn_model')
 
         if not self.wait_for_model == "":
-            self.create_subscription(ModelStates, "%s/model_states" % self.gazebo_namespace, , self.checkForModel, 10)
+            self.create_subscription(ModelStates, "%s/model_states" % self.gazebo_namespace, self.checkForModel, 10)
             r = self.create_rate.Rate(10)
             while rclpy.ok() and not self.wait_for_model_exists:
                 r.sleep()
