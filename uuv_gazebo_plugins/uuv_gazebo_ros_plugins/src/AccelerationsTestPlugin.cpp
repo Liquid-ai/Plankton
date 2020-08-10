@@ -214,7 +214,7 @@ void AccelerationsTestPlugin::Connect()
 {
   // Connect the update event
   this->updateConnection = event::Events::ConnectWorldUpdateBegin(
-    boost::bind(&AccelerationsTestPlugin::Update,
-                    this, _1));
+    std::bind(&AccelerationsTestPlugin::Update,
+                    this, std::placeholders::_1));
 }
 }

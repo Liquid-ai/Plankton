@@ -149,7 +149,7 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
       this->anglePublisher->GetTopic() << std::endl;
 
   this->rosPublishConnection = gazebo::event::Events::ConnectWorldUpdateBegin(
-        boost::bind(&FinROSPlugin::RosPublishStates, this));
+        std::bind(&FinROSPlugin::RosPublishStates, this));
 }
 
 /////////////////////////////////////////////////

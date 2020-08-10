@@ -196,7 +196,7 @@ void ThrusterROSPlugin::Load(gazebo::physics::ModelPtr _parent,
       this->thrustTopicPublisher->GetTopic() << std::endl;
 
   this->rosPublishConnection = gazebo::event::Events::ConnectWorldUpdateBegin(
-    boost::bind(&ThrusterROSPlugin::RosPublishStates, this));
+    std::bind(&ThrusterROSPlugin::RosPublishStates, this));
 }
 
 //=============================================================================

@@ -114,7 +114,7 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
 #endif
   // Connect the update function to the Gazebo callback
   this->updateConnection = gazebo::event::Events::ConnectWorldUpdateBegin(
-    boost::bind(&JointStatePublisher::OnUpdate, this, _1));
+    std::bind(&JointStatePublisher::OnUpdate, this, std::placeholders::_1));
 }
 
 //=============================================================================
