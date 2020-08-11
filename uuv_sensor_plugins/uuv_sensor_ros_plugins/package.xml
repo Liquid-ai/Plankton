@@ -21,18 +21,18 @@
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>std_msgs</depend>
-  <depend>roscpp</depend>
+  <depend>rclcpp</depend>
   <depend>uuv_gazebo_plugins</depend>
   <depend>uuv_sensor_ros_plugins_msgs</depend>
-  <depend>tf</depend>
+  <!--<depend>tf</depend>-->
   <depend>message_filters</depend>
   <depend>tf2_ros</depend>
   <depend>tf2</depend>
   <depend>image_transport</depend>
   <depend>laser_geometry</depend>
 
-  <test_depend>rosunit</test_depend>
-  <test_depend>rostest</test_depend>
+  <!--<test_depend>rosunit</test_depend>
+  <test_depend>rostest</test_depend>-->
   <test_depend>xacro</test_depend>
 
   <export>
