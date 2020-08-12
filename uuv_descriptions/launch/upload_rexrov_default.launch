@@ -11,28 +11,47 @@
   <arg name="mode" default="default"/>
   <arg name="namespace" default="rexrov"/>
   <arg name="use_ned_frame" default="false"/>
+  <arg name="generated_urdf" default="$(find-pkg-share uuv_descriptions)/robots/generated/$(var namespace)/robot_description"/>
+  <arg name="cmd" default= "(exec-in-pkg xacro xacro) '$(find-pkg-share uuv_descriptions)/robots/rexrov_$(var mode).xacro' 
+          > $(find-pkg-share uuv_descriptions)/robots/generated/$(var namespace)/robot_description
+          --inorder
+          debug:=$(var debug)
+          namespace:=$(var namespace)
+          inertial_reference_frame:=world_ned"/>
+  <arg name="cmdUnless" default="xacro '$(find-pkg-share uuv_descriptions)/robots/rexrov_$(var mode).xacro' 
+          > $(find-pkg-share uuv_descriptions)/robots/generated/$(var namespace)/robot_description
+          debug:=$(var debug)
+          namespace:=$(var namespace)
+          inertial_reference_frame:=world"/>
+  
 
   <group>
     <push-ros-namespace namespace="$(var namespace)"/>
     <group if="$(var use_ned_frame)">
-      <param name="robot_description"
-        command="$(find-pkg-share xacro)/xacro '$(find-pkg-share uuv_descriptions)/robots/rexrov_$(var mode).xacro' --inorder
-          debug:=$(var debug)
-          namespace:=$(var namespace)
-          inertial_reference_frame:=world_ned" />
+      <executable 
+          cmd="$(var cmd)"
+          name="robot_description" 
+          output="screen" 
+          shell="true">
+      </executable>
     </group>
 
     <group unless="$(var use_ned_frame)">
-      <param name="robot_description"
-        command="$(find-pkg-share xacro)/xacro '$(find-pkg-share uuv_descriptions)/robots/rexrov_$(var mode).xacro' --inorder
-          debug:=$(var debug)
-          namespace:=$(var namespace)
-          inertial_reference_frame:=world" />
+      <executable 
+          cmd="$(var cmdUnless)" 
+          cwd="$(find-pkg-prefix xacro)"
+          name="robot_description" 
+          output="screen" 
+          shell="true">
+      </executable>
     </group>
 
     <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
-    <node node-name="urdf_spawner" pkg="uuv_descriptions" exec="spawn_model" respawn="false" output="screen"
-          args="-urdf -x $(var x) -y $(var y) -z $(var z) -R $(var roll) -P $(var pitch) -Y $(var yaw) -model $(var namespace) -param /$(var namespace)/robot_description"/>
+    <!-- <node node-name="urdf_spawner" pkg="uuv_descriptions" exec="spawn_model" respawn="false" output="screen"
+          args="-urdf -x $(var x) -y $(var y) -z $(var z) -R $(var roll) -P $(var pitch) -Y $(var yaw) -model $(var namespace) -file /home/jp/ros2_ws/install/uuv_descriptions/share/uuv_descriptions/robots/generated/rexrov/robot_description"/> -->
+    
+    <node node-name="urdf_spawner" pkg="gazebo_ros" exec="spawn_entity.py" respawn="false" output="screen"
+          args="-x $(var x) -y $(var y) -z $(var z) -R $(var roll) -P $(var pitch) -Y $(var yaw) -entity $(var namespace) -file $(var generated_urdf)"/>
 
     <!-- A joint state publisher plugin already is started with the model, no need to use the default joint state publisher -->
 

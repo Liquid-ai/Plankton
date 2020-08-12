@@ -32,7 +32,7 @@ import string
 import warnings
 import re
 
-#from gazebo_ros import gazebo_interface
+import gazebo_ros.spawn_entity as spawn_entity
 
 from gazebo_msgs.msg import *
 from gazebo_msgs.srv import *
@@ -205,6 +205,7 @@ class SpawnModel(Node):
     def parseUserInputs(self):
         # get goal from commandline
         for i in range(0, len(sys.argv)):
+            self.get_logger().info("Param " + str(sys.argv[i]))
             if sys.argv[i] == '-h' or sys.argv[i] == '--help' or sys.argv[i] == '-help':
                 usage()
                 sys.exit(1)
@@ -427,15 +428,16 @@ class SpawnModel(Node):
         # convert rpy to quaternion for Pose message
         tmpq = tft.quaternion_from_euler(
             self.initial_rpy[0], self.initial_rpy[1], self.initial_rpy[2])
-        q = Quaternion(tmpq[0], tmpq[1], tmpq[2], tmpq[3])
+
+        q = Quaternion(x= tmpq[0], y=tmpq[1], z=tmpq[2], w=tmpq[3])
         initial_pose.orientation = q
 
         # spawn model
         if self.urdf_format:
-            success = gazebo_interface.spawn_urdf_model_client(self.model_name, model_xml, self.robot_namespace,
+            success = spawn_entity.spawn_urdf_model_client(self.model_name, model_xml, self.robot_namespace,
                                                                initial_pose, self.reference_frame, self.gazebo_namespace)
         elif self.sdf_format:
-            success = gazebo_interface.spawn_sdf_model_client(self.model_name, model_xml, self.robot_namespace,
+            success = spawn_entity.spawn_sdf_model_client(self.model_name, model_xml, self.robot_namespace,
                                                               initial_pose, self.reference_frame, self.gazebo_namespace)
         else:
             self.get_logger().error("Error: should not be here in spawner helper script, there is a bug")
