@@ -30,7 +30,7 @@ UnderwaterObjectROSPlugin::UnderwaterObjectROSPlugin()
 /////////////////////////////////////////////////
 UnderwaterObjectROSPlugin::~UnderwaterObjectROSPlugin()
 {
-  rclcpp::shutdown();
+  //rclcpp::shutdown();
   //this->rosNode->shutdown();
 }
 
@@ -49,7 +49,8 @@ void UnderwaterObjectROSPlugin::Load(gazebo::physics::ModelPtr _parent,
     return;
   }
 
-  myRosNode = rclcpp::Node::make_unique("");
+  myRosNode =  gazebo_ros::Node::CreateWithArgs(_parent->GetName());
+  //myRosNode = rclcpp::Node::make_unique("");
   //TODO Not sure about the behaviour of TransformBroadcaster with ROS 2...
   tfBroadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*myRosNode);
   //this->rosNode.reset(new ros::NodeHandle(""));

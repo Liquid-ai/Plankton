@@ -21,6 +21,8 @@
 #include <gazebo/physics/Link.hh>
 #include <gazebo/common/Plugin.hh>
 
+#include <gazebo_ros/node.hpp>
+
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 
@@ -47,7 +49,7 @@ class CustomBatteryConsumerROSPlugin : public ModelPlugin
   protected: void UpdatePowerLoad(double _powerLoad = 0.0);
 
   /// \brief Pointer to this ROS node's handle.
-  protected: std::unique_ptr<rclcpp::Node> myRosNode;
+  protected: gazebo_ros::Node::SharedPtr myRosNode;
 
   /// \brief Subscriber to the device state flag
   protected: rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr myDeviceStateSub;

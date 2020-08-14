@@ -17,13 +17,14 @@
 #define __FIN_ROS_PLUGIN_HH__
 
 #include <uuv_gazebo_plugins/FinPlugin.h>
+#include <uuv_gazebo_ros_plugins_msgs/msg/float_stamped.hpp>
+#include <uuv_gazebo_ros_plugins_msgs/srv/get_list_param.hpp>
 
 #include <gazebo/common/Plugin.hh>
 
-#include <rclcpp/rclcpp.hpp>
+#include <gazebo_ros/node.hpp>
 
-#include <uuv_gazebo_ros_plugins_msgs/msg/float_stamped.hpp>
-#include <uuv_gazebo_ros_plugins_msgs/srv/get_list_param.hpp>
+#include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/wrench_stamped.hpp>
 
 #include <map>
@@ -70,7 +71,7 @@ namespace uuv_simulator_ros
     public: virtual void Reset();
 
     /// \brief Pointer to this ROS node's handle.
-    private: rclcpp::Node::UniquePtr myRosNode;
+    protected: gazebo_ros::Node::SharedPtr myRosNode;
 
     /// \brief Subscriber reacting to new reference set points.
     private: rclcpp::Subscription<uuv_gazebo_ros_plugins_msgs::msg::FloatStamped>::SharedPtr mySubReference;

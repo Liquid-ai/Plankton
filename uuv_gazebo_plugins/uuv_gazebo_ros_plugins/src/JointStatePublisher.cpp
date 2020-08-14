@@ -33,7 +33,7 @@ JointStatePublisher::JointStatePublisher()
 ///////////////////////////////////////////////////////////////////////////////
 JointStatePublisher::~JointStatePublisher()
 {
-  rclcpp::shutdown();
+  //rclcpp::shutdown();
     //this->node->shutdown();
 }
 
@@ -54,7 +54,9 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
     return;
   }
 
-  myNode = rclcpp::Node::make_unique(myRobotNamespace);
+  //Creates a node including the robot namespace
+  myRosNode =  gazebo_ros::Node::Get(_sdf);
+  //myNode = rclcpp::Node::make_unique(myRobotNamespace);
   // this->node = boost::shared_ptr<ros::NodeHandle>(
   //   new ros::NodeHandle(this->robotNamespace));
   // Retrieve the namespace used to publish the joint states
@@ -62,6 +64,10 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
     myRobotNamespace = _sdf->Get<std::string>("robotNamespace");
   else
     myRobotNamespace = myModel->GetName();
+
+  //TODO to change
+  //Creates a node including the robot namespace
+  myRosNode =  gazebo_ros::Node::CreateWithArgs("joint_state_publisher", myRobotNamespace);
 
   gzmsg << "JointStatePublisher::robotNamespace="
     << myRobotNamespace << std::endl;
@@ -103,10 +109,9 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
   this->updatePeriod = 1.0 / this->updateRate;
 
   // Advertise the joint states topic
-  //TODO check namespace...why was the NodeHandle prefix repeated ?
   myJointStatePub =
-    myNode->create_publisher<sensor_msgs::msg::JointState>(
-      myRobotNamespace + "/joint_states", 1);
+    myRosNode->create_publisher<sensor_msgs::msg::JointState>(
+      /*myRobotNamespace +*/ "/joint_states", 1);
 #if GAZEBO_MAJOR_VERSION >= 8
   this->lastUpdate = this->world->SimTime();
 #else
@@ -140,7 +145,7 @@ void JointStatePublisher::PublishJointStates()
   //ros::Time stamp = ros::Time::now();
   sensor_msgs::msg::JointState jointState;
 
-  jointState.header.stamp = myNode->get_clock()->now();
+  jointState.header.stamp = myRosNode->get_clock()->now();
   // Resize containers
   jointState.name.resize(myModel->GetJointCount());
   jointState.position.resize(myModel->GetJointCount());

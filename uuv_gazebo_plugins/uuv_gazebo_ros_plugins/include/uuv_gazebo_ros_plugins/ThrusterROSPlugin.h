@@ -27,6 +27,8 @@
 
 #include <gazebo/common/Plugin.hh>
 
+#include <gazebo_ros/node.hpp>
+
 #include <uuv_gazebo_plugins/ThrusterPlugin.h>
 
 #include <uuv_gazebo_ros_plugins_msgs/msg/float_stamped.hpp>
@@ -115,7 +117,7 @@ namespace uuv_simulator_ros
     rclcpp::Service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn>::SharedPtr myGet_thruster_conversion_fcn;
 
     /// \brief Pointer to this ROS node's handle.
-    private: rclcpp::Node::UniquePtr myRosNode;
+    protected: gazebo_ros::Node::SharedPtr myRosNode;
 
     /// \brief Subscriber reacting to new reference thrust set points.
     private: rclcpp::Subscription<uuv_gazebo_ros_plugins_msgs::msg::FloatStamped>::SharedPtr mySubThrustReference;

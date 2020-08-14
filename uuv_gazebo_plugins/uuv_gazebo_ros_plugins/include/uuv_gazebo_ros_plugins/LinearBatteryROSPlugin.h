@@ -21,6 +21,8 @@
 #include <gazebo/physics/Model.hh>
 #include <gazebo/common/Plugin.hh>
 
+#include <gazebo_ros/node.hpp>
+
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/battery_state.hpp>
 
@@ -50,7 +52,7 @@ class LinearBatteryROSPlugin : public LinearBatteryPlugin
   protected: void PublishBatteryState();
 
   /// \brief Pointer to this ROS node's handle.
-  protected: rclcpp::Node::UniquePtr myRosNode;
+  protected: gazebo_ros::Node::SharedPtr myRosNode;
 
   /// \brief Namespace for this ROS node
   protected: std::string myRobotNamespace;

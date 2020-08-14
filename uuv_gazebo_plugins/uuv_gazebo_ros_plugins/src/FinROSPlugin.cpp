@@ -42,7 +42,7 @@ FinROSPlugin::~FinROSPlugin()
   gazebo::event::Events::DisconnectWorldUpdateBegin(
         this->rosPublishConnection);
 #endif
-  rclcpp::shutdown();
+  //rclcpp::shutdown();
   //this->rosNode->shutdown();
 }
 
@@ -113,7 +113,9 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
     return;
   }
 
-  myRosNode = rclcpp::Node::make_unique("");
+  myRosNode =  gazebo_ros::Node::Get(_sdf);
+  RCLCPP_DEBUG(myRosNode->get_logger(), "[FinROSPlugin] Namespace: " + std::string(myRosNode->get_namespace()));
+  //myRosNode = rclcpp::Node::make_unique("");
   //this->rosNode.reset(new ros::NodeHandle(""));
 
   mySubReference = myRosNode->create_subscription<

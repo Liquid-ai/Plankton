@@ -32,7 +32,7 @@ LinearBatteryROSPlugin::LinearBatteryROSPlugin()
 /////////////////////////////////////////////////
 LinearBatteryROSPlugin::~LinearBatteryROSPlugin()
 {
-  rclcpp::shutdown();
+  //rclcpp::shutdown();
   //this->rosNode->shutdown();
 }
 
@@ -73,7 +73,8 @@ void LinearBatteryROSPlugin::Load(physics::ModelPtr _parent,
       << std::endl;
     updateRate = 2;
   }
-  myRosNode = rclcpp::Node::make_unique(myRobotNamespace);
+  myRosNode =  gazebo_ros::Node::Get(_sdf);
+  //myRosNode = rclcpp::Node::make_unique(myRobotNamespace);
   //this->rosNode.reset(new ros::NodeHandle(this->robotNamespace));
 
   myBatteryStatePub = myRosNode->create_publisher<sensor_msgs::msg::BatteryState>

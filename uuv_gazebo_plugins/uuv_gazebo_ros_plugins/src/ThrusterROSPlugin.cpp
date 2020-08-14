@@ -45,7 +45,7 @@ ThrusterROSPlugin::~ThrusterROSPlugin()
     this->rosPublishConnection);
 #endif
 
-  rclcpp::shutdown();
+  //rclcpp::shutdown();
   //this->rosNode->shutdown();
 }
 
@@ -120,7 +120,9 @@ void ThrusterROSPlugin::Load(gazebo::physics::ModelPtr _parent,
     return;
   }
 
-  myRosNode = rclcpp::Node::make_unique("");
+  //TODO probably change
+  myRosNode =  gazebo_ros::Node::CreateWithArgs(_parent->GetName());
+  //myRosNode = rclcpp::Node::make_unique("");
   //this->rosNode.reset(new ros::NodeHandle(""));
 
   //this->services["set_thrust_force_efficiency"] =

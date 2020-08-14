@@ -24,13 +24,14 @@
 #include <string>
 #include <vector>
 
-//#include <boost/algorithm/string.hpp>
 #include <gazebo/gazebo.hh>
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/common/Event.hh>
 #include <gazebo/physics/Model.hh>
 #include <gazebo/physics/Joint.hh>
 #include <gazebo/physics/World.hh>
+
+#include <gazebo_ros/node.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -58,7 +59,7 @@ class JointStatePublisher : public gazebo::ModelPlugin
 
   private: gazebo::event::ConnectionPtr updateConnection;
 
-  private: rclcpp::Node::UniquePtr myNode;
+  protected: gazebo_ros::Node::SharedPtr myRosNode;
 
   private: std::string myRobotNamespace;
 

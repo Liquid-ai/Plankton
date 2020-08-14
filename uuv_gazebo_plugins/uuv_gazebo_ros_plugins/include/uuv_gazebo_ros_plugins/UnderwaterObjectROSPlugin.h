@@ -25,6 +25,8 @@
 #include <gazebo/gazebo.hh>
 #include <gazebo/common/Plugin.hh>
 
+#include <gazebo_ros/node.hpp>
+
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/wrench_stamped.hpp>
 #include <geometry_msgs/msg/vector3.hpp>
@@ -215,7 +217,7 @@ namespace uuv_simulator_ros
     protected: virtual void PublishIsSubmerged();
 
     /// \brief Pointer to this ROS node's handle.
-    private: rclcpp::Node::UniquePtr myRosNode;
+    protected: gazebo_ros::Node::SharedPtr myRosNode;
 
     /// \brief Subscriber to locally calculated current velocity
     private: rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr mySubLocalCurVel;
@@ -228,7 +230,7 @@ namespace uuv_simulator_ros
 
     /// \brief Map of services
     // private: std::map<std::string, ros::ServiceServer> services;
-     private: std::map<std::string, rclcpp::ServiceBase::SharedPtr> services;
+    private: std::map<std::string, rclcpp::ServiceBase::SharedPtr> services;
 
     private: geometry_msgs::msg::TransformStamped nedTransform;
 

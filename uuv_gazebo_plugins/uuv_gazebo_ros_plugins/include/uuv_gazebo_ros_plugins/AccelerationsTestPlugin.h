@@ -22,6 +22,8 @@
 #include <gazebo/gazebo.hh>
 #include <gazebo/msgs/msgs.hh>
 
+#include <gazebo_ros/node.hpp>
+
 #include <uuv_gazebo_plugins/HydrodynamicModel.h>
 #include <uuv_gazebo_plugins/Def.h>
 
@@ -71,7 +73,7 @@ class AccelerationsTestPlugin : public gazebo::ModelPlugin
   protected: physics::LinkPtr link;
 
   // ROS things
-  private: rclcpp::Node::UniquePtr myRosNode;
+  private: gazebo_ros::Node::SharedPtr myRosNode;
 
   protected: rclcpp::Publisher<geometry_msgs::msg::Accel>::SharedPtr myPub_accel_b_gazebo;
   protected: rclcpp::Publisher<geometry_msgs::msg::Accel>::SharedPtr myPub_accel_b_numeric;

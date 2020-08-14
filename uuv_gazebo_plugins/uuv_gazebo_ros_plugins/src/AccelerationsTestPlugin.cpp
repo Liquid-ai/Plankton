@@ -87,7 +87,7 @@ void AccelerationsTestPlugin::Load(physics::ModelPtr _model,
     return;
   }
 
-  myRosNode = rclcpp::Node::make_unique("");
+  myRosNode =  gazebo_ros::Node::Get(_sdf);
   //this->rosNode.reset(new ros::NodeHandle(""));
 
   myPub_accel_w_gazebo =
