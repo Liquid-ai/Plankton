@@ -55,7 +55,7 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
   }
 
   //Creates a node including the robot namespace
-  myRosNode =  gazebo_ros::Node::Get(_sdf);
+  //myRosNode =  gazebo_ros::Node::Get(_sdf);
   //myNode = rclcpp::Node::make_unique(myRobotNamespace);
   // this->node = boost::shared_ptr<ros::NodeHandle>(
   //   new ros::NodeHandle(this->robotNamespace));

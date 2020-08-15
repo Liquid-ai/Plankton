@@ -49,7 +49,7 @@ void UnderwaterObjectROSPlugin::Load(gazebo::physics::ModelPtr _parent,
     return;
   }
 
-  myRosNode =  gazebo_ros::Node::CreateWithArgs(_parent->GetName());
+  myRosNode =  gazebo_ros::Node::CreateWithArgs(_parent->GetName(), _parent->GetName());
   //myRosNode = rclcpp::Node::make_unique("");
   //TODO Not sure about the behaviour of TransformBroadcaster with ROS 2...
   tfBroadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*myRosNode);
@@ -68,124 +68,124 @@ void UnderwaterObjectROSPlugin::Load(gazebo::physics::ModelPtr _parent,
   }
 
   mySubLocalCurVel = myRosNode->create_subscription<geometry_msgs::msg::Vector3>(
-    _parent->GetName() + "/current_velocity", 10,
+    /*_parent->GetName() +*/ "/current_velocity", 10,
     std::bind(&UnderwaterObjectROSPlugin::UpdateLocalCurrentVelocity,
     this, _1));
 
   this->services["set_use_global_current_velocity"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetUseGlobalCurrentVel>(
-      _parent->GetName() + "/set_use_global_current_velocity",
+      /*_parent->GetName() +*/ "/set_use_global_current_velocity",
       std::bind(&UnderwaterObjectROSPlugin::SetUseGlobalCurrentVel, this, _1, _2));
 
   this->services["set_added_mass_scaling"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetFloat>(
-      _parent->GetName() + "/set_added_mass_scaling",
+      /*_parent->GetName() +*/ "/set_added_mass_scaling",
       std::bind(&UnderwaterObjectROSPlugin::SetScalingAddedMass, this, _1, _2));
 
   this->services["get_added_mass_scaling"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetFloat>(
-      _parent->GetName() + "/get_added_mass_scaling",
+      /*_parent->GetName() +*/ "/get_added_mass_scaling",
       std::bind(&UnderwaterObjectROSPlugin::GetScalingAddedMass, this, _1, _2));
 
   this->services["set_damping_scaling"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetFloat>(
-        _parent->GetName() + "/set_damping_scaling",
+        /*_parent->GetName() +*/ "/set_damping_scaling",
         std::bind(&UnderwaterObjectROSPlugin::SetScalingDamping, this, _1, _2));
 
   this->services["get_damping_scaling"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetFloat>(
-        _parent->GetName() + "/get_damping_scaling",
+        /*_parent->GetName() +*/ "/get_damping_scaling",
         std::bind(&UnderwaterObjectROSPlugin::GetScalingDamping, this, _1, _2));
 
   this->services["set_volume_scaling"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetFloat>(
-        _parent->GetName() + "/set_volume_scaling",
+        /*_parent->GetName() +*/ "/set_volume_scaling",
         std::bind(&UnderwaterObjectROSPlugin::SetScalingVolume, this, _1, _2));
 
   this->services["get_volume_scaling"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetFloat>(
-        _parent->GetName() + "/get_volume_scaling",
+        /*_parent->GetName() +*/ "/get_volume_scaling",
         std::bind(&UnderwaterObjectROSPlugin::GetScalingVolume, this, _1, _2));
 
   this->services["set_fluid_density"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetFloat>(
-        _parent->GetName() + "/set_fluid_density",
+        /*_parent->GetName() +*/ "/set_fluid_density",
         std::bind(&UnderwaterObjectROSPlugin::SetFluidDensity, this, _1, _2));
 
   this->services["get_fluid_density"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetFloat>(
-        _parent->GetName() + "/get_fluid_density",
+        /*_parent->GetName() + "/get_fluid_density",
         std::bind(&UnderwaterObjectROSPlugin::GetFluidDensity, this, _1, _2));
 
   this->services["set_volume_offset"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetFloat>(
-      _parent->GetName() + "/set_volume_offset",
+      /*_parent->GetName() +*/ "/set_volume_offset",
       std::bind(&UnderwaterObjectROSPlugin::SetOffsetVolume, this, _1, _2));
 
   this->services["get_volume_offset"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetFloat>(
-      _parent->GetName() + "/get_volume_offset",
+      /*_parent->GetName() +*/ "/get_volume_offset",
       std::bind(&UnderwaterObjectROSPlugin::GetOffsetVolume, this, _1, _2));
 
   this->services["set_added_mass_offset"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetFloat>(
-      _parent->GetName() + "/set_added_mass_offset",
+      /*_parent->GetName() +*/ "/set_added_mass_offset",
       std::bind(&UnderwaterObjectROSPlugin::SetOffsetAddedMass, this, _1, _2));
 
   this->services["get_added_mass_offset"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetFloat>(
-      _parent->GetName() + "/get_added_mass_offset",
+      /*_parent->GetName() +*/ "/get_added_mass_offset",
       std::bind(&UnderwaterObjectROSPlugin::GetOffsetAddedMass, this, _1, _2));
 
   this->services["set_linear_damping_offset"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetFloat>(
-      _parent->GetName() + "/set_linear_damping_offset",
+      /*_parent->GetName() +*/ "/set_linear_damping_offset",
       std::bind(&UnderwaterObjectROSPlugin::SetOffsetLinearDamping, this, _1, _2));
 
   this->services["get_linear_damping_offset"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetFloat>(
-      _parent->GetName() + "/get_linear_damping_offset",
+      /*_parent->GetName() +*/ "/get_linear_damping_offset",
       std::bind(&UnderwaterObjectROSPlugin::GetOffsetLinearDamping, this, _1, _2));
 
   this->services["set_linear_forward_speed_damping_offset"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetFloat>(
-      _parent->GetName() + "/set_linear_forward_speed_damping_offset",
+      /*_parent->GetName() +*/ "/set_linear_forward_speed_damping_offset",
       std::bind(&UnderwaterObjectROSPlugin::SetOffsetLinearForwardSpeedDamping, this, _1, _2));
 
   this->services["get_linear_forward_speed_damping_offset"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetFloat>(
-      _parent->GetName() + "/get_linear_forward_speed_damping_offset",
+      /*_parent->GetName() +*/ "/get_linear_forward_speed_damping_offset",
       std::bind(&UnderwaterObjectROSPlugin::GetOffsetLinearForwardSpeedDamping, this, _1, _2));
 
   this->services["set_nonlinear_damping_offset"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetFloat>(
-      _parent->GetName() + "/set_nonlinear_damping_offset",
+      /*_parent->GetName() +*/ "/set_nonlinear_damping_offset",
       std::bind(&UnderwaterObjectROSPlugin::SetOffsetNonLinearDamping, this, _1, _2));
 
   this->services["get_nonlinear_damping_offset"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetFloat>(
-      _parent->GetName() + "/get_nonlinear_damping_offset",
+      /*_parent->GetName() +*/ "/get_nonlinear_damping_offset",
       std::bind(&UnderwaterObjectROSPlugin::GetOffsetNonLinearDamping, this, _1, _2));
 
   this->services["get_model_properties"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetModelProperties>(
-      _parent->GetName() + "/get_model_properties",
+      /*_parent->GetName() +*/ "/get_model_properties",
       std::bind(&UnderwaterObjectROSPlugin::GetModelProperties, this, _1, _2));
 
   myRosHydroPub["current_velocity_marker"] =
   //myCurrent_velocity_marker =
     myRosNode->create_publisher<visualization_msgs::msg::Marker>
-    (_parent->GetName() + "/current_velocity_marker", 0);
+    (/*_parent->GetName() +*/ "/current_velocity_marker", 0);
 
   myRosHydroPub["using_global_current_velocity"] =
   //myUsing_global_current_velocity =
     myRosNode->create_publisher<std_msgs::msg::Bool>
-    (_parent->GetName() + "/using_global_current_velocity", 0);
+    (/*_parent->GetName() +*/ "/using_global_current_velocity", 0);
 
   myRosHydroPub["is_submerged"] =
   //myIs_submerged =
     myRosNode->create_publisher<std_msgs::msg::Bool>
-    (_parent->GetName() + "/is_submerged", 0);
+    (/*_parent->GetName() +*/ "/is_submerged", 0);
 
   this->nedTransform.header.frame_id = this->model->GetName() + "/base_link";
   this->nedTransform.child_frame_id = this->model->GetName() + "/base_link_ned";

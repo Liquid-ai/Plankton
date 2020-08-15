@@ -121,7 +121,7 @@ void ThrusterROSPlugin::Load(gazebo::physics::ModelPtr _parent,
   }
 
   //TODO probably change
-  myRosNode =  gazebo_ros::Node::CreateWithArgs(_parent->GetName());
+  myRosNode =  gazebo_ros::Node::CreateWithArgs(_parent->GetName(), myTopicPrefix);
   //myRosNode = rclcpp::Node::make_unique("");
   //this->rosNode.reset(new ros::NodeHandle(""));
 
