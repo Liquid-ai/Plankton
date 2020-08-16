@@ -15,6 +15,8 @@
 
 #include <uuv_sensor_ros_plugins/ROSBaseModelPlugin.h>
 
+#include <memory>
+
 namespace gazebo
 {
 
@@ -98,7 +100,7 @@ void ROSBaseModelPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   // Bind the sensor update callback function to the world update event
   this->updateConnection = event::Events::ConnectWorldUpdateBegin(
-      boost::bind(&ROSBasePlugin::OnUpdate, this, _1));
+      std::bind(&ROSBasePlugin::OnUpdate, this, std::placeholders::_1));
 }
 
 /////////////////////////////////////////////////

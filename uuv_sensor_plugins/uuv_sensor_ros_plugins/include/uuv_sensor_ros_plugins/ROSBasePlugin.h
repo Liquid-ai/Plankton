@@ -33,9 +33,6 @@
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 
-// #include <boost/shared_ptr.hpp>
-// #include <boost/bind.hpp>
-
 #include <chrono>
 #include <random>
 #include <string>

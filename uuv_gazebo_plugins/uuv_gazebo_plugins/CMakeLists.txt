@@ -18,7 +18,7 @@ set(LIBS ${ament_cmake_LIBRARIES} ${gazebo_dev_LIBRARIES})
 
 #add_definitions(-std=c++11)
 
-find_package(Boost REQUIRED COMPONENTS system)
+#find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)
 find_package(Protobuf REQUIRED)
 

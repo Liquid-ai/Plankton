@@ -33,7 +33,7 @@ void ROSBaseSensorPlugin::Load(sensors::SensorPtr _model, sdf::ElementPtr _sdf)
   #if GAZEBO_MAJOR_VERSION >= 7
     this->parentSensor = std::dynamic_pointer_cast<sensors::Sensor>(_model);
   #else
-    this->parentSensor = boost::dynamic_pointer_cast<sensors::Sensor>(_model);
+    this->parentSensor = std::dynamic_pointer_cast<sensors::Sensor>(_model);
   #endif
 
   // Get the world name.

@@ -47,7 +47,7 @@
 # #find_package(OGRE REQUIRED)
 # find_package(OpenCV REQUIRED)
 # find_package(Protobuf REQUIRED)
-# find_package(Boost REQUIRED COMPONENTS system)
+# #find_package(Boost REQUIRED COMPONENTS system)
 
 
 # set(PROTOBUF_IMPORT_DIRS "")
@@ -276,7 +276,7 @@ find_package(Eigen3 REQUIRED)
 find_package(OGRE REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Protobuf REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system)
+#find_package(Boost REQUIRED COMPONENTS system)
 
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/msgs)
 

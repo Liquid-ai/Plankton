@@ -21,6 +21,8 @@
 #include <gazebo/physics/Model.hh>
 #include <gazebo/physics/World.hh>
 
+#include <memory>
+
 
 GZ_REGISTER_MODEL_PLUGIN(gazebo::FinPlugin)
 
@@ -124,8 +126,8 @@ void FinPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   // Connect the update event
   this->updateConnection = event::Events::ConnectWorldUpdateBegin(
-        boost::bind(&FinPlugin::OnUpdate,
-                    this, _1));
+        std::bind(&FinPlugin::OnUpdate,
+                    this, std::placeholders::_1));
 }
 
 /////////////////////////////////////////////////

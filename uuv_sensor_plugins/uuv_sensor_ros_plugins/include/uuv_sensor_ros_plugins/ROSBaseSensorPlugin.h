@@ -23,9 +23,6 @@
 
 #include <uuv_sensor_ros_plugins/ROSBasePlugin.h>
 
-//TODO remove
-#include <boost/bind.hpp>
-
 #include <string>
 
 namespace gazebo

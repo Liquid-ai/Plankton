@@ -61,7 +61,7 @@ void GPSROSPlugin::Load(sensors::SensorPtr _parent, sdf::ElementPtr _sdf)
 
   // Connect to the sensor update event.
   this->updateConnection = this->gazeboGPSSensor->ConnectUpdated(
-    boost::bind(&GPSROSPlugin::OnUpdateGPS, this));
+    std::bind(&GPSROSPlugin::OnUpdateGPS, this));
 }
 
 /////////////////////////////////////////////////
