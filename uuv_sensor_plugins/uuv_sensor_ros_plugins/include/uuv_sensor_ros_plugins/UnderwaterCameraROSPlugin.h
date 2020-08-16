@@ -18,8 +18,8 @@
 
 // #include <gazebo/gazebo.hh>
 // #include <gazebo/common/Plugin.hh>
-// #include <gazebo/plugins/DepthCameraPlugin.hh>
-// #include <gazebo_plugins/gazebo_ros_camera_utils.h>
+// // #include <gazebo/plugins/DepthCameraPlugin.hh>
+// #include <gazebo_plugins/gazebo_ros_camera.hpp>
 
 // #include <rclcpp/rclcpp.hpp>
 
@@ -29,8 +29,7 @@
 
 // namespace gazebo
 // {
-//   class UnderwaterCameraROSPlugin :
-//     public DepthCameraPlugin, public GazeboRosCameraUtils
+//   class UnderwaterCameraROSPlugin : public gazebo_plugins::GazeboRosCamera
 //   {
 //     /// \brief Class constructor
 //     public: UnderwaterCameraROSPlugin();
@@ -39,7 +38,7 @@
 //     public: virtual ~UnderwaterCameraROSPlugin();
 
 //     /// \brief Load plugin and its configuration from sdf.
-//     public: void Load(sensors::SensorPtr _sensor, sdf::ElementPtr _sdf);
+//     public: void Load(sensors::SensorPtr _sensor, sdf::ElementPtr _sdf) override;
 
 //     public: virtual void OnNewDepthFrame(const float *_image,
 //       unsigned int _width, unsigned int _height, unsigned int _depth,
@@ -57,7 +56,13 @@
 //     /// \brief Add underwater light damping to image
 //     protected: virtual void SimulateUnderwater(
 //      const cv::Mat& _inputImage, const cv::Mat& _inputDepth,
-//      cv::Mat& _outputImage);
+//      cv::Mat& _outputImage, unsigned int width, unsigned int height);
+
+//     /// \brief Returns camera width
+//     public: unsigned int GetWidth() const;
+
+//     /// \brief Returns camera height
+//     public: unsigned int GetHeight() const;
 
 //     /// \brief Temporarily store pointer to previous depth image.
 //     protected: const float * lastDepth;

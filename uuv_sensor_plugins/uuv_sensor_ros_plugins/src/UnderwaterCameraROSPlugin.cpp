@@ -15,11 +15,13 @@
 
 // #include <uuv_sensor_ros_plugins/UnderwaterCameraROSPlugin.h>
 
+// #include <gazebo_plugins/gazebo_ros_camera.hpp>
+
 // namespace gazebo
 // {
 // /////////////////////////////////////////////////
 // UnderwaterCameraROSPlugin::UnderwaterCameraROSPlugin()
-//   : DepthCameraPlugin(), lastImage(NULL)
+//   : lastImage(NULL)
 // { }
 
 // /////////////////////////////////////////////////
@@ -38,17 +40,17 @@
 // {
 //   try
 //   {
-//     DepthCameraPlugin::Load(_sensor, _sdf);
-
+//     //DepthCameraPlugin::Load(_sensor, _sdf);
+    
 //     // Copying from DepthCameraPlugin into GazeboRosCameraUtils
-//     this->parentSensor_ = this->parentSensor;
-//     this->width_ = this->width;
-//     this->height_ = this->height;
-//     this->depth_ = this->depth;
-//     this->format_ = this->format;
-//     this->camera_ = this->depthCamera;
+//     //this->parentSensor_ = this->parentSensor;
+//     //this->width_ = this->width;
+//     //this->height_ = this->height;
+//     //this->depth_ = this->depth;
+//     //this->format_ = this->format;
+//     //this->camera_ = this->depthCamera;
 
-//     GazeboRosCameraUtils::Load(_sensor, _sdf);
+//     gazebo_plugins::GazeboRosCamera::Load(_sensor, _sdf);
 //   }
 //   catch(gazebo::common::Exception &_e)
 //   {
@@ -56,14 +58,14 @@
 //     return;
 //   }
 
-//   if (!ros::isInitialized())
-//   {
-//     gzerr << "Not loading UnderwaterCameraROSPlugin since ROS has not "
-//       << " been properly initialized." << std::endl;
-//     return;
-//   }
+//   // if (!ros::isInitialized())
+//   // {
+//   //   gzerr << "Not loading UnderwaterCameraROSPlugin since ROS has not "
+//   //     << " been properly initialized." << std::endl;
+//   //   return;
+//   // }
 
-//   lastImage = new unsigned char[this->width * this->height * this->depth];
+//   lastImage = new unsigned char[GetWidth() * GetHeight() * this->depth];
 
 //   // Only need to load settings specific to this sensor.
 //   GetSDFParam<float>(_sdf, "attenuationR", this->attenuation[0], 1.f / 30.f);
@@ -85,27 +87,27 @@
 //       "backgroundB")->Get<int>();
 //   // Compute camera intrinsics fx, fy from FOVs:
 // #if GAZEBO_MAJOR_VERSION >= 7
-//   ignition::math::Angle hfov = ignition::math::Angle(this->depthCamera->HFOV().Radian());
-//   ignition::math::Angle vfov = ignition::math::Angle(this->depthCamera->VFOV().Radian());
+//   ignition::math::Angle hfov = ignition::math::Angle(depthCamera->HFOV().Radian());
+//   ignition::math::Angle vfov = ignition::math::Angle(depthCamera->VFOV().Radian());
 // #else
 //   ignition::math::Angle hfov = this->depthCamera->GetHFOV();
 //   ignition::math::Angle vfov = this->depthCamera->GetVFOV();
 // #endif
 
-//   double fx = (0.5*this->width) / tan(0.5 * hfov.Radian());
-//   double fy = (0.5*this->height) / tan(0.5 * vfov.Radian());
+//   double fx = (0.5* GetWidth()) / tan(0.5 * hfov.Radian());
+//   double fy = (0.5* GetHeight()) / tan(0.5 * vfov.Radian());
 
 //   // Assume the camera's principal point to be at the sensor's center:
-//   double cx = 0.5 * this->width;
-//   double cy = 0.5 * this->height;
+//   double cx = 0.5 * GetWidth();
+//   double cy = 0.5 * GetHeight();
 
 //   // Create and fill depth2range LUT
 //   this->depth2rangeLUT = new float[this->width * this->height];
 //   float * lutPtr = this->depth2rangeLUT;
-//   for (int v = 0; v < this->height; v++)
+//   for (int v = 0; v < GetHeight(); v++)
 //   {
 //       double y_z = (v - cy)/fy;
-//       for (int u = 0; u < this->width; u++)
+//       for (int u = 0; u < GetWidth(); u++)
 //       {
 //           double x_z = (u - cx)/fx;
 //           // Precompute the per-pixel factor in the following formula:
@@ -146,44 +148,46 @@
 
 //   cv::Mat output(_height, _width, CV_8UC3, lastImage);
 
-//   this->SimulateUnderwater(input, depth, output);
+//   this->SimulateUnderwater(input, depth, output, _width, _height);
 
-//   if (!this->initialized_ || this->height_ <= 0 || this->width_ <= 0)
+//   if (!this->initialized_ || _height <= 0 || _width <= 0)
 //     return;
 
-// #if GAZEBO_MAJOR_VERSION >= 7
-//   this->sensor_update_time_ = this->parentSensor->LastUpdateTime();
-// #else
-//   this->sensor_update_time_ = this->parentSensor->GetLastUpdateTime();
-// #endif
+// // #if GAZEBO_MAJOR_VERSION >= 7
+// //   this->sensor_update_time_ = this->parentSensor->LastUpdateTime();
+// // #else
+// //   this->sensor_update_time_ = this->parentSensor->GetLastUpdateTime();
+// // #endif
 
 //   if (!this->parentSensor->IsActive())
 //   {
-//     if ((*this->image_connect_count_) > 0)
+//     //if ((*this->image_connect_count_) > 0)
 //       // Do this first so there's chance for sensor to run 1 frame after
 //       // activate
 //       this->parentSensor->SetActive(true);
 //   }
-//   else
-//   {
-//     if ((*this->image_connect_count_) > 0)
-//       this->PutCameraData(this->lastImage);
-//     this->PublishCameraInfo();
-//   }
+//   // else //I guess publish is automatically handled now
+//   // {
+//   //   if ((*this->image_connect_count_) > 0)
+//   //     this->PutCameraData(this->lastImage);
+//   //   this->PublishCameraInfo();
+//   // }
+
+//   gazebo_plugins::GazeboRosCamera::OnNewImageFrame(_image, _width, _height, _depth, _format);
 // }
 
 // /////////////////////////////////////////////////
 // void UnderwaterCameraROSPlugin::SimulateUnderwater(const cv::Mat& _inputImage,
-//   const cv::Mat& _inputDepth, cv::Mat& _outputImage)
+//   const cv::Mat& _inputDepth, cv::Mat& _outputImage, unsigned int width, unsigned int height)
 // {
 //   const float * lutPtr = this->depth2rangeLUT;
-//   for (unsigned int row = 0; row < this->height; row++)
+//   for (unsigned int row = 0; row < height; row++)
 //   {
 //     const cv::Vec3b* inrow = _inputImage.ptr<cv::Vec3b>(row);
 //     const float* depthrow = _inputDepth.ptr<float>(row);
 //     cv::Vec3b* outrow = _outputImage.ptr<cv::Vec3b>(row);
 
-//     for (int col = 0; col < this->width; col++)
+//     for (int col = 0; col < width; col++)
 //     {
 //       // Convert depth to range using the depth2range LUT
 //       float r = *(lutPtr++)*depthrow[col];
