@@ -114,7 +114,7 @@ void UnderwaterObjectROSPlugin::Load(gazebo::physics::ModelPtr _parent,
 
   this->services["get_fluid_density"] =
     myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetFloat>(
-        /*_parent->GetName() + "/get_fluid_density",
+        /*_parent->GetName() +*/ "/get_fluid_density",
         std::bind(&UnderwaterObjectROSPlugin::GetFluidDensity, this, _1, _2));
 
   this->services["set_volume_offset"] =
