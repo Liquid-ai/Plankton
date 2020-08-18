@@ -26,6 +26,8 @@
 #include <uuv_gazebo_plugins/UnderwaterObjectPlugin.h>
 #include <uuv_gazebo_plugins/Def.h>
 
+#include <memory>
+
 namespace gazebo {
 
 GZ_REGISTER_MODEL_PLUGIN(UnderwaterObjectPlugin)
@@ -222,8 +224,8 @@ void UnderwaterObjectPlugin::Connect()
 {
   // Connect the update event
   this->updateConnection = event::Events::ConnectWorldUpdateBegin(
-        boost::bind(&UnderwaterObjectPlugin::Update,
-                    this, _1));
+        std::bind(&UnderwaterObjectPlugin::Update,
+                    this, std::placeholders::_1));
 }
 
 /////////////////////////////////////////////////
