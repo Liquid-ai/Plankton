@@ -58,8 +58,12 @@ void SphericalCoordinatesROSInterfacePlugin::Load(
 
   this->world = _world;
 
+  //TODO Think about adding the "gazebo" namespace in the SDF : <ros><namespace>
   myRosNode =  gazebo_ros::Node::Get(_sdf);
   //this->rosNode.reset(new ros::NodeHandle(""));
+
+  gzmsg << "[SphericalCoordinatesROSInterfacePlugin] Node created with name: " << 
+    myRosNode->get_name() << " with namespace: " << myRosNode->get_namespace() << std::endl;
 
   // Advertise the service to get origin of the world in spherical coordinates
   this->worldServices["get_origin_spherical_coordinates"] =

@@ -67,12 +67,14 @@ void UnderwaterCurrentROSPlugin::Load(gazebo::physics::WorldPtr _world,
   if (_sdf->HasElement("namespace"))
     this->ns = _sdf->Get<std::string>("namespace");
 
-  gzmsg << "UnderwaterCurrentROSPlugin::namespace=" << this->ns << std::endl;
+  
 
-  //Node's namespace is set automatically from the sdf file
-  myRosNode =  gazebo_ros::Node::Get(_sdf);//rclcpp::Node::make_unique(this->ns);
-  //auto nsNode = myRosNode->create_sub_node(this->ns); //The 
+  //TODO Think about adding the namespace in the SDF
+  myRosNode =  gazebo_ros::Node::CreateWithArgs(sdf->Get<std::string>("name"), this->ns);
   //this->rosNode.reset(new ros::NodeHandle(this->ns));
+  
+  gzmsg << "[UnderwaterCurrentROSPlugin] Node created with name: " << myRosNode->get_name() << 
+    " with namespace: " << myRosNode->get_namespace() << std::endl;
 
   // Advertise the flow velocity as a stamped twist message
   myFlowVelocityPub = myRosNode->create_publisher<geometry_msgs::msg::TwistStamped>(
