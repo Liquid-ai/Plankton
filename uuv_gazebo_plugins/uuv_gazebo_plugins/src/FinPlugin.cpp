@@ -28,12 +28,14 @@ GZ_REGISTER_MODEL_PLUGIN(gazebo::FinPlugin)
 
 namespace gazebo {
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 FinPlugin::FinPlugin() : inputCommand(0), angle(0), finID(-1)
 {
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 FinPlugin::~FinPlugin()
 {
   if (this->updateConnection)
@@ -46,7 +48,8 @@ FinPlugin::~FinPlugin()
   }
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void FinPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 {
   // Initializing the transport node
@@ -62,22 +65,19 @@ void FinPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   this->finID = _sdf->Get<int>("fin_id");
   GZ_ASSERT(this->finID >= 0, "Fin ID must be greater or equal than zero");
 
-  // Root string for topics
-  std::stringstream strs;
-  strs << "/" << _model->GetName() << "/fins/" << this->finID << "/";
-  this->topicPrefix = strs.str();
+  myTopicPrefix = BuildTopicPrefix(_model->GetName(), this->finID);
 
   // Input/output topics
   std::string inputTopic, outputTopic;
   if (_sdf->HasElement("input_topic"))
     std::string inputTopic = _sdf->Get<std::string>("input_topic");
   else
-    inputTopic = this->topicPrefix + "input";
+    inputTopic = myTopicPrefix + "input";
 
   if (_sdf->HasElement("output_topic"))
     outputTopic = _sdf->Get<std::string>("output_topic");
   else
-    outputTopic = this->topicPrefix + "output";
+    outputTopic = myTopicPrefix + "output";
 
   GZ_ASSERT(_sdf->HasElement("link_name"), "Could not find link_name.");
   std::string link_name = _sdf->Get<std::string>("link_name");
@@ -130,12 +130,14 @@ void FinPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
                     this, std::placeholders::_1));
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void FinPlugin::Init()
 {
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void FinPlugin::OnUpdate(const common::UpdateInfo &_info)
 {
   GZ_ASSERT(!std::isnan(this->inputCommand),
@@ -187,17 +189,30 @@ void FinPlugin::OnUpdate(const common::UpdateInfo &_info)
   this->angleStamp = _info.simTime;
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void FinPlugin::UpdateInput(ConstDoublePtr &_msg)
 {
   this->inputCommand = _msg->value();
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void FinPlugin::UpdateCurrentVelocity(ConstVector3dPtr &_msg)
 {
   this->currentVelocity.X() = _msg->x();
   this->currentVelocity.Y() = _msg->y();
   this->currentVelocity.Z() = _msg->z();
 }
+
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
+std::string FinPlugin::BuildTopicPrefix(const std::string& rosNamespace, int id)
+{
+  // Root string for topics
+  std::stringstream strs;
+  strs << "/" << rosNamespace << "/fins/id_" << id << "/";
+  return strs.str();
 }
+
+} //end gazebo namespace

@@ -38,7 +38,8 @@ GZ_REGISTER_MODEL_PLUGIN(gazebo::ThrusterPlugin)
 
 namespace gazebo {
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 ThrusterPlugin::ThrusterPlugin() : thrustForce(0),
   inputCommand(0),
   clampMin(std::numeric_limits<double>::lowest()),
@@ -53,7 +54,8 @@ ThrusterPlugin::ThrusterPlugin() : thrustForce(0),
 {
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 ThrusterPlugin::~ThrusterPlugin()
 {
   if (this->updateConnection)
@@ -66,7 +68,8 @@ ThrusterPlugin::~ThrusterPlugin()
   }
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void ThrusterPlugin::Load(physics::ModelPtr _model,
                           sdf::ElementPtr _sdf)
 {
@@ -161,10 +164,8 @@ void ThrusterPlugin::Load(physics::ModelPtr _model,
       this->propellerEfficiency = 1.0;
     }
   }
-  // Root string for topics
-  std::stringstream strs;
-  strs << "/" << _model->GetName() << "/thrusters/" << this->thrusterID << "/";
-  myTopicPrefix = strs.str();
+
+  myTopicPrefix = BuildTopicPrefix(_model->GetName(), this->thrusterID);
 
   // Advertise the thrust topic
   this->thrustTopicPublisher =
@@ -188,18 +189,21 @@ void ThrusterPlugin::Load(physics::ModelPtr _model,
 #endif
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void ThrusterPlugin::Init()
 {
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void ThrusterPlugin::Reset()
 {
     this->thrusterDynamics->Reset();
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void ThrusterPlugin::Update(const common::UpdateInfo &_info)
 {
   GZ_ASSERT(!std::isnan(this->inputCommand),
@@ -252,9 +256,21 @@ void ThrusterPlugin::Update(const common::UpdateInfo &_info)
   this->thrustTopicPublisher->Publish(thrustMsg);
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void ThrusterPlugin::UpdateInput(ConstDoublePtr &_msg)
 {
   this->inputCommand = _msg->value();
 }
+
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
+std::string ThrusterPlugin::BuildTopicPrefix(const std::string& pluginNamespace, int id)
+{
+  // Root string for topics
+  std::stringstream strs;
+  strs << "/" << pluginNamespace << "/thrusters/" << "id_" << id << "/";
+  return strs.str();
+}
+
 }

@@ -67,6 +67,9 @@ class ThrusterPlugin : public ModelPlugin
   /// \brief Callback for the input topic subscriber
   protected: void UpdateInput(ConstDoublePtr &_msg);
 
+  /// \brief Builds the topic prefix name
+  protected: std::string BuildTopicPrefix(const std::string& pluginNamespace, int id);
+
   /// \brief Thruster dynamic model
   protected: std::shared_ptr<Dynamics> thrusterDynamics;
 

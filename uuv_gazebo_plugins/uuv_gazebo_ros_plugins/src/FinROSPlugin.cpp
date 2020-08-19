@@ -113,9 +113,9 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
     return;
   }
 
-  myRosNode =  gazebo_ros::Node::Get(_sdf);
+  myRosNode = gazebo_ros::Node::CreateWithArgs(_sdf->Get<std::string>("name"));// gazebo_ros::Node::Get(_sdf);
+  //Change the buildtopicprefix function ("/") if creating a namespaced node here
   RCLCPP_DEBUG(myRosNode->get_logger(), "[FinROSPlugin] Namespace: " + std::string(myRosNode->get_namespace()));
-  //myRosNode = rclcpp::Node::make_unique("");
   //this->rosNode.reset(new ros::NodeHandle(""));
 
   mySubReference = myRosNode->create_subscription<
@@ -131,16 +131,17 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
   if (_sdf->HasElement("wrench_topic"))
     wrenchTopic = _sdf->Get<std::string>("wrench_topic");
   else
-    wrenchTopic = this->topicPrefix + "wrench_topic";
+    wrenchTopic = myTopicPrefix + "wrench_topic";
 
   myPubFinForce =
     myRosNode->create_publisher<geometry_msgs::msg::WrenchStamped>(wrenchTopic, 10);
 
-  std::stringstream stream;
-  stream << _parent->GetName() << "/fins/" << this->finID <<
-    "/get_lift_drag_params";
+  // std::stringstream stream;
+  // stream << _parent->GetName() << "/fins/" << this->finID <<
+  //   "/get_lift_drag_params";
+  std::string getLiftDragSrvName = myTopicPrefix + "/get_lift_drag_params";
   myServicesById["get_lift_drag_params"] = myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetListParam>(
-    stream.str(), std::bind(&FinROSPlugin::GetLiftDragParams, this, std::placeholders::_1, std::placeholders::_2));
+    getLiftDragSrvName, std::bind(&FinROSPlugin::GetLiftDragParams, this, std::placeholders::_1, std::placeholders::_2));
 
   gzmsg << "Fin #" << this->finID << " initialized" << std::endl
     << "\t- Link: " << this->link->GetName() << std::endl

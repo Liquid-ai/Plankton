@@ -56,24 +56,27 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
 
   //Creates a node including the robot namespace
   //myRosNode =  gazebo_ros::Node::Get(_sdf);
-  //myNode = rclcpp::Node::make_unique(myRobotNamespace);
   // this->node = boost::shared_ptr<ros::NodeHandle>(
   //   new ros::NodeHandle(this->robotNamespace));
   // Retrieve the namespace used to publish the joint states
-  if (_sdf->HasElement("robotNamespace"))
-    myRobotNamespace = _sdf->Get<std::string>("robotNamespace");
+  // if (_sdf->HasElement("robotNamespace"))
+  //   myRobotNamespace = _sdf->Get<std::string>("robotNamespace");
+  // else
+  //   myRobotNamespace = myModel->GetName();
+
+
+  //Creates a node, including the robot namespace directly read in the SDF
+  myRosNode =  gazebo_ros::Node::Get(_sdf);
+  //myRosNode =  gazebo_ros::Node::CreateWithArgs("joint_state_publisher", myRobotNamespace);
+
+  if(std::string(myRosNode->get_namespace()).empty())
+    gzerr << "JointStatePublisher: robot namespace is empty" << std::endl;
   else
-    myRobotNamespace = myModel->GetName();
+    gzmsg << "JointStatePublisher::robot namespace = " << myRosNode->get_namespace() << std::endl;
 
-  //TODO to change
-  //Creates a node including the robot namespace
-  myRosNode =  gazebo_ros::Node::CreateWithArgs("joint_state_publisher", myRobotNamespace);
 
-  gzmsg << "JointStatePublisher::robotNamespace="
-    << myRobotNamespace << std::endl;
-
-  if (myRobotNamespace[0] != '/')
-    myRobotNamespace = "/" + myRobotNamespace;
+  // if (myRobotNamespace[0] != '/')
+  //   myRobotNamespace = "/" + myRobotNamespace;
 
   if (_sdf->HasElement("updateRate"))
     this->updateRate = _sdf->Get<double>("updateRate");

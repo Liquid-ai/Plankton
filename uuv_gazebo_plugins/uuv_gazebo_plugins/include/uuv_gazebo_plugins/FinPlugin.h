@@ -61,6 +61,9 @@ class FinPlugin : public ModelPlugin
     /// \brief Reads current velocity topic
     protected: void UpdateCurrentVelocity(ConstVector3dPtr &_msg);
 
+    /// \brief Helper function that builds and return the plugin's topic prefix
+    protected: std::string BuildTopicPrefix(const std::string& rosNamespace, int id);
+
     /// \brief Fin dynamic model
     protected: std::shared_ptr<Dynamics> dynamics;
 
@@ -95,7 +98,7 @@ class FinPlugin : public ModelPlugin
     protected: int finID;
 
     /// \brief Topic prefix
-    protected: std::string topicPrefix;
+    protected: std::string myTopicPrefix;
 
     /// \brief Latest fin angle in [rad].
     protected: double angle;

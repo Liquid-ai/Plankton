@@ -121,99 +121,100 @@ void ThrusterROSPlugin::Load(gazebo::physics::ModelPtr _parent,
     return;
   }
 
-  
   std::string nodeNamespace = myTopicPrefix[myTopicPrefix.size() - 1] == '/' ? 
     myTopicPrefix.substr(0, myTopicPrefix.size() - 1) : myTopicPrefix;
 
-  gzmsg << "Before init " << _parent->GetName() << " " << nodeNamespace << "\n";
+  //gzmsg << "Before init " << _parent->GetName() << " " << nodeNamespace << "\n";
   //TODO probably change
+  //easy way : no namespace, topic prefix for each topic
+  //consistent way, namespace in the SDF, topic prefix without /namespace/. Take care, topics are also created in the parent class
   try {
-  myRosNode = gazebo_ros::Node::CreateWithArgs(_parent->GetName(), nodeNamespace);
+    myRosNode = gazebo_ros::Node::CreateWithArgs(_sdf->Get<std::string>("name"));//, nodeNamespace);
 
-    gzmsg << "After init " << myRosNode->get_name() << " with ns: " << myRosNode->get_namespace() << "\n";
+      gzmsg << "[ThrusterROSPlugin] Node created with name: " << myRosNode->get_name() 
+        << ", with ns: " << myRosNode->get_namespace() << "\n";
+    
+    //this->rosNode.reset(new ros::NodeHandle(""));
+    //this->services["set_thrust_force_efficiency"] =
+    mySet_thrust_force_efficiencySrv = 
+      myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetThrusterEfficiency>(
+        myTopicPrefix + "set_thrust_force_efficiency",
+        std::bind(&ThrusterROSPlugin::SetThrustForceEfficiency, this, _1, _2));
+
+    //this->services["get_thrust_force_efficiency"] =
+    myGet_thrust_force_efficiencySrv = 
+      myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency>(
+        myTopicPrefix + "get_thrust_force_efficiency",
+        std::bind(&ThrusterROSPlugin::GetThrustForceEfficiency, this, _1, _2));
+
+    //this->services["set_dynamic_state_efficiency"] =
+    mySet_dynamic_state_efficiencySrv = 
+      myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetThrusterEfficiency>(
+        myTopicPrefix + "set_dynamic_state_efficiency",
+        std::bind(&ThrusterROSPlugin::SetDynamicStateEfficiency, this, _1, _2));
+
+    //this->services["get_dynamic_state_efficiency"] =
+    myGet_dynamic_state_efficiency =
+      myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency>(
+        myTopicPrefix + "get_dynamic_state_efficiency",
+        std::bind(&ThrusterROSPlugin::GetDynamicStateEfficiency, this, _1, _2));
+
+    //this->services["set_thruster_state"] =
+    mySet_thruster_state =
+      myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetThrusterState>(
+        myTopicPrefix + "set_thruster_state",
+        std::bind(&ThrusterROSPlugin::SetThrusterState, this, _1, _2));
+
+    //this->services["get_thruster_state"] =
+    myGet_thruster_state = 
+      myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterState>(
+        myTopicPrefix + "get_thruster_state",
+        std::bind(&ThrusterROSPlugin::GetThrusterState, this, _1, _2));
+
+    //this->services["get_thruster_conversion_fcn"] =
+    myGet_thruster_conversion_fcn = 
+      myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn>(
+        myTopicPrefix + "get_thruster_conversion_fcn",
+        std::bind(&ThrusterROSPlugin::GetThrusterConversionFcn, this, _1, _2));
   
-  //gzerr << "Loading thruster: ";
-  //myRosNode = rclcpp::Node::make_unique("");
-  //this->rosNode.reset(new ros::NodeHandle(""));
-  //this->services["set_thrust_force_efficiency"] =
-  mySet_thrust_force_efficiencySrv = 
-    myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetThrusterEfficiency>(
-      /*myTopicPrefix +*/ "set_thrust_force_efficiency",
-      std::bind(&ThrusterROSPlugin::SetThrustForceEfficiency, this, _1, _2));
+    mySubThrustReference = myRosNode->create_subscription<
+      uuv_gazebo_ros_plugins_msgs::msg::FloatStamped
+      >(this->commandSubscriber->GetTopic(), 10,
+        std::bind(&ThrusterROSPlugin::SetThrustReference, this, _1));
 
-  //this->services["get_thrust_force_efficiency"] =
-  myGet_thrust_force_efficiencySrv = 
-    myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency>(
-      /*myTopicPrefix +*/ "get_thrust_force_efficiency",
-      std::bind(&ThrusterROSPlugin::GetThrustForceEfficiency, this, _1, _2));
+  
+    myPubThrust = myRosNode->create_publisher<
+      uuv_gazebo_ros_plugins_msgs::msg::FloatStamped
+      >(this->thrustTopicPublisher->GetTopic(), 10);
 
-  //this->services["set_dynamic_state_efficiency"] =
-  mySet_dynamic_state_efficiencySrv = 
-    myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetThrusterEfficiency>(
-      /*myTopicPrefix +*/ "set_dynamic_state_efficiency",
-      std::bind(&ThrusterROSPlugin::SetDynamicStateEfficiency, this, _1, _2));
+    myPubThrustWrench =
+      myRosNode->create_publisher<geometry_msgs::msg::WrenchStamped>(
+        this->thrustTopicPublisher->GetTopic() + "_wrench", 10);
+      //
 
-  //this->services["get_dynamic_state_efficiency"] =
-  myGet_dynamic_state_efficiency =
-    myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterEfficiency>(
-      /*myTopicPrefix +*/ "get_dynamic_state_efficiency",
-      std::bind(&ThrusterROSPlugin::GetDynamicStateEfficiency, this, _1, _2));
+    myPubThrusterState = myRosNode->create_publisher<std_msgs::msg::Bool>(
+      myTopicPrefix + "is_on", 1);
 
-  //this->services["set_thruster_state"] =
-  mySet_thruster_state =
-    myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::SetThrusterState>(
-      /*myTopicPrefix +*/ "set_thruster_state",
-      std::bind(&ThrusterROSPlugin::SetThrusterState, this, _1, _2));
+    myPubThrustForceEff = myRosNode->create_publisher<std_msgs::msg::Float64>(
+      myTopicPrefix + "thrust_efficiency", 1);
 
-  //this->services["get_thruster_state"] =
-  myGet_thruster_state = 
-    myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterState>(
-      /*myTopicPrefix +*/ "get_thruster_state",
-      std::bind(&ThrusterROSPlugin::GetThrusterState, this, _1, _2));
+    myPubDynamicStateEff = myRosNode->create_publisher<std_msgs::msg::Float64>(
+      myTopicPrefix + "dynamic_state_efficiency", 1);
 
-  //this->services["get_thruster_conversion_fcn"] =
-  myGet_thruster_conversion_fcn = 
-    myRosNode->create_service<uuv_gazebo_ros_plugins_msgs::srv::GetThrusterConversionFcn>(
-      /*myTopicPrefix +*/ "get_thruster_conversion_fcn",
-      std::bind(&ThrusterROSPlugin::GetThrusterConversionFcn, this, _1, _2));
- 
- //TODO to change topic prefix
-  mySubThrustReference = myRosNode->create_subscription<
-    uuv_gazebo_ros_plugins_msgs::msg::FloatStamped
-    >(this->commandSubscriber->GetTopic(), 10,
-      std::bind(&ThrusterROSPlugin::SetThrustReference, this, _1));
+    gzmsg << "Thruster #" << this->thrusterID << " initialized" << std::endl
+      << "\t- Link: " << this->thrusterLink->GetName() << std::endl
+      << "\t- Robot model: " << _parent->GetName() << std::endl
+      << "\t- Input command topic: " <<
+        this->commandSubscriber->GetTopic() << std::endl
+      << "\t- Thrust output topic: " <<
+        this->thrustTopicPublisher->GetTopic() << std::endl;
 
- 
-  myPubThrust = myRosNode->create_publisher<
-    uuv_gazebo_ros_plugins_msgs::msg::FloatStamped
-    >(this->thrustTopicPublisher->GetTopic(), 10);
-
-  myPubThrustWrench =
-    myRosNode->create_publisher<geometry_msgs::msg::WrenchStamped>(
-      this->thrustTopicPublisher->GetTopic() + "_wrench", 10);
-    //
-
-  myPubThrusterState = myRosNode->create_publisher<std_msgs::msg::Bool>(
-    /*myTopicPrefix +*/ "is_on", 1);
-
-  myPubThrustForceEff = myRosNode->create_publisher<std_msgs::msg::Float64>(
-    /*myTopicPrefix +*/ "thrust_efficiency", 1);
-
-  myPubDynamicStateEff = myRosNode->create_publisher<std_msgs::msg::Float64>(
-    /*myTopicPrefix +*/ "dynamic_state_efficiency", 1);
-
-  gzmsg << "Thruster #" << this->thrusterID << " initialized" << std::endl
-    << "\t- Link: " << this->thrusterLink->GetName() << std::endl
-    << "\t- Robot model: " << _parent->GetName() << std::endl
-    << "\t- Input command topic: " <<
-      this->commandSubscriber->GetTopic() << std::endl
-    << "\t- Thrust output topic: " <<
-      this->thrustTopicPublisher->GetTopic() << std::endl;
-
-  this->rosPublishConnection = gazebo::event::Events::ConnectWorldUpdateBegin(
-    std::bind(&ThrusterROSPlugin::RosPublishStates, this));
-  } catch(std::exception& e) {
-    gzerr << "Exception in: " << e.what() << "\n";
+    this->rosPublishConnection = gazebo::event::Events::ConnectWorldUpdateBegin(
+      std::bind(&ThrusterROSPlugin::RosPublishStates, this));
+  } 
+  catch(std::exception& e) 
+  {
+    gzerr << "Exception when loading plugin: " << e.what() << "\n";
   }
 }
 

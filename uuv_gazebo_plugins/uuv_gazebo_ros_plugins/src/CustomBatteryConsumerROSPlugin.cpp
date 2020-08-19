@@ -42,8 +42,10 @@ void CustomBatteryConsumerROSPlugin::Load(physics::ModelPtr _parent,
     return;
   }
 
-  myRosNode =  gazebo_ros::Node::Get(_sdf);
-  //myRosNode = rclcpp::Node::make_unique("");// new ros::NodeHandle(""));
+  //Create the ROS node with the plugin's name
+  //TODO Check uniqueness of the node
+  myRosNode = gazebo_ros::Node::CreateWithArgs(_sdf->Get<std::string>("name"));  //gazebo_ros::Node::Get(_sdf);
+  // new ros::NodeHandle(""));
 
   GZ_ASSERT(_sdf->HasElement("link_name"), "Consumer link name is missing");
   this->linkName = _sdf->Get<std::string>("link_name");

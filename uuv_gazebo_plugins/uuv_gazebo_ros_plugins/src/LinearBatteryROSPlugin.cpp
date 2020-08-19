@@ -73,8 +73,9 @@ void LinearBatteryROSPlugin::Load(physics::ModelPtr _parent,
       << std::endl;
     updateRate = 2;
   }
+
+  //Creates the node including the namespace read in the SDF
   myRosNode =  gazebo_ros::Node::Get(_sdf);
-  //myRosNode = rclcpp::Node::make_unique(myRobotNamespace);
   //this->rosNode.reset(new ros::NodeHandle(this->robotNamespace));
 
   myBatteryStatePub = myRosNode->create_publisher<sensor_msgs::msg::BatteryState>
