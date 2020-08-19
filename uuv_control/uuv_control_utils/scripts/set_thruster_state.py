@@ -18,6 +18,8 @@ import rclpy
 from uuv_gazebo_ros_plugins_msgs.srv import SetThrusterState
 from time_utils import time_in_float_sec
 
+def build_service_name(ns, thruster_id, service_name) -> str :
+    return '/%s/thrusters/id_%d/%s' % (ns, thruster_id, service_name)
 
 def main():
     rclpy.init('set_thrusters_states')
@@ -49,7 +51,7 @@ def main():
         raise RuntimeError('State flag not provided')
 
     if node.has_parameter('~thruster_id'):
-        thruster_id = rospy.get_param('~thruster_id')
+        thruster_id = node.get_parameter('~thruster_id').get_parameter_value().integer_value()
     else:
         raise RuntimeError('Thruster ID not given')
 
@@ -58,9 +60,9 @@ def main():
 
     print('Setting state of thruster #{} as {}'.format(thruster_id, 'ON' if is_on else 'OFF'))
 
-    vehicle_name = rospy.get_namespace().replace('/', '')
+    vehicle_name = node.get_namespace().replace('/', '')
 
-    srv_name = '/%s/thrusters/%d/set_thruster_state' % (vehicle_name, thruster_id)
+    srv_name = build_service_name(vehicle_name, thruster_id, 'set_thruster_state')
 
     try:
         set_state = node.create_client(SetThrusterState, srv_name)
@@ -79,7 +81,7 @@ def main():
     success = set_state.call(req)
 
     if success:
-        print('Time={} s'.format(rospy.get_time()))
+        print('Time={} s'.format(time_in_float_sec(node.get_clock().now().get_time())))
         print('Current state of thruster #{}={}'.format(thruster_id, 'ON' if is_on else 'OFF'))
 
     if duration > 0:
@@ -91,7 +93,7 @@ def main():
         success = set_state.call(req)
 
         if success:
-            print('Time={} s'.format(rospy.get_time()))
+            print('Time={} s'.format(time_in_float_sec(node.get_clock().now().get_time())))
             print('Returning to previous state of thruster #{}={}'.format(thruster_id, 'ON' if not is_on else 'OFF'))
 
     print('Leaving node...')

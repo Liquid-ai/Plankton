@@ -107,30 +107,34 @@ class DisturbanceManager(Node):
             service_list.append(self.create_client(
                 ApplyBodyWrench, '/gazebo/apply_body_wrench'))
             self._service_cb['wrench'] = service_list[-1]
-
-            self._service_cb['thrusters'] = dict()
+         
+            self._service_cb['thrusters'] = dict()          
             for item in self._disturbances:
                 if item['type'] == 'thruster_state':
+                    thruster_id = item['thruster_id']
                     if 'state' not in self._service_cb['thrusters']:
                         self._service_cb['thrusters']['state'] = dict()
                     service_list.append(self.create_client(
                         SetThrusterState,
-                        '/%s/thrusters/%d/set_thruster_state' % (vehicle_name, item['thruster_id'])))
-                    self._service_cb['thrusters']['state'][item['thruster_id']] = service_list[-1]
+                        create_service_name(vehicle_name, thruster_id, 'set_thruster_state')))
+                        #'/%s/thrusters/%d/set_thruster_state' % (vehicle_name, item['thruster_id'])))
+                    self._service_cb['thrusters']['state'][thruster_id] = service_list[-1]
                 elif item['type'] == 'propeller_efficiency':
                     if 'propeller_efficiency' not in self._service_cb['thrusters']:
                         self._service_cb['thrusters']['propeller_efficiency'] = dict()
                     service_list.append(self.create_client(
                         SetThrusterEfficiency,
-                        '/%s/thrusters/%d/set_dynamic_state_efficiency' % (vehicle_name, item['thruster_id'])))
-                    self._service_cb['thrusters']['propeller_efficiency'][item['thruster_id']] = service_list[-1]
+                        create_service_name(vehicle_name, thruster_id, 'set_dynamic_state_efficiency')))
+                        #'/%s/thrusters/%d/set_dynamic_state_efficiency' % (vehicle_name, item['thruster_id'])))
+                    self._service_cb['thrusters']['propeller_efficiency'][thruster_id] = service_list[-1]
                 elif item['type'] == 'thrust_efficiency':
                     if 'thrust_efficiency' not in self._service_cb['thrusters']:
                         self._service_cb['thrusters']['thrust_efficiency'] = dict()
                     service_list.append(self.create_client(
                         SetThrusterEfficiency,
-                        '/%s/thrusters/%d/set_thrust_force_efficiency' % (vehicle_name, item['thruster_id'])))
-                    self._service_cb['thrusters']['thrust_efficiency'][item['thruster_id']] = service_list[-1]
+                        create_service_name(vehicle_name, thruster_id, 'set_thrust_force_efficiency')))
+                        #'/%s/thrusters/%d/set_thrust_force_efficiency' % (vehicle_name, item['thruster_id'])))
+                    self._service_cb['thrusters']['thrust_efficiency'][thruster_id] = service_list[-1]
         except Exception as e:
             self._logger.info('Service call failed, error=%s' % str(e))
             sys.exit(-1)
@@ -205,7 +209,7 @@ class DisturbanceManager(Node):
                                 self.set_body_wrench([-1 * d['force'][n] for n in range(3)],
                                                      [-1 * d['torque'][n] for n in range(3)],
                                                      -1,
-                                                     rospy.get_time())
+                                                     self.get_clock().now())
                             ###########################################################
                             elif d['type'] == 'thruster_state':
                                 self.set_thruster_state(d['thruster_id'], not bool(d['is_on']))
@@ -302,6 +306,9 @@ class DisturbanceManager(Node):
         else:
             time = time_in_float_sec(self.get_clock().now())
             self._logger.error('Setting thrust efficiency of thruster #%d failed! t=%.2f s' % (thruster_id, time))
+
+    def build_service_name(self, ns, thruster_id, service_name) -> str :
+        return '/%s/thrusters/id_%d/%s' % (ns, thruster_id, service_name)
 
 def time_in_float_sec(time: rclpy.time.Time):
     f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9

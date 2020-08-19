@@ -18,6 +18,9 @@ import rclpy
 from uuv_gazebo_ros_plugins_msgs.srv import SetThrusterEfficiency
 from time_utils import time_in_float_sec
 
+def build_service_name(ns, thruster_id, service_name) -> str :
+    return '/%s/thrusters/id_%d/%s' % (ns, thruster_id, service_name)
+
 def main():
     rclpy.init()
     node = rclpy.create_node('set_thrusters_states')
@@ -61,7 +64,7 @@ def main():
 
     vehicle_name = node.get_namespace().replace('/', '')
 
-    srv_name = '/%s/thrusters/%d/set_thrust_force_efficiency' % (vehicle_name, thruster_id)
+    srv_name = build_service_name(vehicle_name, thruster_id, 'set_thrust_force_efficiency')
    
     try:
         set_eff = node.create_client(SetThrusterEfficiency, srv_name)
@@ -81,7 +84,7 @@ def main():
     success = set_eff.call(efficiency)
 
     if success:
-        print('Time={} s'.format(rospy.get_time()))
+        print('Time={} s'.format(rtime_in_float_sec(node.get_clock().now())))
         print('Current thruster output efficiency #{}={}'.format(thruster_id, efficiency * 100))
 
     if duration > 0:
