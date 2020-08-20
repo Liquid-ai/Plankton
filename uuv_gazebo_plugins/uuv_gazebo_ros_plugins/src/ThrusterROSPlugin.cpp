@@ -121,17 +121,16 @@ void ThrusterROSPlugin::Load(gazebo::physics::ModelPtr _parent,
     return;
   }
 
-  std::string nodeNamespace = myTopicPrefix[myTopicPrefix.size() - 1] == '/' ? 
-    myTopicPrefix.substr(0, myTopicPrefix.size() - 1) : myTopicPrefix;
+  // std::string nodeNamespace = myTopicPrefix[myTopicPrefix.size() - 1] == '/' ? 
+  //   myTopicPrefix.substr(0, myTopicPrefix.size() - 1) : myTopicPrefix;
 
-  //gzmsg << "Before init " << _parent->GetName() << " " << nodeNamespace << "\n";
   //TODO probably change
   //easy way : no namespace, topic prefix for each topic
   //consistent way, namespace in the SDF, topic prefix without /namespace/. Take care, topics are also created in the parent class
   try {
     myRosNode = gazebo_ros::Node::CreateWithArgs(_sdf->Get<std::string>("name"));//, nodeNamespace);
 
-      gzmsg << "[ThrusterROSPlugin] Node created with name: " << myRosNode->get_name() 
+    gzmsg << "[ThrusterROSPlugin] Node created with name: " << myRosNode->get_name() 
         << ", with ns: " << myRosNode->get_namespace() << "\n";
     
     //this->rosNode.reset(new ros::NodeHandle(""));

@@ -39,7 +39,10 @@
     <gazebo>
       <plugin filename="liblinear_battery_ros_plugin.so"
         name="${namespace}_${prefix}linear_battery_ros_plugin">
-        <namespace>${namespace}</namespace>
+        <ros>
+          <namespace>${namespace}</namespace>
+        </ros>
+        <!-- <namespace>${namespace}</namespace> -->
         <link_name>${namespace}/battery_link</link_name>
         <battery_name>${namespace}/battery</battery_name>
         <open_circuit_voltage_constant_coef>${open_circuit_voltage_constant_coef}</open_circuit_voltage_constant_coef>
