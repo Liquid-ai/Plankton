@@ -63,7 +63,11 @@
     </include>
 
     <plugin name="gazebo_ros" filename="libgazebo_ros_state.so">
-      <namespace>gazebo</namespace>
+      <!-- NB: omitting <ros> element, the namespace is still correctly read,
+       but is it an intended behaviour ?-->
+      <ros>
+        <namespace>/gazebo</namespace>
+      </ros>
     </plugin>
     
     <plugin name="underwater_current_plugin" filename="libuuv_underwater_current_ros_plugin.so">
