@@ -12,6 +12,7 @@
 # endif()
 
 # # find_package(image_transport REQUIRED)
+# # find_package(nav_msgs REQUIRED)
 # # find_package(sensor_msgs REQUIRED)
 # # find_package(geometry_msgs REQUIRED)
 # # find_package(uuv_gazebo_plugins REQUIRED)
@@ -28,6 +29,7 @@
 
 # # set(LIBS 
 # #   image_transport
+# #   nav_msgs
 # #   sensor_msgs
 # #   geometry_msgs
 # #   uuv_gazebo_plugins
@@ -185,6 +187,7 @@
 # # endif()
 
 # ament_export_dependencies(image_transport)
+# ament_export_dependencies(nav_msgs)
 # ament_export_dependencies(sensor_msgs)
 # ament_export_dependencies(geometry_msgs)
 # ament_export_dependencies(uuv_gazebo_plugins)
@@ -230,6 +233,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(image_transport REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(uuv_gazebo_plugins REQUIRED)
@@ -245,6 +249,7 @@ find_package(std_msgs REQUIRED)
 find_package(ament_cmake REQUIRED)
 
 set(INCLUDE_DIRS include ${image_transport_INCLUDE_DIRS}
+  ${nav_msgs_INCLUDE_DIRS}
   ${sensor_msgs_INCLUDE_DIRS} ${geometry_msgs_INCLUDE_DIRS}
   ${uuv_gazebo_plugins_INCLUDE_DIRS} ${gazebo_plugins_INCLUDE_DIRS}
   ${laser_geometry_INCLUDE_DIRS} ${message_filters_INCLUDE_DIRS}
@@ -253,7 +258,7 @@ set(INCLUDE_DIRS include ${image_transport_INCLUDE_DIRS}
   ${std_msgs_INCLUDE_DIRS} ${ament_cmake_INCLUDE_DIRS})
 include_directories(${INCLUDE_DIRS})
 
-set(LIBRARY_DIRS ${image_transport_LIBRARY_DIRS} ${sensor_msgs_LIBRARY_DIRS}
+set(LIBRARY_DIRS ${image_transport_LIBRARY_DIRS} ${nav_msgs_LIBRARY_DIRS} ${sensor_msgs_LIBRARY_DIRS}
   ${geometry_msgs_LIBRARY_DIRS} ${uuv_gazebo_plugins_LIBRARY_DIRS}
   ${gazebo_plugins_LIBRARY_DIRS} ${laser_geometry_LIBRARY_DIRS}
   ${message_filters_LIBRARY_DIRS} ${gazebo_dev_LIBRARY_DIRS}
@@ -263,7 +268,7 @@ set(LIBRARY_DIRS ${image_transport_LIBRARY_DIRS} ${sensor_msgs_LIBRARY_DIRS}
 
 link_directories(${LIBRARY_DIRS})
 
-set(LIBS ${image_transport_LIBRARIES} ${sensor_msgs_LIBRARIES}
+set(LIBS ${image_transport_LIBRARIES} ${nav_msgs_LIBRARIES} ${sensor_msgs_LIBRARIES}
   ${geometry_msgs_LIBRARIES} ${uuv_gazebo_plugins_LIBRARIES}
   ${gazebo_plugins_LIBRARIES} ${laser_geometry_LIBRARIES}
   ${message_filters_LIBRARIES} ${gazebo_dev_LIBRARIES}
@@ -433,6 +438,7 @@ install(DIRECTORY meshes urdf
 # endif()
 
 ament_export_dependencies(image_transport)
+ament_export_dependencies(nav_msgs)
 ament_export_dependencies(sensor_msgs)
 ament_export_dependencies(geometry_msgs)
 ament_export_dependencies(uuv_gazebo_plugins)
@@ -447,11 +453,11 @@ ament_export_dependencies(tf2_ros)
 ament_export_dependencies(std_msgs)
 ament_export_dependencies(ament_cmake)
 ament_export_include_directories(${INCLUDE_DIRS})
-# ament_export_libraries(uuv_sensor_gazebo_msgs uuv_gazebo_ros_base_model_plugin
-#   uuv_gazebo_ros_base_sensor_plugin uuv_gazebo_ros_gps_plugin
-#   uuv_gazebo_ros_pose_gt_plugin uuv_gazebo_ros_subsea_pressure_plugin
-#   uuv_gazebo_ros_dvl_plugin uuv_gazebo_ros_magnetometer_plugin
-#   uuv_gazebo_ros_cpc_plugin uuv_gazebo_ros_imu_plugin uuv_gazebo_ros_rpt_plugin
-#   uuv_gazebo_ros_camera_plugin image_sonar_ros_plugin ${LIBS})
+ament_export_libraries(uuv_sensor_gazebo_msgs uuv_gazebo_ros_base_model_plugin
+  uuv_gazebo_ros_base_sensor_plugin uuv_gazebo_ros_gps_plugin
+  uuv_gazebo_ros_pose_gt_plugin uuv_gazebo_ros_subsea_pressure_plugin
+  uuv_gazebo_ros_dvl_plugin uuv_gazebo_ros_magnetometer_plugin
+  uuv_gazebo_ros_cpc_plugin uuv_gazebo_ros_imu_plugin uuv_gazebo_ros_rpt_plugin
+  uuv_gazebo_ros_camera_plugin image_sonar_ros_plugin)# ${LIBS})
 
 ament_package()
