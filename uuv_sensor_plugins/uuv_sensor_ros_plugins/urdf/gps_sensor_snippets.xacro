@@ -84,7 +84,10 @@
         </gps>
 
         <plugin filename="libuuv_gazebo_ros_gps_plugin.so" name="${namespace}_gazebo_gps_ros_plugin">
-          <robot_namespace>${namespace}</robot_namespace>
+          <ros>
+            <namespace>${namespace}</namespace>
+          </ros>
+          <!-- <robot_namespace>${namespace}</robot_namespace> -->
           <sensor_topic>${gps_topic}</sensor_topic>
           <horizontal_pos_std_dev>${horizontal_pos_std_dev}</horizontal_pos_std_dev>
           <vertical_pos_std_dev>${vertical_pos_std_dev}</vertical_pos_std_dev>

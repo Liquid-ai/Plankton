@@ -37,7 +37,10 @@
 
     <gazebo>
       <plugin name="pose_3d_plugin" filename="libuuv_gazebo_ros_pose_gt_plugin.so">
-        <robot_namespace>${namespace}</robot_namespace>
+        <ros>
+          <namespace>${namespace}</namespace> <!-- (string, required): ros namespace in which the messages are published -->
+        </ros>
+        <!-- <robot_namespace>${namespace}</robot_namespace> -->
         <link_name>${namespace}/base_link</link_name>
         <sensor_topic>${topic}</sensor_topic>
         <static_reference_frame>${reference_frame}</static_reference_frame>

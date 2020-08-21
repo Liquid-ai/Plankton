@@ -120,14 +120,28 @@
           </range>
         </ray>
 
-        <plugin filename="libgazebo_ros_range.so" name="dvl${suffix}_sonar${index}">
-          <gaussianNoise>0.005</gaussianNoise>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.005</stddev>
+        </noise>
+
+        <plugin filename="libgazebo_ros_ray_sensor.so" name="dvl${suffix}_sonar${index}">
+          <ros>
+            <argument>~/out:=${topic}_sonar${index}</argument>
+          </ros>
+          <!-- <gaussianNoise>0.005</gaussianNoise> -->
           <alwaysOn>true</alwaysOn>
-          <updateRate>${update_rate}</updateRate>
-          <topicName>${topic}_sonar${index}</topicName>
-          <frameName>${namespace}/dvl${suffix}_sonar${index}_link</frameName>
-          <fov>0.06</fov>
-          <radiation>ultrasound</radiation>
+          <!-- <updateRate>${update_rate}</updateRate> -->
+          <!-- <topicName>${topic}_sonar${index}</topicName> -->
+          <frame_name>${namespace}/dvl${suffix}_sonar${index}_link</frame_name>
+          
+          <!-- TODO Check for fov -->
+          <!-- <fov>0.06</fov> -->
+          <radiation_type>ultrasound</radiation_type>
+
+          <!-- Set output to sensor_msgs/Range to get same output type as gazebo_ros_range -->
+          <output_type>sensor_msgs/Range</output_type>
         </plugin>
       </sensor>
     </gazebo>
@@ -180,7 +194,10 @@
 
     <gazebo>
       <plugin filename="libuuv_gazebo_ros_dvl_plugin.so" name="libuuv_gazebo_dvl${suffix}_plugin">
-        <robot_namespace>${namespace}</robot_namespace> <!-- (string, required): ros namespace in which the messages are published -->
+        <ros>
+          <namespace>${namespace}</namespace> <!-- (string, required): ros namespace in which the messages are published -->
+        </ros>
+        <!-- <robot_namespace>${namespace}</robot_namespace>  -->
         <link_name>${namespace}/dvl${suffix}_link</link_name> <!-- (string, required): name of the body which holds the IMU sensor -->
         <sensor_topic>${topic}</sensor_topic> <!-- (string): name of the sensor output topic and prefix of service names -->
         <update_rate>${update_rate}</update_rate> <!-- Update period [s] -->

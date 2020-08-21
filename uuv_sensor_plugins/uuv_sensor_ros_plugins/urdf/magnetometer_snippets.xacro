@@ -77,7 +77,10 @@
 
     <gazebo>
       <plugin filename="libuuv_gazebo_ros_magnetometer_plugin.so" name="libuuv_gazebo_ros_magnetometer_${suffix}_plugin">
-        <robot_namespace>${namespace}</robot_namespace> <!-- (string, required): ros namespace in which the messages are published -->
+        <ros>
+          <namespace>${namespace}</namespace> <!-- (string, required): ros namespace in which the messages are published -->
+        </ros>
+        <!-- <robot_namespace>${namespace}</robot_namespace> -->
         <link_name>${namespace}/magnetometer${suffix}_link</link_name> <!-- (string, required): name of the body which holds the IMU sensor -->
         <sensor_topic>${topic}</sensor_topic> <!-- (string): name of the sensor output topic and prefix of service names (defaults to imu) -->
         <update_rate>${update_rate}</update_rate> <!-- Update period of accelerometer and gyroscope [s] -->

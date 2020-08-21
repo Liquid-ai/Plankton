@@ -194,26 +194,26 @@
     <gazebo reference="${namespace}/forward_sonar${suffix}_link">
       <sensor name="${namespace}/image_sonar" type="depth">
         <camera>
-		  <horizontal_fov>${fov}</horizontal_fov>
-          <image>
-		    <width>${width}</width>
-		    <height>${height}</height>
-            <format>R8G8B8</format>
-          </image>
-          <clip>
-            <near>0.1</near>
-            <far>17</far>
-          </clip>
-          <save enabled="true">
-            <path>/tmp/camera</path>
-          </save>
+          <horizontal_fov>${fov}</horizontal_fov>
+              <image>
+                <width>${width}</width>
+                <height>${height}</height>
+                <format>R8G8B8</format>
+              </image>
+              <clip>
+                <near>0.1</near>
+                <far>17</far>
+              </clip>
+              <save enabled="true">
+                <path>/tmp/camera</path>
+              </save>
         </camera>
-	    <plugin filename="libimage_sonar_ros_plugin.so" name="forward_sonar${suffix}_controller">
-		  <topicName>${topic}</topicName>
-          <frameName>forward_sonar${suffix}_optical_frame</frameName>
+        <plugin filename="libimage_sonar_ros_plugin.so" name="forward_sonar${suffix}_controller">
+          <topicName>${topic}</topicName>
+            <frameName>forward_sonar${suffix}_optical_frame</frameName>
         </plugin>
         <always_on>true</always_on>
-	    <update_rate>${update_rate}</update_rate>
+	      <update_rate>${update_rate}</update_rate>
       </sensor>
     </gazebo>
 

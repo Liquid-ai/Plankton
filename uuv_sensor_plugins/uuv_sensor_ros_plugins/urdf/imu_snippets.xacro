@@ -152,7 +152,10 @@
       <plugin filename="libuuv_gazebo_ros_imu_plugin.so" name="libuuv_gazebo_imu${imu_suffix}_plugin">
       <!-- A good description of the IMU parameters can be found in the kalibr documentation:
            https://github.com/ethz-asl/kalibr/wiki/IMU-Noise-Model-and-Intrinsics -->
-        <robot_namespace>${namespace}</robot_namespace> <!-- (string, required): ros namespace in which the messages are published -->
+        <ros>
+          <namespace>${namespace}</namespace> <!-- (string, required): ros namespace in which the messages are published -->
+        </ros>
+        <!-- <robot_namespace>${namespace}</robot_namespace> -->
         <link_name>${namespace}/imu${imu_suffix}_link</link_name> <!-- (string, required): name of the body which holds the IMU sensor -->
         <sensor_topic>${imu_topic}</sensor_topic> <!-- (string): name of the sensor output topic and prefix of service names (defaults to imu) -->
 

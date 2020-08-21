@@ -106,24 +106,27 @@
 
    <gazebo>
      <plugin filename="libuuv_gazebo_ros_cpc_plugin.so"
-       name="particle_concentration{suffix}_sensor">
-       <robot_namespace>${namespace}</robot_namespace>
-       <link_name>${namespace}/cc_sensor_link</link_name>
-       <plume_topic>${input_topic}</plume_topic>
-       <sensor_topic>${output_topic}</sensor_topic>
-       <update_rate>${update_rate}</update_rate>
-       <gamma>${gamma}</gamma>
-       <radius>${radius}</radius>
-       <enable_gazebo_messages>false</enable_gazebo_messages>
-       <enable_local_ned_frame>false</enable_local_ned_frame>
-       <static_reference_frame>${reference_frame}</static_reference_frame>
-       <water_salinity_value>${water_salinity_value}</water_salinity_value>
-       <plume_salinity_value>${plume_salinity_value}</plume_salinity_value>
-       <salinity_output_topic>${salinity_output_topic}</salinity_output_topic>
-       <salinity_unit>${salinity_unit}</salinity_unit>
-       <gain>${gain}</gain>
-       <noise_sigma>${noise_sigma}</noise_sigma>
-       <noise_amplitude>${noise_amplitude}</noise_amplitude>
+      name="particle_concentration{suffix}_sensor">
+      <ros>
+        <namespace>${namespace}</namespace>
+      </ros>
+      <!-- <robot_namespace>${namespace}</robot_namespace> -->
+      <link_name>${namespace}/cc_sensor_link</link_name>
+      <plume_topic>${input_topic}</plume_topic>
+      <sensor_topic>${output_topic}</sensor_topic>
+      <update_rate>${update_rate}</update_rate>
+      <gamma>${gamma}</gamma>
+      <radius>${radius}</radius>
+      <enable_gazebo_messages>false</enable_gazebo_messages>
+      <enable_local_ned_frame>false</enable_local_ned_frame>
+      <static_reference_frame>${reference_frame}</static_reference_frame>
+      <water_salinity_value>${water_salinity_value}</water_salinity_value>
+      <plume_salinity_value>${plume_salinity_value}</plume_salinity_value>
+      <salinity_output_topic>${salinity_output_topic}</salinity_output_topic>
+      <salinity_unit>${salinity_unit}</salinity_unit>
+      <gain>${gain}</gain>
+      <noise_sigma>${noise_sigma}</noise_sigma>
+      <noise_amplitude>${noise_amplitude}</noise_amplitude>
      </plugin>
    </gazebo>
   </xacro:macro>
