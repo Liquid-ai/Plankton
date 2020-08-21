@@ -106,7 +106,7 @@ namespace gazebo
       sensor_msgs::msg::Range>> beamSub3;
 
     protected: std::unique_ptr<tf2_ros::TransformListener> myTransformListener;
-    std::unique_ptr<tf2_ros::Buffer> myBuffer;
+    protected: std::unique_ptr<tf2_ros::Buffer> myBuffer;
 
     /// \brief publisher for transporting measurement messages.
     protected: rclcpp::Publisher<uuv_sensor_ros_plugins_msgs::msg::DVL>::SharedPtr rosSensorOutputPub;

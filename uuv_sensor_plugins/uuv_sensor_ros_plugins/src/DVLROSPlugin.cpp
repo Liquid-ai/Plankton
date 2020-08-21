@@ -39,7 +39,7 @@ void DVLROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   std::shared_ptr<rclcpp::Clock> clock = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
   myBuffer.reset(new tf2_ros::Buffer(clock));
-  myTransformListener.reset(new tf2_ros::TransformListener(*myBuffer, myRosNode));
+  myTransformListener.reset(new tf2_ros::TransformListener(*myBuffer, myRosNode, false));
 
   // Load the link names for all the beams
   std::string beamLinkName;

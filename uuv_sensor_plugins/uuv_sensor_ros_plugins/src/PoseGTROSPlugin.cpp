@@ -89,7 +89,7 @@ void PoseGTROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 #endif
   }
 
-  this->tfListener.reset(new tf2_ros::TransformListener(*myTfBuffer));
+  this->tfListener.reset(new tf2_ros::TransformListener(*myTfBuffer, myRosNode, false));
 
   this->rosSensorOutputPub = myRosNode->create_publisher<nav_msgs::msg::Odometry>(
       this->sensorOutputTopic, 1);

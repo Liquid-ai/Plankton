@@ -57,7 +57,7 @@ void UnderwaterObjectROSPlugin::Load(gazebo::physics::ModelPtr _parent,
     << ", namespace: " << myRosNode->get_namespace() << std::endl;
 
   //TODO Not sure about the behaviour of TransformBroadcaster with ROS 2...
-  tfBroadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*myRosNode);
+  tfBroadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(myRosNode);
   //this->rosNode.reset(new ros::NodeHandle(""));
 
   try
