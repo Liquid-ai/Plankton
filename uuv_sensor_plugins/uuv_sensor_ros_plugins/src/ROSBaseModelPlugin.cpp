@@ -47,8 +47,8 @@ ROSBaseModelPlugin::ROSBaseModelPlugin()
   this->tfLocalNEDFrameMsg.transform.rotation.z = quat.z();
   this->tfLocalNEDFrameMsg.transform.rotation.w = quat.w();
 
-  // Initialize TF broadcaster
-  this->tfBroadcaster.reset(new tf2_ros::TransformBroadcaster(myRosNode));
+  // Initialize TF broadcaster (removed as the ros node is not initialized)
+  //this->tfBroadcaster.reset(new tf2_ros::TransformBroadcaster(myRosNode));
 }
 
 /////////////////////////////////////////////////
@@ -96,7 +96,14 @@ void ROSBaseModelPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   this->tfLocalNEDFrameMsg.header.frame_id = this->link->GetName();
   this->tfLocalNEDFrameMsg.child_frame_id = this->link->GetName() + "_ned";
 
+  //Call to base class to initialize common stuff
   this->InitBasePlugin(_sdf);
+
+  if(!myRosNode)
+    throw std::runtime_error(std::string(myRosNode->get_name()) + ": ROS node NULL");
+
+  // Initialize TF broadcaster
+  this->tfBroadcaster.reset(new tf2_ros::TransformBroadcaster(myRosNode));
 
   // Bind the sensor update callback function to the world update event
   this->updateConnection = event::Events::ConnectWorldUpdateBegin(
