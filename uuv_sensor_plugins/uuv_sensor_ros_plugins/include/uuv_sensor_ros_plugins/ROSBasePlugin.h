@@ -20,6 +20,8 @@
 #include <gazebo/physics/physics.hh>
 #include <gazebo/sensors/Noise.hh>
 
+#include <gazebo_ros/node.hpp>
+
 #include <uuv_sensor_ros_plugins/Common.h>
 #include <uuv_sensor_ros_plugins_msgs/srv/change_sensor_state.hpp>
 
@@ -98,7 +100,7 @@ namespace gazebo
     protected: std_msgs::msg::Bool isOn;
 
     /// \brief ROS node handle for communication with ROS
-    protected: rclcpp::Node::SharedPtr myRosNode;
+    protected: gazebo_ros::Node::SharedPtr myRosNode;
 
     /// \brief Gazebo's node handle for transporting measurement  messages.
     protected: transport::NodePtr gazeboNode;

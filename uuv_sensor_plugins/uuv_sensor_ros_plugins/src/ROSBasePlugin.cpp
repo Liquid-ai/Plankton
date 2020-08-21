@@ -45,17 +45,31 @@ ROSBasePlugin::~ROSBasePlugin()
 bool ROSBasePlugin::InitBasePlugin(sdf::ElementPtr _sdf)
 {
   GZ_ASSERT(this->world != NULL, "World object not available");
+
+  myRosNode = gazebo_ros::Node::Get(_sdf);
+  
+  myRobotNamespace = myRosNode->get_namespace();
+  if(myRobotNamespace.empty())
+    gzerr << "ROS robot namespace was not provided (elements <ros><namespace><namespace></ros>)";
+
+  gzmsg << "[" << myRosNode->get_name() << "] Node created" << std::endl
+    << "\t - with name: " << myRosNode->get_name() << std::endl
+    << "\t - with ns: " << myRosNode->get_namespace() << std::endl;
+
   // Get the robot namespace
-  GetSDFParam<std::string>(_sdf, "robot_namespace", myRobotNamespace, "");
-  GZ_ASSERT(!myRobotNamespace.empty(), "Robot namespace was not provided");
+  //GetSDFParam<std::string>(_sdf, "robot_namespace", myRobotNamespace, "");
+  //GZ_ASSERT(!myRobotNamespace.empty(), "Robot namespace was not provided");
 
   // Read separately in case a default topic name is given
   std::string sensorTopic;
   GetSDFParam<std::string>(_sdf, "sensor_topic", sensorTopic, "");
   if (!sensorTopic.empty())
     this->sensorOutputTopic = sensorTopic;
-  GZ_ASSERT(!this->sensorOutputTopic.empty(),
-    "Sensor output topic has not been provided");
+
+  if(this->sensorOutputTopic.empty())
+    gzerr << "[" << myRosNode->get_name() << "] " << "Sensor output topic has not been provided" << std::endl;
+  // GZ_ASSERT(!this->sensorOutputTopic.empty(),
+  //   "Sensor output topic has not been provided");
 
   // Get the update rate
   GetSDFParam<double>(_sdf, "update_rate", this->updateRate, 30.0);
@@ -76,7 +90,7 @@ bool ROSBasePlugin::InitBasePlugin(sdf::ElementPtr _sdf)
     return false;
   }
 
-  myRosNode = rclcpp::Node::make_shared(myRobotNamespace);
+  // myRosNode = rclcpp::Node::make_shared(myRobotNamespace);
   //this->rosNode.reset(new ros::NodeHandle(this->robotNamespace));
 
   // Initialize reference frame
