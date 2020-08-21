@@ -12,7 +12,7 @@
   <arg name="namespace" default="rexrov"/>
   <arg name="use_ned_frame" default="false"/>
   <arg name="generated_urdf" default="$(find-pkg-share uuv_descriptions)/robots/generated/$(var namespace)/robot_description"/>
-  <arg name="cmd" default= "(exec-in-pkg xacro xacro) '$(find-pkg-share uuv_descriptions)/robots/rexrov_$(var mode).xacro' 
+  <arg name="cmd" default= "$(exec-in-pkg xacro xacro) '$(find-pkg-share uuv_descriptions)/robots/rexrov_$(var mode).xacro' 
           > $(find-pkg-share uuv_descriptions)/robots/generated/$(var namespace)/robot_description
           --inorder
           debug:=$(var debug)
