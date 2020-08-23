@@ -25,40 +25,50 @@ from rclpy.node import Node
 
 class VehicleFootprint(Node):
     MARKER = np.array([[0, 0.75], [-0.5, -0.25], [0.5, -0.25]])
-
+    
+    #==========================================================================
     def __init__(self, node_name):
-        super().__init__(node_name)
+        super().__init__(node_name,
+                        allow_undeclared_parameters=True, 
+                        automatically_declare_parameters_from_overrides=True)
+
+        self.get_logger().info('Generate RViz footprint and markers for 2D visualization')
+
+        #Default sim_time to True
+        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        self.set_parameters([sim_time])
+
         self._namespace = self.get_namespace().replace('/', '')
 
         self._scale_footprint = 10
 
-        if self.has_parameter('~scale_footprint'):
-            scale = self.get_parameter('~scale_footprint').get_parameter_value().double_value
+        if self.has_parameter('scale_footprint'):
+            scale = self.get_parameter('scale_footprint').get_parameter_value().double_value
             if scale > 0:
                 self._scale_footprint = scale
             else:
-                print('Scale factor should be greater than zero')
+                self.get_logger().error('Scale factor should be greater than zero')
         
-        print('Footprint marker scale factor= ', self._scale_footprint)
+        self.get_logger().info('Footprint marker scale factor= ' + str(self._scale_footprint))
 
         self._scale_label = 10
 
-        if self.has_parameter('~_scale_label'):
-            scale = self.get_parameter('~_scale_label').get_parameter_value().double_value
+        if self.has_parameter('_scale_label'):
+            scale = self.get_parameter('_scale_label').get_parameter_value().double_value
             if scale > 0:
                 self._scale_label = scale
             else:
-                print('Scale factor should be greater than zero')
+                self.get_logger().error('Scale factor should be greater than zero')
         
-        print('Label marker scale factor = ', self._scale_label)
+        self.get_logger().info('Label marker scale factor = ' + str(self._scale_label))
 
         self._label_x_offset = 60
-        if self.has_parameter('~label_x_offset'):
-            self._label_x_offset = self.get_parameter('~label_x_offset').value
+        if self.has_parameter('label_x_offset'):
+            self._label_x_offset = self.get_parameter('label_x_offset').get_parameter_value().double_value
             
         self._label_marker = Marker()
         self._label_marker.header.frame_id = 'world'
-        self._label_marker.header.stamp = rospy.Time.now()
+        self._label_marker.header.stamp = self.get_clock().now().to_msg()
         self._label_marker.ns = self._namespace
         self._label_marker.type = Marker.TEXT_VIEW_FACING
         self._label_marker.text = self._namespace
@@ -87,6 +97,7 @@ class VehicleFootprint(Node):
         return np.array([[np.cos(alpha), -np.sin(alpha)],
                          [np.sin(alpha), np.cos(alpha)]])
 
+    #==========================================================================
     def odometry_callback(self, msg):
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
@@ -133,9 +144,10 @@ def main():
     try:
         node = VehicleFootprint('generate_vehicle_footprint')
         rclpy.spin(node)
-    except rclpy.exceptions.ROSInterruptException:
-        print('caught exception')
-    print('exiting')
+    except rclpy.exceptions.ROSInterruptException as e:
+        print('Caught exception: ' + str(e))
+    print('Exiting')
 
+#==============================================================================
 if __name__ == '__main__':
     main()

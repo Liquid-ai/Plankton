@@ -23,24 +23,32 @@ import sys
 def main():
     rclpy.init()
 
-    node = rclpy.create_node('unpause_simulation')
+    node = rclpy.create_node('unpause_simulation',
+                            allow_undeclared_parameters=True, 
+                            automatically_declare_parameters_from_overrides=True)
+
+    #Default sim_time to True
+    sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+    node.set_parameters([sim_time])
 
     # if not rclpy.ok():
     #     rospy.ROSException('ROS master is not running!')
 
     timeout = 0.0
-    if node.has_parameter('~timeout'):
-        timeout = node.get_parameter('~timeout').get_parameter_value().double_value
+    if node.has_parameter('timeout'):
+        timeout = node.get_parameter('timeout').get_parameter_value().double_value
         if timeout <= 0:
             raise RuntimeError('Unpause time must be a positive floating point value')
 
     print('Unpause simulation - Time = {} s'.format(timeout))
 
-    # ?
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        time.sleep(0.1)
+    # start_time = time.time()
+    # while time.time() - start_time < timeout:
+    #     time.sleep(0.1)
+    if(timeout > 0):
+        time.sleep(timeout)
 
+    start_time = time.time()
     try:
         # Handle for retrieving model properties
         unpause = node.create_client(Empty, '/gazebo/unpause_physics')
@@ -50,10 +58,20 @@ def main():
     except rclpy.exceptions.InvalidServiceNameException:
         print('/gazebo/unpause_physics service is unavailable')
         sys.exit()
+    
+    node.get_logger().info(
+        'The Gazebo "unpause_physics" service was available {} s after the timeout'.format(time.time() - start_time))
 
     req = Empty.Request()
-    unpause.call(req)
-    print('Simulation unpaused...')
+    future = unpause.call_async(req)
+    rclpy.spin_until_future_complete(self, future)
+    if future.result() is not None:
+        prop = future.result()
+        if prop.succes:
+            print('Simulation unpaused...')
+        else
+            node.get_logger().error('Failed to unpaused the simulation')
 
+#==============================================================================
 if __name__ == '__main__':
     main()

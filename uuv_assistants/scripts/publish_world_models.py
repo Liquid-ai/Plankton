@@ -45,8 +45,6 @@ class WorldPublisher(Node):
         except RuntimeError:
             self.get_logger().error('%s service is unavailable' % service_name)
             sys.exit()
-
-        self.get_logger().info('here 1')
      
         meshes = self.get_parameters_by_prefix('meshes')
         if meshes != None:
@@ -109,7 +107,7 @@ class WorldPublisher(Node):
                     rclpy.spin_until_future_complete(self, future)
                     if future.result() is not None:
                         prop = future.result()
-                        self.get_logger().warn('and this is ' + str(prop))
+                        
                         if prop.success:
                             new_model['position'] = [prop.state.pose.position.x,
                                                     prop.state.pose.position.y,
