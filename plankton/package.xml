@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<package format="3">
+    <name>plankton</name>
+    <version>0.6.13</version>
+    <description>TODO</description>
+
+    <author email="todo@todo.com">TODO</author>
+
+    <maintainer email="todo@todo.com">TODO</maintainer>
+
+    <license>TODO</license>
+
+    <!-- <url type="documentation">https://uuvsimulator.github.io/</url> -->
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+
+    <exec_depend>plankton_utils</exec_depend>
+    <exec_depend>uuv_simulator</exec_depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>
