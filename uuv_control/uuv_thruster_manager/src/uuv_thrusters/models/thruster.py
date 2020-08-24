@@ -56,24 +56,27 @@ class Thruster(object):
                 thrust_body, torque_body)).transpose()
         self._command = 0
         self._thrust = 0
-        self._command_pub = self.node.create_publisher(self._topic, FloatStamped,
-                                            10)
+        self._command_pub = self.node.create_publisher(FloatStamped, self._topic, 10)
 
         self.node.get_logger().info('Thruster #{} - {} - {}'.format(
             self._index, self.LABEL, self._topic))
 
+    #==============================================================================
     @property
     def index(self):
         return self._index
 
+    #==============================================================================
     @property
     def topic(self):
         return self._topic
 
+    #==============================================================================
     @property
     def tam_column(self):
         return self._force_dist
 
+    #==============================================================================
     @staticmethod
     def create_thruster(node, model_name, *args, **kwargs):
         """Factory method for the thruster models.
@@ -92,15 +95,18 @@ class Thruster(object):
                 return thruster(node, *args, **kwargs)
         raise RuntimeError('Invalid thruster model')
 
+    #==============================================================================
     def get_command_value(self, thrust):
         """Convert desired thrust force to input command according to this
         function. Overwrite this method to implement custom models."""
         raise NotImplementedError()
 
+    #==============================================================================
     def get_thrust_value(self, command):
         """Computes the thrust force for the given command."""
         raise NotImplementedError()
 
+    #==============================================================================
     def get_curve(self, min_value, max_value, n_points):
         """Sample the conversion curve and return the values."""
         if min_value >= max_value or n_points <= 0:
@@ -111,15 +117,18 @@ class Thruster(object):
             output_values.append(self.get_thrust_value(value))
         return input_values.tolist(), output_values
 
+    #==============================================================================
     def _calc_command(self):
         """Convert the desired thrust force into angular velocity 
         command according using a gain."""
         self._command = self.get_command_value(self._thrust)
 
+    #==============================================================================
     def _update(self, thrust):
         self._thrust = thrust
         self._calc_command()
 
+    #==============================================================================
     def publish_command(self, thrust):
         """Publish the thrust force command set-point
         to a thruster unit.

@@ -1,46 +1,42 @@
 <launch>
   <arg name="model_name" />
-  <arg name="uuv_name" default="$(arg model_name)"/>
+  <arg name="uuv_name" default="$(var model_name)"/>
   <arg name="base_link" default="base_link" />
   <arg name="timeout" default="-1" />
   <arg name="reset_tam" default="false"/>
-  <arg name="output_dir" default="$(find uuv_thruster_manager)/config/$(arg model_name)"/>
-  <arg name="config_file" default="$(find uuv_thruster_manager)/config/$(arg model_name)/thruster_manager.yaml"/>
-  <arg name="tam_file" default="$(find uuv_thruster_manager)/config/$(arg model_name)/TAM.yaml"/>
+  <arg name="output_dir" default="$(find-pkg-share uuv_thruster_manager)/config/$(var model_name)"/>
+  <arg name="config_file" default="$(find-pkg-share uuv_thruster_manager)/config/$(var model_name)/thruster_manager.yaml"/>
+  <arg name="tam_file" default="$(find-pkg-share uuv_thruster_manager)/config/$(var model_name)/TAM.yaml"/>
 
   <group>
-    <push-ros-namespace namespace="$(arg uuv_name)"/>
-    <rosparam file="$(arg config_file)" command="load"/>
+    <push-ros-namespace namespace="$(var uuv_name)"/>
 
-    <rosparam param="thruster_manager/tf_prefix" subst_value="true">
-      $(arg uuv_name)
-    </rosparam>
-
-    <rosparam param="thruster_manager/timeout" subst_value="true">
-      $(arg timeout)
-    </rosparam>
-
-    <group if="$(arg reset_tam)">
+    <group if="$(var reset_tam)">
       <node pkg="uuv_thruster_manager"
             exec="thruster_allocator.py"
-            name="thruster_allocator"
+            node-name="thruster_allocator"
             output="screen">
+
+        <param from="$(var config_file)"/>
         <!-- Output directory to store the thruster allocation matrix -->
-        <rosparam param="output_dir" subst_value="true">
-          $(arg output_dir)
-        </rosparam>
+        <param name="output_dir" value="$(var output_dir)"/>    
+        <!--The following is not used and not called, remove it-->
+        <!-- <param param="thruster_manager/timeout" value="$(arg timeout)"/> -->
+        <!-- <param param="thruster_manager/tf_prefix" value="$(arg uuv_name)"/>-->
       </node>
     </group>
 
-    <group unless="$(arg reset_tam)">
+    <group unless="$(var reset_tam)">
       <node pkg="uuv_thruster_manager"
-            type="thruster_allocator.py"
-            name="thruster_allocator"
+            exec="thruster_allocator.py"
+            node-name="thruster_allocator"
             output="screen">
+        <param from="$(var config_file)"/>
         <!-- Load thruster allocation matrix -->
-        <rosparam file="$(arg tam_file)" command="load"/>
+        <param from="$(var tam_file)"/> 
       </node>
     </group>
+    
   </group>
 
 </launch>

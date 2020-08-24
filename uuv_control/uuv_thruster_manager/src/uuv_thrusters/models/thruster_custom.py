@@ -56,6 +56,7 @@ class ThrusterCustom(Thruster):
         # Vector of sample values for each thrust force relative to the input
         self._output = kwargs['output']
 
+    #==============================================================================
     def get_command_value(self, thrust):
         """Compute the angular velocity necessary 
         for the desired thrust force.
@@ -70,6 +71,7 @@ class ThrusterCustom(Thruster):
         """
         return numpy.interp(thrust, self._output, self._input)
 
+    #==============================================================================
     def get_thrust_value(self, command):
         """Computes the thrust force for the given angular velocity
         set-point.

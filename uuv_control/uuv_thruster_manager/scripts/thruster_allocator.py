@@ -25,7 +25,7 @@ import yaml
 from uuv_thrusters import ThrusterManager
 from geometry_msgs.msg import Wrench, WrenchStamped
 from uuv_thruster_manager.srv import *
-from time_utils import time_in_float_sec
+from plankton_utils.time import time_in_float_sec
 
 
 class ThrusterAllocatorNode(ThrusterManager):
@@ -36,13 +36,14 @@ class ThrusterAllocatorNode(ThrusterManager):
     def __init__(self, node_name):
         """Class constructor."""
         ThrusterManager.__init__(self, node_name)
-        
-        self.last_update = self.get_clock().now()
-
+        self.get_logger().info("hello allocator")
+        self.last_update = time_in_float_sec(self.get_clock().now())
+        self.get_logger().info("hello allocator 1.5")
         # Subscriber to the wrench to be applied on the UUV
         self.input_sub = self.create_subscription(Wrench, 'thruster_manager/input',
                                           self.input_callback, 10)
 
+        self.get_logger().info("hello allocator 1.8")
         # To deliver the wrench input with an option to use another body frame
         # (options: base_link and base_link_ned), use the wrench stamped
         # message
@@ -62,25 +63,28 @@ class ThrusterAllocatorNode(ThrusterManager):
             GetThrusterManagerConfig, 'thruster_manager/get_config',
             self.get_config)
 
-        rate = self.create_rate(self.config['update_rate'])
+        self.get_logger().info("hello allocator 2")
+        rate = self.create_rate(self.config['update_rate'].value)
         while rclpy.ok():
-            if self.config['timeout'] > 0:
+            if self.config['timeout'].value > 0:
                 # If a timeout is set, zero the outputs to the thrusters if
                 # there is no command signal for the length of timeout
-                if time_in_float_sec(self.get_clock().now()) - self.last_update > self.config['timeout']:
-                    print('Turning thrusters off - inactive for too long')
+                if time_in_float_sec(self.get_clock().now()) - self.last_update > self.config['timeout'].value:
+                    self.get_logger().info('Turning thrusters off - inactive for too long')
                     if self.thrust is not None:
                         self.thrust.fill(0)
                         self.command_thrusters()
             rate.sleep()
 
+    #==============================================================================
     def get_thruster_info(self, request):
         """Return service callback with thruster information."""
         return ThrusterManagerInfoResponse(
             self.n_thrusters,
             self.configuration_matrix.flatten().tolist(),
-            self.namespace + self.config['base_link'])
+            self.namespace + self.config['base_link'].value)
 
+    #==============================================================================
     def get_thruster_curve(self, request):
         """Return service callback for computation of thruster curve."""
         if self.n_thrusters == 0:
@@ -91,35 +95,38 @@ class ThrusterAllocatorNode(ThrusterManager):
             request.min, request.max, request.n_points)
         return GetThrusterCurveResponse(input_values, thrust_values)
 
+    #==============================================================================
     def set_config(self, request):
         old_config = deepcopy(self.config)
         self.ready = False
-        self.config['base_link'] = request.base_link
-        self.config['thruster_frame_base'] = request.thruster_frame_base
-        self.config['thruster_topic_prefix'] = request.thruster_topic_prefix
-        self.config['thruster_topic_suffix'] = request.thruster_topic_suffix
+        self.config['base_link'].value = request.base_link
+        self.config['thruster_frame_base'].value = request.thruster_frame_base
+        self.config['thruster_topic_prefix'].value = request.thruster_topic_prefix
+        self.config['thruster_topic_suffix'].value = request.thruster_topic_suffix
         self.config['timeout'] = request.timeout
-        print('New configuration:\n')
+        self.get_logger().info('New configuration:\n')
         for key in self.config:
-            print(key, '=', self.config[key])
+            self.get_logger().info(key, '=', self.config[key].value)
         if not self.update_tam(recalculate=True):
-            print('Configuration parameters are invalid, going back to old configuration...')
+            self.get_logger().info('Configuration parameters are invalid, going back to old configuration...')
             self.config = old_config
             self.update_tam(recalculate=True)
         return SetThrusterManagerConfigResponse(True)
 
+    #==============================================================================
     def get_config(self, request):
         return GetThrusterManagerConfigResponse(
             self.namespace,
-            self.config['base_link'],
-            self.config['thruster_frame_base'],
-            self.config['thruster_topic_prefix'],
-            self.config['thruster_topic_suffix'],
-            self.config['timeout'],
-            self.config['max_thrust'],
+            self.config['base_link'].value,
+            self.config['thruster_frame_base'].value,
+            self.config['thruster_topic_prefix'].value,
+            self.config['thruster_topic_suffix'].value,
+            self.config['timeout'].value,
+            self.config['max_thrust'].value,
             self.n_thrusters,
             self.configuration_matrix.flatten().tolist())
 
+    #==============================================================================
     def input_callback(self, msg):
         """
         Callback to the subscriber that receiver the wrench to be applied on
@@ -136,8 +143,9 @@ class ThrusterAllocatorNode(ThrusterManager):
         # configured base_link reference
         self.publish_thrust_forces(force, torque)
 
-        self.last_update = self.get_clock().now()
-
+        self.last_update = time_in_float_sec(self.get_clock().now())
+    
+    #==============================================================================
     def input_stamped_callback(self, msg):
         """
         Callback to the subscriber that receiver the stamped wrench to be
@@ -154,10 +162,11 @@ class ThrusterAllocatorNode(ThrusterManager):
 
         # Send the frame ID for the requested wrench
         self.publish_thrust_forces(force, torque, msg.header.frame_id.split('/')[-1])
-        self.last_update = self.get_clock().now()
+        self.last_update = time_in_float_sec(self.get_clock().now())
 
+#==============================================================================
 def main():
-    rclypy.init()
+    rclpy.init()
 
     try:
         node = ThrusterAllocatorNode('thruster_allocator')
@@ -166,5 +175,6 @@ def main():
         print('ThrusterAllocatorNode::Exception ' + str(e))
     print('Leaving ThrusterAllocatorNode')
 
+#==============================================================================
 if __name__ == '__main__':
     main()

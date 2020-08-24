@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy
-from thruster import Thruster
+from .thruster import Thruster
 
 
 class ThrusterProportional(Thruster):
@@ -45,6 +45,7 @@ class ThrusterProportional(Thruster):
         self.node.get_logger().info('Thruster model:')
         self.node.get_logger().info('\tGain=' + str(self._gain))
 
+    #==============================================================================
     def get_command_value(self, thrust):
         """Compute the angular velocity necessary 
         for the desired thrust force.
@@ -60,6 +61,7 @@ class ThrusterProportional(Thruster):
         return numpy.sign(thrust) * \
             numpy.sqrt(numpy.abs(thrust) / self._gain)
 
+    #==============================================================================
     def get_thrust_value(self, command):
         """Computes the thrust force for the given angular velocity
         set-point.
