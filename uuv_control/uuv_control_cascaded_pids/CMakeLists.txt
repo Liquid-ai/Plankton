@@ -20,9 +20,9 @@ find_package(ament_cmake REQUIRED)
 # generate_dynamic_reconfigure_options(cfg/AccelerationControl.cfg
 #   cfg/PositionControl.cfg cfg/VelocityControl.cfg)
 
-install(PROGRAMS scripts/AccelerationControl.py
-                 scripts/PositionControl.py 
-                 scripts/VelocityControl.py
+install(PROGRAMS scripts/acceleration_control.py
+                 scripts/position_control.py 
+                 scripts/velocity_control.py
         DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config cfg

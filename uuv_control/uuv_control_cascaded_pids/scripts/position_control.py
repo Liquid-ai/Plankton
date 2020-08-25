@@ -31,14 +31,12 @@ from rcl_interfaces.msg import SetParametersResult
 from rclpy.parameter import Parameter
 from rclpy.node import Node
 
-def time_in_float_sec(time: Time):
-    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
-    return f_time
+from plankton_utils.time import time_in_float_sec
 
 class PositionControllerNode(Node):
     def __init__(self, node_name):
         super().__init__(node_name)
-        print('PositionControllerNode: initializing node')
+        self.get_logger().info('PositionControllerNode: initializing node')
 
         self.config = {}
 
@@ -66,8 +64,9 @@ class PositionControllerNode(Node):
         self.sub_odometry = self.create_subscription(numpy_msg(Odometry), 'odom', self.odometry_callback, 10)
         self.pub_cmd_vel = self.create_publisher(geometry_msgs.Twist, 'cmd_vel', 10)
         #self.srv_reconfigure = Server(PositionControlConfig, self.config_callback)
-        self.add_on_set_parameters_callback(self.cb_params)
+        self.add_on_set_parameters_callback(self.callback_params)
 
+    #==============================================================================
     def cmd_pose_callback(self, msg):
         """Handle updated set pose callback."""
         # Just store the desired pose. The actual control runs on odometry callbacks
@@ -76,6 +75,7 @@ class PositionControllerNode(Node):
         self.pos_des = numpy.array([p.x, p.y, p.z])
         self.quat_des = numpy.array([q.x, q.y, q.z, q.w])
 
+    #==============================================================================
     def odometry_callback(self, msg):
         """Handle updated measured velocity callback."""
         if not bool(self.config):
@@ -121,26 +121,33 @@ class PositionControllerNode(Node):
         cmd_vel.angular = geometry_msgs.Vector3(*v_angular)
         self.pub_cmd_vel.publish(cmd_vel)
 
-    def config_callback(self, config, level):
-        """Handle updated configuration values."""
+    #==============================================================================
+    # def config_callback(self, config, level):
+    #     """Handle updated configuration values."""
+    #     # Config has changed, reset PID controllers
+    #     self.pid_pos = PIDRegulator(config['pos_p'], config['pos_i'], config['pos_d'], config['pos_sat'])
+    #     self.pid_rot = PIDRegulator(config['rot_p'], config['rot_i'], config['rot_d'], config['rot_sat'])
+
+    #     self.config = config
+
+    #     return config
+
+    #==============================================================================
+    def callback_params(self, data):
+       """Handle updated configuration values."""
+        for parameter in data:
+            #if parameter.name == "name":
+            #if parameter.type_ == Parameter.Type.DOUBLE:
+            self.config[parameter.name] = parameter.value
+
         # Config has changed, reset PID controllers
         self.pid_pos = PIDRegulator(config['pos_p'], config['pos_i'], config['pos_d'], config['pos_sat'])
         self.pid_rot = PIDRegulator(config['rot_p'], config['rot_i'], config['rot_d'], config['rot_sat'])
 
-        self.config = config
-
-        return config
-
-
-   def cb_params(self, data):
-        for parameter in data:
-            #if parameter.name == "name":
-            if parameter.type_ == Parameter.Type.DOUBLE:
-                self.config[parameter.name] = parameter.value
-
         self.get_logger().warn("Parameters dynamically changed...")
         return SetParametersResult(successful=True)
 
+#==============================================================================
 def main():
     print('Starting PositionControl.py')
     rclpy.init()

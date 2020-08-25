@@ -1,33 +1,35 @@
 <launch>
   <arg name="model_name" />
-  <arg name="uuv_name" default="$(arg model_name)"/>
+  <arg name="uuv_name" default="$(var model_name)"/>
   <arg name="joy_id" default="0"/>
 
-  <include file="$(find uuv_thruster_manager)/launch/thruster_manager.launch">
-    <arg name="uuv_name" value="$(arg uuv_name)" />
-    <arg name="model_name" value="$(arg model_name)" />
+  <include file="$(find-pkg-share uuv_thruster_manager)/launch/thruster_manager.launch">
+    <arg name="uuv_name" value="$(var uuv_name)" />
+    <arg name="model_name" value="$(var model_name)" />
   </include>
 
   <group>
-    <push-ros-namespace namespace="$(arg uuv_name)"/>
-    <rosparam file="$(find uuv_control_cascaded_pid)/config/$(arg model_name)/inertial.yaml" command="load"/>
-    <rosparam file="$(find uuv_control_cascaded_pid)/config/$(arg model_name)/vel_pid_control.yaml" command="load"/>
+    <push-ros-namespace namespace="$(var uuv_name)"/>
+    
+    <!-- <rosparam file="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/vel_pid_control.yaml" command="load"/> -->
 
-    <node pkg="uuv_control_cascaded_pid" exec="AccelerationControl.py" name="acceleration_control"
+    <node pkg="uuv_control_cascaded_pid" exec="acceleration_control.py" node-name="acceleration_control"
           output="screen">
-      <param name="tf_prefix" type="string" value="$(arg uuv_name)/" />
+          <!--TODO tf_prefix-->
+      <param name="tf_prefix" type="string" value="$(var uuv_name)/" />
+      <param from="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/inertial.yaml"/>
     </node>
 
-    <node pkg="uuv_control_cascaded_pid" exec="VelocityControl.py" name="velocity_control"
+    <node pkg="uuv_control_cascaded_pid" exec="velocity_control.py" node-name="velocity_control"
         output="screen">
-      <remap from="odom" to="/$(arg uuv_name)/pose_gt"/>
-      <remap from="cmd_accel" to="/$(arg uuv_name)/cmd_accel"/>
+      <remap from="odom" to="/$(var uuv_name)/pose_gt"/>
+      <remap from="cmd_accel" to="/$(var uuv_name)/cmd_accel"/>
     </node>
   </group>
 
-  <include file="$(find uuv_teleop)/launch/uuv_teleop.launch">
-    <arg name="uuv_name" value="$(arg uuv_name)"/>
-    <arg name="joy_id" value="$(arg joy_id)"/>
+  <include file="$(find-pkg-share uuv_teleop)/launch/uuv_teleop.launch">
+    <arg name="uuv_name" value="$(var uuv_name)"/>
+    <arg name="joy_id" value="$(var joy_id)"/>
     <arg name="output_topic" value="cmd_vel"/>
     <arg name="message_type" value="twist"/>
   </include>

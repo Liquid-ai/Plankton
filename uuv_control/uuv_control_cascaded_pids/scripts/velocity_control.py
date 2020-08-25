@@ -67,7 +67,7 @@ class VelocityControllerNode(Node):
         self.sub_odometry = self.create_subscription(numpy_msg(Odometry), 'odom', self.odometry_callback, 10)
         self.pub_cmd_accel = self.create_publisher( geometry_msgs.Accel, 'cmd_accel', 10)
         #self.srv_reconfigure = Server(VelocityControlConfig, self.config_callback)
-        self.add_on_set_parameters_callback(self.cb_params)
+        self.add_on_set_parameters_callback(self.callback_params)
 
     def cmd_vel_callback(self, msg):
         """Handle updated set velocity callback."""
@@ -112,19 +112,23 @@ class VelocityControllerNode(Node):
         cmd_accel.angular = geometry_msgs.Vector3(*a_angular)
         self.pub_cmd_accel.publish(cmd_accel)
 
-    def config_callback(self, config, level):
-        """Handle updated configuration values."""
+    # def config_callback(self, config, level):
+    #     """Handle updated configuration values."""
+    #     # config has changed, reset PID controllers
+    #     self.pid_linear = PIDRegulator(config['linear_p'], config['linear_i'], config['linear_d'], config['linear_sat'])
+    #     self.pid_angular = PIDRegulator(config['angular_p'], config['angular_i'], config['angular_d'], config['angular_sat'])
+
+    #     self.config = config
+
+    #     return config
+
+     def callback_params(self, data):
+        for parameter in data:
+            self.config[parameter.name] = parameter.value
+        
         # config has changed, reset PID controllers
         self.pid_linear = PIDRegulator(config['linear_p'], config['linear_i'], config['linear_d'], config['linear_sat'])
         self.pid_angular = PIDRegulator(config['angular_p'], config['angular_i'], config['angular_d'], config['angular_sat'])
-
-        self.config = config
-
-        return config
-
-     def cb_params(self, data):
-        for parameter in data:
-            self.config[parameter.name] = parameter.value
 
         self.get_logger().warn("Parameters dynamically changed...")
         return SetParametersResult(successful=True)

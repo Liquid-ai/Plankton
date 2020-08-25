@@ -17,18 +17,24 @@ from __future__ import print_function
 import numpy
 import rclpy
 
-from dynamic_reconfigure.server import Server
+#from dynamic_reconfigure.server import Server
 from geometry_msgs.msg import Accel
 from geometry_msgs.msg import Wrench
-from rospy.numpy_msg import numpy_msg
+#from rospy.numpy_msg import numpy_msg
 from rclpy.node import Node
 
 class AccelerationControllerNode(Node):
     def __init__(self, node_name):
 
-        super().init(node_name)
+        super().__init__(node_name,
+                        allow_undeclared_parameters=True, 
+                        automatically_declare_parameters_from_overrides=True)
 
-        print('AccelerationControllerNode: initializing node')
+        #Default sim_time to True
+        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        self.set_parameters([sim_time])
+
+        self.get_logger().info('AccelerationControllerNode: initializing node')
 
         self.ready = False
         self.mass = 1.
@@ -36,34 +42,43 @@ class AccelerationControllerNode(Node):
         self.mass_inertial_matrix = numpy.zeros((6, 6))
 
         # ROS infrastructure
-        self.sub_accel = self.create_subscription(
-          numpy_msg(Accel), 'cmd_accel', self.accel_callback, 10)
-        self.sub_force = self.create_subscription(
-          numpy_msg(Accel), 'cmd_force', self.force_callback, 10)
-        self.pub_gen_force = self.create_publisher(
-          Wrench, 'thruster_manager/input', 1)
+        self.sub_accel = self.create_subscription(Accel, 'cmd_accel', self.accel_callback, 10)
+        self.sub_force = self.create_subscription(Accel, 'cmd_force', self.force_callback, 10)
+        # self.sub_accel = self.create_subscription(
+        #   numpy_msg(Accel), 'cmd_accel', self.accel_callback, 10)
+        # self.sub_force = self.create_subscription(
+        #   numpy_msg(Accel), 'cmd_force', self.force_callback, 10)
+        self.pub_gen_force = self.create_publisher(Wrench, 'thruster_manager/input', 1)
 
-        if not self.has_parameter("pid/mass"):
+        self.get_logger().info(str(self.get_parameters(['/'])))
+
+        if not self.has_parameter("pid.mass"):
             raise RuntimeError("UUV's mass was not provided")
 
-        if not self.has_parameter("pid/inertial"):
-            raise RuntimeError("UUV's inertial was not provided")
+        # if not self.has_parameter("pid.inertial"):
+        #     raise RuntimeError("UUV's inertial was not provided")
 
-        self.mass = self.get_parameter("pid/mass").value
-        self.inertial = self.get_parameter("pid/inertial").value
+        self.mass = self.get_parameter("pid.mass").value
+        self.inertial = self.get_parameters_by_prefix("pid.inertial")
+
+        if len(self.inertial) == 0:
+          raise RuntimeError("UUV's inertial was not provided")
+
+        #self.get_logger().info(str(inertial))
 
         # update mass, moments of inertia
         self.inertial_tensor = numpy.array(
-          [[self.inertial['ixx'], self.inertial['ixy'], self.inertial['ixz']],
-           [self.inertial['ixy'], self.inertial['iyy'], self.inertial['iyz']],
-           [self.inertial['ixz'], self.inertial['iyz'], self.inertial['izz']]])
+          [[self.inertial['ixx'].value, self.inertial['ixy'].value, self.inertial['ixz'].value],
+           [self.inertial['ixy'].value, self.inertial['iyy'].value, self.inertial['iyz'].value],
+           [self.inertial['ixz'].value, self.inertial['iyz'].value, self.inertial['izz'].value]])
         self.mass_inertial_matrix = numpy.vstack((
           numpy.hstack((self.mass*numpy.identity(3), numpy.zeros((3, 3)))),
           numpy.hstack((numpy.zeros((3, 3)), self.inertial_tensor))))
 
-        print(self.mass_inertial_matrix)
+        self.get_logger().info(str(self.mass_inertial_matrix))
         self.ready = True
 
+    #==============================================================================
     def force_callback(self, msg):
         if not self.ready:
             return
@@ -86,6 +101,7 @@ class AccelerationControllerNode(Node):
 
         self.pub_gen_force.publish(force_msg)
 
+    #==============================================================================
     def accel_callback(self, msg):
         if not self.ready:
             return
@@ -109,8 +125,9 @@ class AccelerationControllerNode(Node):
 
         self.pub_gen_force.publish(force_msg)
 
+#==============================================================================
 def main():
-  print('starting AccelerationControl.py')
+  print('starting acceleration_control.py')
   #rospy.init_node('acceleration_control')
 
   rclpy.init()
@@ -122,5 +139,6 @@ def main():
     print('Caught exception:' + str(e))
     print('Exiting')
 
+#==============================================================================
 if __name__ == '__main__':
     main()
