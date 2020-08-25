@@ -14,21 +14,20 @@
 # limitations under the License.
 
 import numpy
-import rclpy
-#import tf
-from tf_quaternion import transformations
-import tf2_ros
 from os.path import isdir, join
-import yaml
 from time import sleep
-from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
-from geometry_msgs.msg import Wrench
 import xml.etree.ElementTree as etree
+import yaml
+
+from geometry_msgs.msg import Wrench
+import tf2_ros
+import rclpy
+from rclpy.node import Node
 
 from .models import Thruster
-from rclpy.node import Node
 from plankton_utils.param_handler import parse_nested_params_to_dict
-
+from tf_quaternion import transformations
+from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 
 class ThrusterManager(Node):
     """
@@ -114,7 +113,7 @@ class ThrusterManager(Node):
                 source = 'base_link_ned'
             source = source[1::]
             tf_trans_ned_to_enu = self.tf_buffer.lookup_transform(
-                target, source, rclpy.time.Time(), rclpy.time.Duration(1))
+                target, source, rclpy.time.Time(), rclpy.time.Duration(seconds=1))
         except Exception as e:
             self.get_logger().info('No transform found between base_link and base_link_ned'
                   ' for vehicle {}, message={}'.format(self.namespace, e))
@@ -227,8 +226,8 @@ class ThrusterManager(Node):
                 yaml_file.write(
                     yaml.safe_dump(
                         dict(tam=self.configuration_matrix.tolist())))
-        else:
-            self.get_logger().info('Invalid output directory for the TAM matrix, dir=' + str(self.output_dir))
+        # else:
+        #     self.get_logger().info('Invalid output directory for the TAM matrix, dir=' + str(self.output_dir))
 
         self.ready = True
         self.get_logger().info('ThrusterManager: ready')
@@ -301,7 +300,7 @@ class ThrusterManager(Node):
                 self.get_logger().info('transform: ' + base + ' -> ' + frame)
                 now = self.get_clock().now() + rclpy.time.Duration(nanoseconds=int(0.2 * 1e9))
                 self.tf_buffer.can_transform(base, frame,
-                                               now, timeout=rclpy.time.Duration(nanoseconds=int(1.0 * 1e9)))
+                                               now, timeout=rclpy.time.Duration(seconds=1))
                 [pos, quat] = self.tf_buffer.lookup_transform(base, frame, now)
 
                 topic = self.config['thruster_topic_prefix'].value + 'id_' + str(i) + \
