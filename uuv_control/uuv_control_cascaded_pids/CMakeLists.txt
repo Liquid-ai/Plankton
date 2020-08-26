@@ -20,6 +20,8 @@ find_package(ament_cmake REQUIRED)
 # generate_dynamic_reconfigure_options(cfg/AccelerationControl.cfg
 #   cfg/PositionControl.cfg cfg/VelocityControl.cfg)
 
+ament_python_install_package(uuv_PID PACKAGE_DIR src/PID)
+
 install(PROGRAMS scripts/acceleration_control.py
                  scripts/position_control.py 
                  scripts/velocity_control.py
