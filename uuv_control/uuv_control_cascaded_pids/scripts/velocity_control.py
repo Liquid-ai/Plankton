@@ -22,18 +22,15 @@ import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
 #import tf.transformations as trans
 #TODO numpy_msg...
-from rospy.numpy_msg import numpy_msg
+#from rospy.numpy_msg import numpy_msg
 
 # Modules included in this package
-from PID import PIDRegulator
-from uuv_control_cascaded_pid.cfg import VelocityControlConfig
+from uuv_PID import PIDRegulator
+#from uuv_control_cascaded_pid.cfg import VelocityControlConfig
 
 from rclpy.node import Node
+from plankton_utils.time import time_in_float_sec
 
-
-def time_in_float_sec(time: Time):
-    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
-    return f_time
 
 class VelocityControllerNode(Node):
     def __init__(self, node_name):
@@ -63,12 +60,16 @@ class VelocityControllerNode(Node):
         self.declare_parameter("odom_vel_in_world", True)
 
         # ROS infrastructure
-        self.sub_cmd_vel = self.create_subscription(numpy_msg(geometry_msgs.Twist), 'cmd_vel', self.cmd_vel_callback, 10)
-        self.sub_odometry = self.create_subscription(numpy_msg(Odometry), 'odom', self.odometry_callback, 10)
+        self.sub_cmd_vel = self.create_subscription(geometry_msgs.Twist, 'cmd_vel', self.cmd_vel_callback, 10)
+        self.sub_odometry = self.create_subscription(Odometry, 'odom', self.odometry_callback, 10)
+        self.pub_cmd_accel = self.create_publisher( geometry_msgs.Accel, 'cmd_accel', 10)
+        # self.sub_cmd_vel = self.create_subscription(numpy_msg(geometry_msgs.Twist), 'cmd_vel', self.cmd_vel_callback, 10)
+        # self.sub_odometry = self.create_subscription(numpy_msg(Odometry), 'odom', self.odometry_callback, 10)
         self.pub_cmd_accel = self.create_publisher( geometry_msgs.Accel, 'cmd_accel', 10)
         #self.srv_reconfigure = Server(VelocityControlConfig, self.config_callback)
-        self.add_on_set_parameters_callback(self.callback_params)
+        self.set_parameters_callback(self.callback_params)
 
+    #==============================================================================
     def cmd_vel_callback(self, msg):
         """Handle updated set velocity callback."""
         # Just store the desired velocity. The actual control runs on odometry callbacks
@@ -77,6 +78,7 @@ class VelocityControllerNode(Node):
         self.v_linear_des = numpy.array([v_l.x, v_l.y, v_l.z])
         self.v_angular_des = numpy.array([v_a.x, v_a.y, v_a.z])
 
+    #==============================================================================
     def odometry_callback(self, msg):
         """Handle updated measured velocity callback."""
         if not bool(self.config):
@@ -122,7 +124,7 @@ class VelocityControllerNode(Node):
 
     #     return config
 
-     def callback_params(self, data):
+    def callback_params(self, data):
         for parameter in data:
             self.config[parameter.name] = parameter.value
         
@@ -133,6 +135,7 @@ class VelocityControllerNode(Node):
         self.get_logger().warn("Parameters dynamically changed...")
         return SetParametersResult(successful=True)
 
+#==============================================================================
 def main():
     print('Starting VelocityControl.py')
     rclpy.init()
@@ -144,5 +147,6 @@ def main():
         print('Caught exception: ' + str(e))
     print('Exiting')
 
+#==============================================================================
 if __name__ == '__main__':
     main()
