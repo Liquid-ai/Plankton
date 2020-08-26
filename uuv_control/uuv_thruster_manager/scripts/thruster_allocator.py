@@ -75,6 +75,7 @@ class ThrusterAllocatorNode(ThrusterManager):
                         self.thrust.fill(0)
                         self.command_thrusters()
             rate.sleep()
+            rclpy.spin_once(self)
 
     #==============================================================================
     def get_thruster_info(self, request):
@@ -170,7 +171,7 @@ def main():
 
     try:
         node = ThrusterAllocatorNode('thruster_allocator')
-        rclpy.spin(node)
+        #rclpy.spin(node)
     except Exception as e:
         print('ThrusterAllocatorNode::Exception ' + str(e))
     print('Leaving ThrusterAllocatorNode')
