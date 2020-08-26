@@ -21,16 +21,48 @@
   <arg name="output_topic" default="cmd_vel"/>
   <!-- The type of message can also be geometry_msgs/Accel -->
   <arg name="message_type" default="twist"/>
+
   <group>
-    <push-ros-namespace namespace="$(arg uuv_name)"/>
-    <node pkg="joy" exec="joy_node" name="joystick">
-      <param name="autorepeat_rate" value="10"/>
-      <param name="dev" value="/dev/input/js$(arg joy_id)"/>
+    <push-ros-namespace namespace="$(var uuv_name)"/>
+
+    <node pkg="joy" exec="joy_node" node-name="joystick">
+      <param name="autorepeat_rate" value="10.0"/>
+      <param name="dev" value="/dev/input/js$(var joy_id)"/>
     </node>
-    <node pkg="uuv_teleop" exec="vehicle_teleop.py" name="joy_uuv_velocity_teleop">
-      <remap from="output" to="/$(arg uuv_name)/$(arg output_topic)"/>
-      <remap from="joy" to="/$(arg uuv_name)/joy"/>
-      <rosparam subst_value="true">
+    
+    <node pkg="uuv_teleop" exec="vehicle_teleop.py" node-name="joy_uuv_velocity_teleop" output="screen">
+      <remap from="output" to="/$(var uuv_name)/$(var output_topic)"/>
+      <remap from="joy" to="/$(var uuv_name)/joy"/>
+      <param name="type" value="$(var message_type)"/>
+      <param name="deadman_button" value="$(var deadman_button)"/>
+      <param name="exclusion_buttons" value="$(var exclusion_buttons)"/> <!--value-sep=","/>-->
+      <param name="mapping">
+        <param name="x">
+          <param name="axis" value="$(var axis_x)"/>
+          <param name="gain" value="$(var gain_x)"/>
+        </param>
+        <param name="y">
+          <param name="axis" value="$(var axis_y)"/>
+          <param name="gain" value="$(var gain_y)"/>
+        </param>
+        <param name="z">
+          <param name="axis" value="$(var axis_z)"/>
+          <param name="gain" value="$(var gain_z)"/>
+        </param>
+        <param name="roll">
+          <param name="axis" value="$(var axis_roll)"/>
+          <param name="gain" value="$(var gain_roll)"/>
+        </param>
+        <param name="pitch">
+          <param name="axis" value="$(var axis_pitch)"/>
+          <param name="gain" value="$(var gain_pitch)"/>
+        </param>
+         <param name="yaw">
+          <param name="axis" value="$(var axis_yaw)"/>
+          <param name="gain" value="$(var gain_yaw)"/>
+        </param>
+      </param>
+      <!-- <rosparam subst_value="true">
         type: $(arg message_type)
         deadman_button: $(arg deadman_button)
         exclusion_buttons: [$(arg exclusion_buttons)]
@@ -53,7 +85,7 @@
           yaw:
             axis: $(arg axis_yaw)
             gain: $(arg gain_yaw)
-      </rosparam>
+      </rosparam> -->
     </node>
   </group>
 </launch>

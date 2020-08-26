@@ -40,24 +40,23 @@ class FinnedUUVControllerNode(Node):
                         'fin_topic_suffix', 'thruster_topic',
                         'axis_thruster', 'axis_roll', 'axis_pitch', 'axis_yaw']
 
-        #TODO Remove ~ ?
         for label in param_labels:
-            if not self.has_parameter('~%s' % label):
+            if not self.has_parameter('%s' % label):
                 raise rospy.ROSException('Parameter missing, label=%s' % label)
 
         # Number of fins
-        self._n_fins = self.get_parameter('~n_fins').get_parameter_value().integer_value
+        self._n_fins = self.get_parameter('n_fins').get_parameter_value().integer_value
 
         # Thruster joy axis gain
         self._thruster_joy_gain = 1
-        if self.has_parameter('~thruster_joy_gain'):
-            self._thruster_joy_gain = self.get_parameter('~thruster_joy_gain').get_parameter_value().double_value
+        if self.has_parameter('thruster_joy_gain'):
+            self._thruster_joy_gain = self.get_parameter('thruster_joy_gain').get_parameter_value().double_value
 
         # Read the vector for contribution of each fin on the change on
         # orientation
-        gain_roll = self.get_parameter('~gain_roll').get_parameter_value().double_array_value
-        gain_pitch = self.get_parameter('~gain_pitch').get_parameter_value().double_array_value
-        gain_yaw = self.get_parameter('~gain_yaw').get_parameter_value().double_array_value
+        gain_roll = self.get_parameter('gain_roll').get_parameter_value().double_array_value
+        gain_pitch = self.get_parameter('gain_pitch').get_parameter_value().double_array_value
+        gain_yaw = self.get_parameter('gain_yaw').get_parameter_value().double_array_value
 
         if len(gain_roll) != self._n_fins or len(gain_pitch) != self._n_fins \
             or len(gain_yaw) != self._n_fins:
@@ -68,24 +67,25 @@ class FinnedUUVControllerNode(Node):
         self._rpy_to_fins = numpy.vstack((gain_roll, gain_pitch, gain_yaw)).T
 
         # Read the joystick mapping
-        self._joy_axis = dict(axis_thruster=self.get_parameter('~axis_thruster').get_parameter_value().integer_value,
-                              axis_roll=self.get_parameter('~axis_roll').get_parameter_value().integer_value,
-                              axis_pitch=self.get_parameter('~axis_pitch').get_parameter_value().integer_value,
-                              axis_yaw=self.get_parameter('~axis_yaw').get_parameter_value().integer_value)
+        self._joy_axis = dict(axis_thruster=self.get_parameter('axis_thruster').get_parameter_value().integer_value,
+                              axis_roll=self.get_parameter('axis_roll').get_parameter_value().integer_value,
+                              axis_pitch=self.get_parameter('axis_pitch').get_parameter_value().integer_value,
+                              axis_yaw=self.get_parameter('axis_yaw').get_parameter_value().integer_value)
 
+        #TODO Check if we must add id_ to topic
         # Subscribe to the fin angle topics
         self._pub_cmd = list()
-        self._fin_topic_prefix = self.get_parameter('~fin_topic_prefix').get_parameter_value().string_value
-        self._fin_topic_suffix = self.get_parameter('~fin_topic_suffix').get_parameter_value().string_value
+        self._fin_topic_prefix = self.get_parameter('fin_topic_prefix').get_parameter_value().string_value
+        self._fin_topic_suffix = self.get_parameter('fin_topic_suffix').get_parameter_value().string_value
         for i in range(self._n_fins):
             topic = self._fin_topic_prefix + str(i) + self._fin_topic_suffix
-            self._pub_cmd.append(
-              self.create_publisher(FloatStamped, topic, 10))
+            self._pub_cmd.append(self.create_publisher(FloatStamped, topic, 10))
 
+        #TODO 
         # Create the thruster model object
         try:
-            self._thruster_topic = self.get_parameter('~thruster_topic').get_parameter_value().string_value
-            self._thruster_params = self.get_parameter('~thruster_model').value
+            self._thruster_topic = self.get_parameter('thruster_topic').get_parameter_value().string_value
+            self._thruster_params = self.get_parameters_by_prefix('thruster_model')
             if 'max_thrust' not in self._thruster_params:
                 raise rclpy.exceptions.ParameterException('No limit to thruster output was given')
             self._thruster_model = Thruster.create_thruster(
@@ -96,11 +96,11 @@ class FinnedUUVControllerNode(Node):
             raise RuntimeError('Thruster model could not be initialized')
         
         # Subscribe to the joystick topic
-        self.sub_joy = self.create_subscription(numpy_msg(Joy), 'joy',
-                                        self.joy_callback)
+        self.sub_joy = self.create_subscription(numpy_msg(Joy), 'joy', self.joy_callback)
 
         self._ready = True
 
+    #==========================================================================
     def joy_callback(self, msg):
         """Handle callbacks with joystick state."""
 
@@ -137,10 +137,11 @@ class FinnedUUVControllerNode(Node):
             if not self._ready:
                 return
         except Exception as e:
-            print('Error occurred while parsing joystick input, check '
+            self.get_logger().error('Error occurred while parsing joystick input, check '
                   'if the joy_id corresponds to the joystick ' 
                   'being used. message={}'.format(e))
 
+#==============================================================================
 def main(args=None):
     print('starting FinnedUUVControllerNode.py')
     #rospy.init_node('finned_uuv_teleop')
@@ -153,5 +154,6 @@ def main(args=None):
         print('caught exception')
     print('exiting')
 
+#==========================================================================
 if __name__ == '__main__':
     main()

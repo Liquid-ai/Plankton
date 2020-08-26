@@ -37,27 +37,47 @@ between the number
 <arg name="gain_yaw" default="-1,1,1,-1"/>
 
 <!-- If option to use a parameter file is given -->
-<group if="$(arg use_param_file)">
+<group if="$(var use_param_file)">
   <group>
-    <push-ros-namespace namespace="$(arg uuv_name)"/>
-    <node pkg="uuv_teleop" exec="finned_uuv_teleop.py" name="finned_uuv_teleop"
+    <push-ros-namespace namespace="$(var uuv_name)"/>
+    <node pkg="uuv_teleop" exec="finned_uuv_teleop.py" node-name="finned_uuv_teleop"
           output="screen">
-      <rosparam command="load" file="$(arg filename)"/>
+      <param from="$(var filename)"/>
     </node>
 
-    <node pkg="joy" type="joy_node" name="joystick">
+    <node pkg="joy" type="joy_node" node-name="joystick">
       <param name="autorepeat_rate" value="10" />
-      <param name="dev" value="/dev/input/js$(arg joy_id)"/>
+      <param name="dev" value="/dev/input/js$(var joy_id)"/>
     </node>
   </group>
 </group>
 
-<group unless="$(arg use_param_file)">
+<group unless="$(var use_param_file)">
     <group>
-      <push-ros-namespace namespace="$(arg uuv_name)"/>
-      <node pkg="uuv_teleop" exec="finned_uuv_teleop.py" name="finned_uuv_teleop"
-            output="screen">
-        <rosparam subst_value="true">
+      <push-ros-namespace namespace="$(var uuv_name)"/>
+      <node pkg="uuv_teleop" exec="finned_uuv_teleop.py" node-name="finned_uuv_teleop" output="screen">
+        <param name="axis_thruster" value="$(var axis_thruster)"/>
+        <param name="axis_roll" value="$$(var axis_roll)"/>
+        <param name="axis_pitch" value="$(var axis_pitch)"/>
+        <param name="axis_yaw" value="$(var axis_yaw)"/>
+        <param name="n_fins" value="$(var n_fins)"/>
+        <param name="thruster_joy_gain" value="$(var thruster_joy_gain)"/>
+        <param name="thruster_model">
+          <param name="name" value="proportional"/>
+          <param name="max_thrust" value="$(var max_thrust)"/>
+          <param name="params">
+            <param name="gain" value="$(var thruster_rotor_gain)"/>
+          </param>
+        </param>
+        
+        <param name="gain_roll" value="$(var gain_roll)"/>
+        <param name="gain_pitch" value="$(var gain_pitch)"/>
+        <param name="gain_yaw" value="$(var gain_yaw)"/>
+        <param name="thruster_topic" value="$(var thruster_topic)"/>
+        <param name="fin_topic_prefix" value="$(var fin_topic_prefix)"/>
+        <param name="fin_topic_suffix" value="$(var fin_topic_suffix)"/>
+
+        <!-- <rosparam subst_value="true">
           axis_thruster: $(arg axis_thruster)
           axis_roll: $(arg axis_roll)
           axis_pitch: $(arg axis_pitch)
@@ -75,12 +95,12 @@ between the number
           thruster_topic: $(arg thruster_topic)
           fin_topic_prefix: $(arg fin_topic_prefix)
           fin_topic_suffix: $(arg fin_topic_suffix)
-        </rosparam>
+        </rosparam> -->
       </node>
 
-      <node pkg="joy" exec="joy_node" name="joystick">
+      <node pkg="joy" exec="joy_node" node-name="joystick">
         <param name="autorepeat_rate" value="10" />
-        <param name="dev" value="/dev/input/js$(arg joy_id)"/>
+        <param name="dev" value="/dev/input/js$(var joy_id)"/>
       </node>
     </group>
   </group>

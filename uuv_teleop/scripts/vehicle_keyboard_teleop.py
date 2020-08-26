@@ -58,8 +58,8 @@ class KeyBoardVehicleTeleop(Node):
 
         # Default message remains as twist
         self._msg_type = 'twist'
-        if self.has_parameter('~type'):
-            self._msg_type = self.get_parameter('~type').value
+        if self.has_parameter('type'):
+            self._msg_type = self.get_parameter('type').value
             if self._msg_type not in ['twist', 'accel']:
                 raise rclpy.exceptions.ParameterException('Teleoperation output must be either '
                                          'twist or accel')
@@ -78,6 +78,7 @@ class KeyBoardVehicleTeleop(Node):
         #     rate.sleep()
         #     self._parse_keyboard()
 
+    #==========================================================================
     # Every spin this function will return the key being pressed
     # Only works for one key per spin currently, thus limited control exploring alternative methods
     def _get_key(self):
@@ -91,7 +92,7 @@ class KeyBoardVehicleTeleop(Node):
 
         return key
 
-
+    #==========================================================================
     # Function to gradually build up the speed and avoid jerkyness #
     def _speed_windup(self, speed, increment, limit, reverse):
         if reverse == True:
@@ -105,6 +106,7 @@ class KeyBoardVehicleTeleop(Node):
 
         return speed
 
+    #==========================================================================
     def _parse_keyboard(self):
         # Save key peing pressed
         key_press = self._get_key()
@@ -187,6 +189,7 @@ class KeyBoardVehicleTeleop(Node):
         # Publish message
         self._output_pub.publish(cmd)
 
+#==============================================================================
 def main(args=None):
     # Wait for 5 seconds, so the instructions are the last thing to print in terminal
     time.sleep(5)
@@ -204,6 +207,7 @@ def main(args=None):
     teleop.get_logger().info('Shutting down [%s] node' % node_name)
     rclpy.shutdown()
 
+#==============================================================================
 if __name__ == '__main__':  
     main()
     

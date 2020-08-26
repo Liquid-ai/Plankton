@@ -21,11 +21,19 @@ from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist, Accel, Vector3
 from sensor_msgs.msg import Joy
 from rclpy.node import Node
+from plankton_utils.param_handler import parse_nested_params_to_dict
 
 
 class VehicleTeleop(Node):
     def __init__(self, node_name):
-        super().__init__(node_name)
+        super().__init__(node_name,
+                        allow_undeclared_parameters=True, 
+                        automatically_declare_parameters_from_overrides=True)
+
+        #Default use_sim_time to true
+        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        self.set_parameters([sim_time])
+
         # Load the mapping for each input
         self._axes = dict(x=4, y=3, z=1,
                           roll=2, pitch=5, yaw=0,
@@ -38,54 +46,69 @@ class VehicleTeleop(Node):
                                xfast=6, yfast=6, zfast=1,
                                rollfast=2, pitchfast=2, yawfast=2)
 
-        if self.has_parameter('~mapping'):
-            #TODO check yaml integration
-            mapping = self.get_parameter('~mapping').value
+        mapping = self.get_parameters_by_prefix('mapping')
+        if mapping != 0:       
+        #if self.has_parameter('mapping'):
+            mapping = parse_nested_params_to_dict(mapping, '.')
             for tag in self._axes:
                 if tag not in mapping:
-                    self.get_logger().info('Tag not found in axes mapping, '
-                                  'tag=%s' % tag)
+                    self.get_logger().debug('Tag not found in axes mapping, tag=%s' % tag)
                 else:
                     if 'axis' in mapping[tag]:
-                        self._axes[tag] = mapping[tag]['axis']
+                        self._axes[tag] = mapping[tag]['axis'].get_parameter_value().integer_value
                     if 'gain' in mapping[tag]:
-                        self._axes_gain[tag] = mapping[tag]['gain']
+                        self._axes_gain[tag] = mapping[tag]['gain'].get_parameter_value().double_value
 
         # Dead zone: Force values close to 0 to 0
         # (Recommended for imprecise controllers)
         self._deadzone = 0.5
-        if self.has_parameter('~deadzone'):
-            self._deadzone = self.get_parameter('~deadzone').get_parameter_value().double_value
+        if self.has_parameter('deadzone'):
+            self._deadzone = self.get_parameter('deadzone').get_parameter_value().double_value
 
         # Default for the RB button of the XBox 360 controller
         self._deadman_button = -1
-        if self.has_parameter('~deadman_button'):
-            self._deadman_button = self.get_parameter('~deadman_button').get_parameter_value().integer_value
+        if self.has_parameter('deadman_button'):
+            self._deadman_button = self.get_parameter('deadman_button').get_parameter_value().integer_value
 
+       
         # If these buttons are pressed, the arm will not move
-        if self.has_parameter('~exclusion_buttons'):
-            self._exclusion_buttons = self.get_parameter('~exclusion_buttons').value
+        if self.has_parameter('exclusion_buttons'):
+            self._exclusion_buttons = self.get_parameter('exclusion_buttons').value
+            if type(self._exclusion_buttons) == str:
+                # Eloquent type inference problem...if a list is passed in the launch file from
+                # arg element to param with a value-sep attribute, it is not correctly parsed 
+                # (you get a list with 1 str value). Let's provide a custom parser:
+                self._exclusion_buttons = str(self._exclusion_buttons).split(',')
             if type(self._exclusion_buttons) in [float, int]:
                 self._exclusion_buttons = [int(self._exclusion_buttons)]
             elif type(self._exclusion_buttons) == list:
                 for n in self._exclusion_buttons:
-                    if type(n) not in [float, int]:
-                        raise rclpy.exceptions.ParameterException(
+                    if type(n) is str:
+                        try:
+                            int(n)
+                        except:
+                            raise Exception(
+                                'Exclusion buttons must be an integer index or an equivalent str value')
+                    elif type(n) not in [float, int]:
+                        raise Exception(
                             'Exclusion buttons must be an integer index to '
                             'the joystick button')
+
+                #Ensure we only get int value
+                self._exclusion_buttons = [int(n) for n in self._exclusion_buttons]
         else:
             self._exclusion_buttons = list()
 
         # Default for the start button of the XBox 360 controller
         self._home_button = 7
-        if self.has_parameter('~home_button'):
-            self._home_button = self.get_parameter('~home_button').get_parameter_value().integer_value
+        if self.has_parameter('home_button'):
+            self._home_button = self.get_parameter('home_button').get_parameter_value().integer_value
 
         self._msg_type = 'twist'
-        if self.has_parameter('~type'):
-            self._msg_type = self.get_parameter('~type').get_parameter_value().string_value
+        if self.has_parameter('type'):
+            self._msg_type = self.get_parameter('type').get_parameter_value().string_value
             if self._msg_type not in ['twist', 'accel']:
-                raise rclpy.exceptions.ParameterException('Teleoperation output must be either '
+                raise Exception('Teleoperation output must be either '
                                          'twist or accel')
 
         if self._msg_type == 'twist':
@@ -93,8 +116,7 @@ class VehicleTeleop(Node):
         else:
             self._output_pub = self.create_publisher(Accel, 'output', 1)
 
-        self._home_pressed_pub = self.create_publisher(
-            Bool, 'home_pressed', 1)
+        self._home_pressed_pub = self.create_publisher(Bool, 'home_pressed', 1)  
 
         # Joystick topic subscriber
         self._joy_sub = self.create_subscription(Joy, 'joy', self._joy_callback, 10)
@@ -104,6 +126,7 @@ class VehicleTeleop(Node):
         # while not rospy.is_shutdown():
         #     rate.sleep()
 
+    #==============================================================================
     def _parse_joy(self, joy=None):
         if self._msg_type == 'twist':
             cmd = Twist()
@@ -111,7 +134,7 @@ class VehicleTeleop(Node):
             cmd = Accel()
         if joy is not None:
             # Linear velocities:
-            l = Vector3(0, 0, 0)
+            l = Vector3(x=0.0, y=0.0, z=0.0)
 
             if self._axes['x'] > -1 and abs(joy.axes[self._axes['x']]) > self._deadzone:
                 l.x += self._axes_gain['x'] * joy.axes[self._axes['x']]
@@ -132,7 +155,7 @@ class VehicleTeleop(Node):
                 l.z += self._axes_gain['zfast'] * joy.axes[self._axes['zfast']]
 
             # Angular velocities:
-            a = Vector3(0, 0, 0)
+            a = Vector3(x=0.0, y=0.0, z=0.0)
 
             if self._axes['roll'] > -1 and abs(joy.axes[self._axes['roll']]) > self._deadzone:
                 a.x += self._axes_gain['roll'] * joy.axes[self._axes['roll']]
@@ -155,10 +178,11 @@ class VehicleTeleop(Node):
             cmd.linear = l
             cmd.angular = a
         else:
-            cmd.linear = Vector3(0, 0, 0)
-            cmd.angular = Vector3(0, 0, 0)
+            cmd.linear =  Vector3(x=0.0, y=0.0, z=0.0)
+            cmd.angular = Vector3(x=0.0, y=0.0, z=0.0)
         return cmd
 
+    #==============================================================================
     def _joy_callback(self, joy):
         # If any exclusion buttons are pressed, do nothing
         try:
@@ -175,14 +199,16 @@ class VehicleTeleop(Node):
                     cmd = self._parse_joy()
             else:
                 cmd = self._parse_joy(joy)
+            
             self._output_pub.publish(cmd)
             self._home_pressed_pub.publish(
-                Bool(bool(joy.buttons[self._home_button])))
+                Bool(data=bool(joy.buttons[self._home_button])))
         except Exception as e:
-            print('Error occurred while parsing joystick input,'
+            self.get_logger().error('Error occurred while parsing joystick input,'
                   ' check if the joy_id corresponds to the joystick ' 
-                  'being used. message={}'.format(e))
+                  'being used. message="{}"'.format(e))
 
+#==============================================================================
 def main(args=None):
     # Start the node
     node_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -198,5 +224,6 @@ def main(args=None):
     teleop.get_logger().info('Shutting down [%s] node' % node_name)
     rclpy.shutdown()
 
+#==============================================================================
 if __name__ == '__main__':
     main()

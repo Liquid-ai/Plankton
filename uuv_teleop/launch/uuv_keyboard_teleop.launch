@@ -5,12 +5,10 @@
   <arg name="message_type" default="twist"/>
 
   <group>
-    <push-ros-namespace namespace="$(arg uuv_name)"/>
-    <node pkg="uuv_teleop" exec="vehicle_keyboard_teleop.py" name="keyboard_uuv_velocity_teleop" 	output="screen">
-      <remap from="output" to="/$(arg uuv_name)/$(arg output_topic)"/>
-      <rosparam subst_value="true">
-        type: $(arg message_type)
-      </rosparam>
+    <push-ros-namespace namespace="$(var uuv_name)"/>
+    <node pkg="uuv_teleop" exec="vehicle_keyboard_teleop.py" node-name="keyboard_uuv_velocity_teleop" output="screen">
+      <remap from="output" to="/$(var uuv_name)/$(var output_topic)"/>
+      <param name="type" value="$(var message_type)"/>
     </node>
   </group>
 </launch>
