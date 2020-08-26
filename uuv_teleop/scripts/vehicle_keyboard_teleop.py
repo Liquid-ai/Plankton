@@ -167,8 +167,8 @@ class KeyBoardVehicleTeleop(Node):
 
         else:
             # If no button is pressed reset velocities to 0
-            self.l = Vector3(0, 0, 0)
-            self.a = Vector3(0, 0, 0)
+            self.l = Vector3(x=0, y=0, z=0)
+            self.a = Vector3(x=0, y=0, z=0)
 
         # Store velocity message into Twist format
         cmd.angular = self.a
@@ -180,8 +180,8 @@ class KeyBoardVehicleTeleop(Node):
             self.get_logger().info('Shutting down [%s] node' % node_name)
 
             # Set twists to 0
-            cmd.angular = Vector3(0, 0, 0)
-            cmd.linear = Vector3(0, 0, 0)
+            cmd.angular = Vector3(x=0, y=0, z=0)
+            cmd.linear  = Vector3(x=0, y=0, z=0)
             self._output_pub.publish(cmd)
 
             exit(-1)
