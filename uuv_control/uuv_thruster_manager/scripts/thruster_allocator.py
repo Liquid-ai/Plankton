@@ -64,18 +64,23 @@ class ThrusterAllocatorNode(ThrusterManager):
             self.get_config)
 
         self.get_logger().info("hello allocator 2")
-        rate = self.create_rate(self.config['update_rate'].value)
-        while rclpy.ok():
-            if self.config['timeout'].value > 0:
-                # If a timeout is set, zero the outputs to the thrusters if
-                # there is no command signal for the length of timeout
-                if time_in_float_sec(self.get_clock().now()) - self.last_update > self.config['timeout'].value:
-                    self.get_logger().info('Turning thrusters off - inactive for too long')
-                    if self.thrust is not None:
-                        self.thrust.fill(0)
-                        self.command_thrusters()
-            rate.sleep()
-            rclpy.spin_once(self)
+        #rate = self.create_rate(self.config['update_rate'].value)
+        self.timer_function = self.create_timer(
+            1.0 / self.config['update_rate'].value, self.spin_function)
+        
+        self.get_logger().info("hello allocator 2.1")
+
+    #==============================================================================
+    def spin_function(self):
+        if self.config['timeout'].value > 0:
+            # If a timeout is set, zero the outputs to the thrusters if
+            # there is no command signal for the length of timeout
+            if time_in_float_sec(self.get_clock().now()) - self.last_update > self.config['timeout'].value:
+                self.get_logger().info('Turning thrusters off - inactive for too long')
+                if self.thrust is not None:
+                    self.thrust.fill(0)
+                    self.command_thrusters()        
+            
 
     #==============================================================================
     def get_thruster_info(self, request):
@@ -171,7 +176,9 @@ def main():
 
     try:
         node = ThrusterAllocatorNode('thruster_allocator')
-        #rclpy.spin(node)
+        rclpy.spin(node)
+
+        rclpy.shutdown()
     except Exception as e:
         print('ThrusterAllocatorNode::Exception ' + str(e))
     print('Leaving ThrusterAllocatorNode')

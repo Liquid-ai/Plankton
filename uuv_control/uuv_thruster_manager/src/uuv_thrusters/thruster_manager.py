@@ -50,7 +50,6 @@ class ThrusterManager(Node):
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True)
 
-        self.get_logger().info('hello manager')
         #Default sim_time to True
         sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
         self.set_parameters([sim_time])
@@ -68,7 +67,6 @@ class ThrusterManager(Node):
             if self.namespace[0] != '/':
                 self.namespace = '/' + self.namespace
 
-        self.get_logger().info('hello manager 2')
         self.config = self.get_parameters_by_prefix('thruster_manager')
         
         if len(self.config) == 0:
@@ -78,8 +76,6 @@ class ThrusterManager(Node):
                                      self.namespace)
 
         self.config = parse_nested_params_to_dict(self.config, '.')
-        self.get_logger().info(str(self.get_parameters(['/'])))
-        self.get_logger().info(str(self.config))
         # Load all parameters
         #self.config = self.get_parameter('thruster_manager').value
 
@@ -90,12 +86,8 @@ class ThrusterManager(Node):
             self.use_robot_descr = True
             self.parse_urdf(self.get_parameter(robot_description_param).value)
 
-        self.get_logger().info('hello manager 2.5')
-
         if self.config['update_rate'].value < 0:
             self.config['update_rate'].value = 50.0
-
-        self.get_logger().info('hello manager 3')
 
         self.base_link_ned_to_enu = None
 
@@ -155,20 +147,15 @@ class ThrusterManager(Node):
 
         # Thrust forces vector
         self.thrust = None
-    
-        self.get_logger().info('hello manager 4')
 
         #TODO Close check...transform to dict
         # Thruster allocation matrix: transform thruster inputs to force/torque
         self.configuration_matrix = None
         # tam = self.get_parameter('tam')
-        # self.get_logger().info(str(tam))
         # if len(tam) != 0:
-        #     self.get_logger().info('hello manager 4b')
             #tam = parse_nested_params_to_dict(tam, '.')
         if self.has_parameter('tam'):
             tam = self.get_parameter('tam').value
-            self.get_logger().info(str(tam))
             tam = numpy.array(tam)
             #reshape the array. #TODO Unsure
             self.configuration_matrix = numpy.reshape(tam, (6, -1))
@@ -187,15 +174,18 @@ class ThrusterManager(Node):
             for i in range(self.n_thrusters):
                 topic = self.config['thruster_topic_prefix'].value + 'id_' + str(i) + \
                     self.config['thruster_topic_suffix'].value
-                self.get_logger().info('HERE 1')
                 if list not in [type(params), type(conv_fcn)]:
+                    #Unpack parameters to values
+                    deduced_params = {key: val.value for key, val in params.items()}
                     thruster = Thruster.create_thruster(
                         self, conv_fcn, i, topic, None, None,
-                        **params)
+                        **deduced_params)
                 else:
+                    #Unpack parameters to values
+                    deduced_params = {key: val.value for key, val in params[i].items()}
                     thruster = Thruster.create_thruster(
                         self, conv_fcn[i], i, topic, None, None,
-                        **params[i])
+                        **deduced_params)
 
                 if thruster is None:
                     RuntimeError('Invalid thruster conversion '
@@ -203,7 +193,6 @@ class ThrusterManager(Node):
                                        % self.config['conversion_fcn'].value)
                 self.thrusters.append(thruster)
 
-                self.get_logger().info('HERE EXIT')
             self.get_logger().info('Thruster allocation matrix provided!')
             self.get_logger().info('TAM=')
             self.get_logger().info(str(self.configuration_matrix))
@@ -211,8 +200,6 @@ class ThrusterManager(Node):
 
         if not self.update_tam():
             raise RuntimeError('No thrusters found')
-
-        self.get_logger().info('manager 5')
 
         # (pseudo) inverse: force/torque to thruster inputs
         self.inverse_configuration_matrix = None
@@ -231,8 +218,6 @@ class ThrusterManager(Node):
 
         self.ready = True
         self.get_logger().info('ThrusterManager: ready')
-
-        self.get_logger().info('manager 6')
 
     #==============================================================================
     def parse_urdf(self, urdf_str):
@@ -271,8 +256,6 @@ class ThrusterManager(Node):
         equal_thrusters = True
         idx_thruster_model = 0
 
-        self.get_logger().info('hello manager 5.5')
-
         if type(self.config['conversion_fcn_params']) == list and \
             type(self.config['conversion_fcn'].value) == list:
             if len(self.config['conversion_fcn_params']) != len(
@@ -282,12 +265,9 @@ class ThrusterManager(Node):
                     ' must have equal length')
             equal_thrusters = False
 
-        self.get_logger().info('hello manager 6')
-
         self.get_logger().info('conversion_fcn=' + str(self.config['conversion_fcn'].value))
         self.get_logger().info('conversion_fcn_params=' + str(self.config['conversion_fcn_params']))
 
-        self.get_logger().info('hello manager 7')
         #listener = tf.TransformListener()
         #sleep(0.1)
 
@@ -311,7 +291,9 @@ class ThrusterManager(Node):
                 thrust_axis = None if not self.use_robot_descr else self.axes[frame]
 
                 if equal_thrusters:
-                    params = self.config['conversion_fcn_params'].value
+                    params = self.config['conversion_fcn_params']
+                    #Unpack parameters to values
+                    params = {key: val.value for key, val in params.items()}
                     thruster = Thruster.create_thruster(
                         self, self.config['conversion_fcn'].value,
                         i, topic, pos, quat, self.axes[frame], **params)
@@ -319,7 +301,9 @@ class ThrusterManager(Node):
                     if idx_thruster_model >= len(self.config['conversion_fcn'].value):
                         raise RuntimeError('Number of thrusters found and '
                                                  'conversion_fcn are different')
-                    params = self.config['conversion_fcn_params'][idx_thruster_model].value
+                    params = self.config['conversion_fcn_params'][idx_thruster_model]
+                    #Unpack parameters to values
+                    params = {key: val.value for key, val in params.items()}
                     conv_fcn = self.config['conversion_fcn'][idx_thruster_model].value
                     thruster = Thruster.create_thruster(
                         self,
