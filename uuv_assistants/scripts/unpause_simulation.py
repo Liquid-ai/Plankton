@@ -48,7 +48,7 @@ def main():
     if(timeout > 0):
         time.sleep(timeout)
 
-    start_time = time.time()
+    #start_time = time.time()
     try:
         # Handle for retrieving model properties
         unpause = node.create_client(Empty, '/gazebo/unpause_physics')
@@ -60,7 +60,7 @@ def main():
         sys.exit()
     
     node.get_logger().info(
-        'The Gazebo "unpause_physics" service was available {} s after the timeout'.format(time.time() - start_time))
+        'The Gazebo "unpause_physics" service was available {} s after the timeout'.format(timeout))#time.time() - start_time))
 
     req = Empty.Request()
     future = unpause.call_async(req)
