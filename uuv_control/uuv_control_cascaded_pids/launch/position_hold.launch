@@ -23,11 +23,13 @@
           output="screen">
       <remap from="odom" to="/$(var uuv_name)/pose_gt"/>
       <remap from="cmd_accel" to="/$(var uuv_name)/cmd_accel"/>
+      <param from="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/vel_pid_control.yaml"/>
     </node>
 
     <node pkg="uuv_control_cascaded_pid" exec="PositionControl.py" node-name="position_control"
           output="screen">
-      <remap from="odom" to="/$(arg uuv_name)/pose_gt"/>
+      <remap from="odom" to="/$(var uuv_name)/pose_gt"/>
+      <param from="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/pos_pid_control.yaml"/>
     </node>
   </group>
 </launch>

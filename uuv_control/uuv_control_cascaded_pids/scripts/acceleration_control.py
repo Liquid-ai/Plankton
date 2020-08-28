@@ -137,6 +137,9 @@ def main():
       rclpy.spin(node)
   except Exception as e:
     print('Caught exception:' + str(e))
+  finally:
+    if rclpy.ok():
+      rclpy.shutdown()
     print('Exiting')
 
 #==============================================================================

@@ -24,7 +24,7 @@
         output="screen">
       <remap from="odom" to="/$(var uuv_name)/pose_gt"/>
       <remap from="cmd_accel" to="/$(var uuv_name)/cmd_accel"/>
-      <param from="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/vel_pid_control.yaml"/> -->
+      <param from="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/vel_pid_control.yaml"/>
     </node>
   </group>
 

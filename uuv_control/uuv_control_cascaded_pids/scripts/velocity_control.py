@@ -22,7 +22,7 @@ import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
 import tf_quaternion.transformations as transf
 #import tf.transformations as trans
-#TODO numpy_msg...
+
 #from rospy.numpy_msg import numpy_msg
 
 # Modules included in this package
@@ -59,11 +59,15 @@ class VelocityControllerNode(Node):
         self._declare_and_fill_map("angular_sat", 3.0, self.config)
         
         self._declare_and_fill_map("odom_vel_in_world", True, self.config)
+        
+        self.set_parameters_callback(self.callback_params)
+        
+        self.create_pids(self.config)
 
-        self.pid_linear = PIDRegulator(
-            self.config['linear_p'], self.config['linear_i'], self.config['linear_d'], self.config['linear_sat'])
-        self.pid_angular = PIDRegulator(
-            self.config['angular_p'], self.config['angular_i'], self.config['angular_d'], self.config['angular_sat'])
+        # self.pid_linear = PIDRegulator(
+        #     self.config['linear_p'], self.config['linear_i'], self.config['linear_d'], self.config['linear_sat'])
+        # self.pid_angular = PIDRegulator(
+        #     self.config['angular_p'], self.config['angular_i'], self.config['angular_d'], self.config['angular_sat'])
 
         # self.declare_parameter("linear_p", 1.)
         # self.declare_parameter("linear_i", 0.0)
@@ -85,7 +89,7 @@ class VelocityControllerNode(Node):
         # self.sub_odometry = self.create_subscription(numpy_msg(Odometry), 'odom', self.odometry_callback, 10)
         #self.pub_cmd_accel = self.create_publisher( geometry_msgs.Accel, 'cmd_accel', 10)
         #self.srv_reconfigure = Server(VelocityControlConfig, self.config_callback)
-        self.set_parameters_callback(self.callback_params)
+        
 
 
 
@@ -149,17 +153,23 @@ class VelocityControllerNode(Node):
     def callback_params(self, data):
         for parameter in data:
             self.config[parameter.name] = parameter.value
-
-        self.get_logger().info("HELLO CALLBACK")
         
         # config has changed, reset PID controllers
-        self.pid_linear = PIDRegulator(
-            self.config['linear_p'], self.config['linear_i'], self.config['linear_d'], self.config['linear_sat'])
-        self.pid_angular = PIDRegulator(
-            self.config['angular_p'], self.config['angular_i'], self.config['angular_d'], self.config['angular_sat'])
+        self.create_pids(self.config)
+        # self.pid_linear = PIDRegulator(
+        #     self.config['linear_p'], self.config['linear_i'], self.config['linear_d'], self.config['linear_sat'])
+        # self.pid_angular = PIDRegulator(
+        #     self.config['angular_p'], self.config['angular_i'], self.config['angular_d'], self.config['angular_sat'])
 
         self.get_logger().warn("Parameters dynamically changed...")
         return SetParametersResult(successful=True)
+
+    #==============================================================================
+    def create_pids(config):
+        self.pid_linear = PIDRegulator(
+            config['linear_p'], config['linear_i'], config['linear_d'], config['linear_sat'])
+        self.pid_angular = PIDRegulator(
+            config['angular_p'], config['angular_i'], config['angular_d'], config['angular_sat'])
 
     #==============================================================================
     def _declare_and_fill_map(self, key, default_value, map):
@@ -177,7 +187,10 @@ def main():
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))
+    finally:
+        rclpy.shutdown()
     print('Exiting')
+
 
 #==============================================================================
 if __name__ == '__main__':

@@ -24,14 +24,16 @@ from PID import PIDRegulator
 #from uuv_control_cascaded_pid.cfg import PositionControlConfig
 import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
-#TODO numpy msg...
-from rospy.numpy_msg import numpy_msg
+
+#from rospy.numpy_msg import numpy_msg
+
+import tf_quaternion.transformations as transf
 
 from rcl_interfaces.msg import SetParametersResult
 from rclpy.parameter import Parameter
 from rclpy.node import Node
 
-from plankton_utils.time import time_in_float_sec
+from plankton_utils.time import time_in_float_sec_from_msg
 
 class PositionControllerNode(Node):
     def __init__(self, node_name):
@@ -49,22 +51,28 @@ class PositionControllerNode(Node):
         self.pid_rot = PIDRegulator(1, 0, 0, 1)
         self.pid_pos = PIDRegulator(1, 0, 0, 1)
 
-        self.declare_parameter("pos_p", 1.)
-        self.declare_parameter("pos_i", 0.0)
-        self.declare_parameter("pos_d", 0.0)
-        self.declare_parameter("pos_sat", 10.0)
+        self._declare_and_fill_map("pos_p", 1., self.config)
+        self._declare_and_fill_map("pos_i", 0.0, self.config)
+        self._declare_and_fill_map("pos_d", 0.0, self.config)
+        self._declare_and_fill_map("pos_sat", 10.0, self.config)
 
-        self.declare_parameter("rot_p", 1.)
-        self.declare_parameter("rot_i", 0.0)
-        self.declare_parameter("rot_d", 0.0)
-        self.declare_parameter("rot_sat", 3.0)
+        self._declare_and_fill_map("rot_p", 1., self.config)
+        self._declare_and_fill_map("rot_i", 0.0, self.config)
+        self._declare_and_fill_map("rot_d", 0.0, self.config)
+        self._declare_and_fill_map("rot_sat", 3.0, self.config)
+
+        self.set_parameters_callback(self.callback_params)
+
+        self.create_pids(self.config)
 
         # ROS infrastructure
-        self.sub_cmd_pose = self.create_subscription(numpy_msg(geometry_msgs.PoseStamped), 'cmd_pose', self.cmd_pose_callback, 10)
-        self.sub_odometry = self.create_subscription(numpy_msg(Odometry), 'odom', self.odometry_callback, 10)
+        self.sub_cmd_pose = self.create_subscription(geometry_msgs.PoseStamped, 'cmd_pose', self.cmd_pose_callback, 10)
+        self.sub_odometry = self.create_subscription(Odometry, 'odom', self.odometry_callback, 10)
+        # self.sub_cmd_pose = self.create_subscription(numpy_msg(geometry_msgs.PoseStamped), 'cmd_pose', self.cmd_pose_callback, 10)
+        # self.sub_odometry = self.create_subscription(numpy_msg(Odometry), 'odom', self.odometry_callback, 10)
         self.pub_cmd_vel = self.create_publisher(geometry_msgs.Twist, 'cmd_vel', 10)
         #self.srv_reconfigure = Server(PositionControlConfig, self.config_callback)
-        self.add_on_set_parameters_callback(self.callback_params)
+        
 
     #==============================================================================
     def cmd_pose_callback(self, msg):
@@ -93,22 +101,22 @@ class PositionControllerNode(Node):
             self.initialized = True
 
         # Compute control output:
-        t = time_in_float_sec(msg.header.stamp)
+        t = time_in_float_sec_from_msg(msg.header.stamp)
 
         # Position error
         e_pos_world = self.pos_des - p
-        e_pos_body = trans.quaternion_matrix(q).transpose()[0:3,0:3].dot(e_pos_world)
+        e_pos_body = transf.quaternion_matrix(q).transpose()[0:3,0:3].dot(e_pos_world)
 
         # Error quaternion wrt body frame
-        e_rot_quat = trans.quaternion_multiply(trans.quaternion_conjugate(q), self.quat_des)
+        e_rot_quat = transf.quaternion_multiply(trans.quaternion_conjugate(q), self.quat_des)
 
         if numpy.linalg.norm(e_pos_world[0:2]) > 5.0:
             # special case if we are far away from goal:
             # ignore desired heading, look towards goal position
             heading = math.atan2(e_pos_world[1],e_pos_world[0])
             quat_des = numpy.array([0, 0, math.sin(0.5*heading), math.cos(0.5*heading)])
-            e_rot_quat = trans.quaternion_multiply(trans.quaternion_conjugate(q), quat_des)
-
+            e_rot_quat = transf.quaternion_multiply(trans.quaternion_conjugate(q), quat_des)
+            
         # Error angles
         e_rot = numpy.array(trans.euler_from_quaternion(e_rot_quat))
 
@@ -117,8 +125,8 @@ class PositionControllerNode(Node):
 
         # Convert and publish vel. command:
         cmd_vel = geometry_msgs.Twist()
-        cmd_vel.linear = geometry_msgs.Vector3(*v_linear)
-        cmd_vel.angular = geometry_msgs.Vector3(*v_angular)
+        cmd_vel.linear = geometry_msgs.Vector3(x=v_linear[0], y=v_linear[1], z=v_linear[2])
+        cmd_vel.angular = geometry_msgs.Vector3(x=v_angular[0], y=v_angular[1], z=v_angular[2])
         self.pub_cmd_vel.publish(cmd_vel)
 
     #==============================================================================
@@ -141,11 +149,22 @@ class PositionControllerNode(Node):
             self.config[parameter.name] = parameter.value
 
         # Config has changed, reset PID controllers
-        self.pid_pos = PIDRegulator(config['pos_p'], config['pos_i'], config['pos_d'], config['pos_sat'])
-        self.pid_rot = PIDRegulator(config['rot_p'], config['rot_i'], config['rot_d'], config['rot_sat'])
+        create_pids(self.config)
+        #self.pid_pos = PIDRegulator(config['pos_p'], config['pos_i'], config['pos_d'], config['pos_sat'])
+        #self.pid_rot = PIDRegulator(config['rot_p'], config['rot_i'], config['rot_d'], config['rot_sat'])
 
         self.get_logger().warn("Parameters dynamically changed...")
         return SetParametersResult(successful=True)
+
+    #==============================================================================
+    def create_pids(config):
+        self.pid_pos = PIDRegulator(config['pos_p'], config['pos_i'], config['pos_d'], config['pos_sat'])
+        self.pid_rot = PIDRegulator(config['rot_p'], config['rot_i'], config['rot_d'], config['rot_sat'])
+
+    #==============================================================================
+    def _declare_and_fill_map(self, key, default_value, map):
+        param = self.declare_parameter(key, default_value)
+        map[key] = param.value
 
 #==============================================================================
 def main():
@@ -157,7 +176,11 @@ def main():
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))
-    print('Exiting')
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
+        print('Exiting')
 
+#==============================================================================
 if __name__ == '__main__':
     main()
