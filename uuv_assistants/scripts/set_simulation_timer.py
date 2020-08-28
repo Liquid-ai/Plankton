@@ -15,7 +15,11 @@
 # limitations under the License.
 from __future__ import print_function
 import rclpy
+import rclpy.clock
 import time
+import threading
+
+from plankton_utils.time import time_in_float_sec
 
 #==============================================================================
 def main():
@@ -25,6 +29,9 @@ def main():
                              allow_undeclared_parameters=True, 
                              automatically_declare_parameters_from_overrides=True)
 
+    sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+    node.set_parameters([sim_time])
+
     timeout = 0.0
     if node.has_parameter('timeout'):
         timeout = node.get_parameter('timeout').get_parameter_value().double_value
@@ -33,13 +40,25 @@ def main():
 
     node.get_logger().info('Starting simulation timer - Timeout = {} s'.format(timeout))
 
-    if(timeout > 0):
-        time.sleep(timeout)
+    # Note that node's clock will be initialized from the /clock topic during the spin in sim tim mode
+    # Behaviour of Rate changed in ROS 2. To wake it up, it needs to be triggered from a separate 
+    # thread. Maybe a rclpy.spin_once + time.sleep() would be enough
+    FREQ = 100
+    rate = node.create_rate(FREQ)#, rclpy.clock.Clock(clock_type=rclpy.clock.ClockType.STEADY_TIME))
+    thread = threading.Thread(target=rclpy.spin, args=(node,), daemon=True)
+    thread.start()
+    while time_in_float_sec(node.get_clock().now()) < timeout:
+        #rclpy.spin_once(node)
+        #Just a guard for really short timeouts
+        if 1.0 / FREQ < timeout: 
+            rate.sleep()
 
     node.get_logger().info('Simulation timeout - Killing simulation...')
 
+    # destroy_node() prevents a further warning on exit
+    node.destroy_node()
     rclpy.shutdown()
-
+    thread.join()
 
 #==============================================================================
 if __name__ == '__main__':
