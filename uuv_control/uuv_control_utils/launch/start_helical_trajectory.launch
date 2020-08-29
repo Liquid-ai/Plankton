@@ -14,12 +14,21 @@
   <arg name="max_forward_speed" default="0.3"/>
 
   <group>
-    <push-ros-namespace namespace="$(arg uuv_name)"/>
+    <push-ros-namespace namespace="$(var uuv_name)"/>
     <node pkg="uuv_control_utils"
       exec="start_helical_trajectory.py"
       name="start_helical_trajectory"
       output="screen">
-      <rosparam subst_value="true">
+      <param name="start_time" value="$(var start_time"/>
+      <param name="radius" value="$(var radius"/>
+      <param name="center" value="$(var center_x), $(var center_y), $(var center_z)" value-sep=", "/>
+      <param name="n_points" value="$(var n_points"/>
+      <param name="heading_offset" value="$(var heading_offset"/>
+      <param name="max_forward_speed" value="$(var max_forward_speed"/>
+      <param name="duration" value="$(var n_turns"/>
+      <param name="n_turns" value="$(var starting_time"/>
+      <param name="delta_z" value="$(var delta_z"/>
+      <!-- <rosparam subst_value="true">
         start_time: $(arg start_time)
         radius: $(arg radius)
         center:
@@ -32,7 +41,7 @@
         duration: $(arg duration)
         n_turns: $(arg n_turns)
         delta_z: $(arg delta_z)
-      </rosparam>
+      </rosparam> -->
     </node>
   </group>
 </launch>

@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
+
 import rclpy
 import os
 import yaml
@@ -29,7 +29,15 @@ from rclpy.node import Node
 
 class TrajectoryMarkerPublisher(Node):
     def __init__(self, node_name):
-        super().__init__(node_name)
+        super().__init__(node_name,
+                        allow_undeclared_parameters=True, 
+                        automatically_declare_parameters_from_overrides=True)
+
+        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        node.set_parameters([sim_time])
+
+        self.get_logger().info('Starting trajectory and waypoint marker publisher')
+
         self._trajectory_sub = self.create_subscription(
             Trajectory, 'trajectory', self._update_trajectory, 10)
 
@@ -59,10 +67,10 @@ class TrajectoryMarkerPublisher(Node):
         self._trajectory = None
 
         self._output_dir = None
-        if self.has_parameter('~output_dir'):
-            self._output_dir = self.get_parameter('~output_dir').get_parameter_value().string_value
+        if self.has_parameter('output_dir'):
+            self._output_dir = self.get_parameter('output_dir').get_parameter_value().string_value
             if not os.path.isdir(self._output_dir):
-                print('Invalid output directory, not saving the files, dir=', self._output_dir)
+                self.get_logger().error('Invalid output directory, not saving the files, dir=', self._output_dir)
                 self._output_dir = None
             else:
                 self._output_dir = os.path.join(self._output_dir, self.get_namespace().replace('/', ''))
@@ -85,6 +93,7 @@ class TrajectoryMarkerPublisher(Node):
         self._update_markers_timer = node.create_timer(
             0.5, self._update_markers)
 
+    #==========================================================================
     def _update_markers(self, event):
         if self._waypoints is None:
             waypoint_path_marker = Path()
@@ -123,22 +132,28 @@ class TrajectoryMarkerPublisher(Node):
         self._trajectory_path_pub.publish(traj_marker)
         return True
 
+    #==========================================================================
     def _update_trajectory(self, msg):
         self._trajectory = msg
 
+    #==========================================================================
     def _update_waypoints(self, msg):
         self._waypoints = uuv_waypoints.WaypointSet()
         self._waypoints.from_message(msg)
 
+    #==========================================================================
     def _update_auto_mode(self, msg):
         self._is_auto_on = msg.data
 
+    #==========================================================================
     def _update_station_keeping_mode(self, msg):
         self._is_station_keeping_on = msg.data
 
+    #==========================================================================
     def _update_traj_tracking_mode(self, msg):
         self._is_traj_tracking_on = msg.data
 
+    #==========================================================================
     def _reference_callback(self, msg):
         marker = Marker()
         marker.header.stamp = self.get_clock().now().to_msg()
@@ -159,6 +174,8 @@ class TrajectoryMarkerPublisher(Node):
 
         self._reference_marker_pub.publish(marker)
 
+
+#==============================================================================
 if __name__ == '__main__':
     print('Starting trajectory and waypoint marker publisher')
     rclpy.init()
@@ -168,4 +185,9 @@ if __name__ == '__main__':
         rclpy.spin(node)
     except Exception as e:
         print('caught exception' + str(e))
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
     print('exiting')
+
+

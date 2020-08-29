@@ -9,15 +9,13 @@
   <arg name="data" />
 
   <group>
-    <push-ros-namespace namespace="$(arg uuv_name)"/>
-    <node name="set_scalar_parameter_$(arg service_name)"
+    <push-ros-namespace namespace="$(var uuv_name)"/>
+    <node node-name="set_scalar_parameter_$(var service_name)"
       pkg="uuv_control_utils"
       exec="set_scalar_parameter.py"
       output="screen">
-      <rosparam subst_value="true">
-        service_name: $(arg service_name)
-        data: $(arg data)
-      </rosparam>
+      <param name="service_name" value="$(var service_name)"/>
+      <param name="data" value="$(var data)"/>
     </node>
   </group>
 </launch>

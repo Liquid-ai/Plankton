@@ -14,14 +14,20 @@
   <arg name="starting_time" default="0"/>
 
   <arg name="duration" default="1"/>
+  <arg name="use_sim_time" default="true"/>
 
-  <group ns="$(arg uuv_name)">
+  <group>
+    <push-ros-namespace namespace="$(var uuv_name)"/>
     <node pkg="uuv_control_utils"
       exec="apply_body_wrench.py"
-      name="apply_body_wrench_$(arg starting_time)_$(arg force_x)_$(arg force_y)_$(arg force_z)_$(arg torque_x)_$(arg torque_y)_$(arg torque_z)"
+      node-name="apply_body_wrench_$(var starting_time)_$(var force_x)_$(var force_y)_$(var force_z)_$(var torque_x)_$(var torque_y)_$(var torque_z)"
       output="screen">
 
-      <rosparam subst_value="true">
+      <param name="starting_time" value="$(var starting_time)"/>
+      <param name="force" value="$(var force_x), $(var force_y), $(var force_z)" value-sep=", "/>
+      <param name="torque" value="$(var torque_x), $(var torque_y), $(var torque_z)" value-sep=", "/>
+      <param name="duration" value="$(var duration)"/>
+      <!-- <rosparam subst_value="true">
         starting_time: $(arg starting_time)
         force:
           - $(arg force_x)
@@ -32,7 +38,7 @@
           - $(arg torque_y)
           - $(arg torque_z)
         duration: $(arg duration)
-      </rosparam>
+      </rosparam> -->
     </node>
   </group>
 </launch>

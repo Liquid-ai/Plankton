@@ -14,69 +14,97 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import rclpy
 import sys
+
+import rclpy
+import rclpy.time
+
 from uuv_control_msgs.srv import InitWaypointsFromFile
 from std_msgs.msg import String, Time
-from time_utils import time_in_float_sec
+
+from plankton_utils import time_in_float_sec
+from plankton_utils import float_sec_to_int_sec_nano
 
 def main():
     rclpy.init()
-    node = rclpy.create_node('send_waypoint_file')
-    node.get_logger().info('Send a waypoint file, namespace=%s', node.get_namespace())
+    node = rclpy.create_node('send_waypoint_file',
+                            allow_undeclared_parameters=True, 
+                            automatically_declare_parameters_from_overrides=True)
+
+
+    sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+    self.set_parameters([sim_time])
+    node.get_logger().info('Send a waypoint file, namespace=%s', % node.get_namespace())
 
     # if rospy.is_shutdown():
     #     rospy.logerr('ROS master not running!')
     #     sys.exit(-1)
 
-    if node.has_parameter('~filename'):
-        filename = node.get_parameter('~filename').get_parameter_value().string_value
+    if node.has_parameter('filename'):
+        filename = node.get_parameter('filename').get_parameter_value().string_value
     else:
         raise RuntimeError('No filename found')
+
+    #Important...ensure the clock has been updated when using sim time
+    while node.get_clock().now() == rclpy.time.Time():
+        rclpy.spin_once(node)
 
     # If no start time is provided: start *now*.
     start_time = time_in_float_sec(node.get_clock().now())
     start_now = True
-    if node.has_parameter('~start_time'):
-        start_time = node.get_parameter('~start_time').get_parameter_value().double_value
+    if node.has_parameter('start_time'):
+        start_time = node.get_parameter('start_time').value
         if start_time < 0.0:
             node.get_logger().error('Negative start time, setting it to 0.0')
             start_time = 0.0
             start_now = True
         else:
             start_now = False
-    else:
-        start_now = True
 
     node.get_logger().info('Start time=%.2f s' % start_time)
 
-    interpolator = node.get_parameter('~interpolator', 'lipb').get_parameter_value().string_value
+    interpolator = node.get_parameter('interpolator', 'lipb').get_parameter_value().string_value
 
-    try:
-        init_wp = node.create_client(
-            InitWaypointsFromFile,
-            'init_waypoints_from_file')
-    except Exception as e:
-        node.get_logger().error('Service call failed, error=%s', str(e))
+    srv_name = 'init_waypoints_from_file'
+    
+    init_wp = node.create_client(InitWaypointsFromFile, srv_name)
 
-    try:
-        ready = init_wp.wait_for_service('init_waypoints_from_file', timeout_sec=30)
-        if not ready:
-            raise RuntimeError('Service not available! Closing node...')
+    ready = init_wp.wait_for_service('init_waypoints_from_file', timeout_sec=30)
+    if not ready:
+        raise RuntimeError('Service not available! Closing node...')
         
+    (sec, nsec) = float_sec_to_int_sec_nano(start_time)
+
     req = InitWaypointsFromFile.Request()
-    req.start_time = rclpy.time.Time(start_time).to_msg())
+    req.start_time = rclpy.time.Time(seconds=sec, nanoseconds=nsec).to_msg())
     req.start_now = start_now
-    req.filename = String(filename),
-    req.interpolator = String(interpolator)
+    req.filename = String(data=filename),
+    req.interpolator = String(data=interpolator)
 
-    success = init_wp.call(req)
-
-    if success:
+    future = init_wp.call_async(req)
+    rclpy.spin_until_future_complete(self, future)
+    try:
+        response = future.result()
+    except Exception as e:
+        node.get_logger().error('Service call ' + srv_name + ' failed, error=' + str(e)):
+    else:
         node.get_logger().info('Waypoints file successfully received, '
                       'filename=%s', filename)
-    else:
-        node.get_logger().info('Failed to send waypoints')
 
+    # success = init_wp.call(req)
+
+    # if success:
+    #     node.get_logger().info('Waypoints file successfully received, '
+    #                   'filename=%s', filename)
+    # else:
+    #     node.get_logger().info('Failed to send waypoints')
+
+#==============================================================================
 if __name__ == '__main__':
-    main()
+    try:    
+        main()
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()

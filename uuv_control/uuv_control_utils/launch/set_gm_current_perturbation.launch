@@ -8,16 +8,14 @@
 
   <node pkg="uuv_control_utils"
     exec="set_gm_current_perturbation.py"
-    name="set_gm_current_perturbation"
+    node-name="set_gm_current_perturbation"
     output="screen">
-    <rosparam subst_value="true">
-      component: $(arg component)
-      mean: $(arg mean)
-      min: $(arg min)
-      max: $(arg max)
-      noise: $(arg noise)
-      mu: $(arg mu)
-    </rosparam>
+    <param name="component" value="$(var component)"/>
+    <param name="mean" value="$(var mean)"/>
+    <param name="min" value="$(var min)"/>
+    <param name="max" value="$(var max)"/>
+    <param name="noise" value="$(var noise)"/>
+    <param name="mu" value="$(var mu)"/> 
   </node>
 
 </launch>

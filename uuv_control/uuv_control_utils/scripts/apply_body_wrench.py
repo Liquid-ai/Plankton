@@ -13,60 +13,74 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
-import rclpy
+#from __future__ import print_function
 import sys
-from gazebo_msgs.srv import ApplyBodyWrench
+import time
+import threading
+
+import rclpy
 from geometry_msgs.msg import Point, Wrench, Vector3
 
+from gazebo_msgs.srv import ApplyLinkWrench
+
+from plankton_utils.time import time_in_float_sec
+
 def main():
-    print('Apply programmed perturbation to vehicle', rospy.get_namespace())
-    #rospy.init_node('set_body_wrench')
-
     rclpy.init()
-    node = rclpy.create_node('set_body_wrench')
+    node = rclpy.create_node('set_body_wrench',
+                            allow_undeclared_parameters=True, 
+                            automatically_declare_parameters_from_overrides=True)
 
-    # if rospy.is_shutdown():
-    #     print('ROS master not running!')
-    #     sys.exit(-1)
+    node.get_logger().info('Apply programmed perturbation to vehicle ' + node.get_namespace())
+
+    sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+    node.set_parameters([sim_time])
 
     starting_time = 0.0
-    if node.has_parameter('~starting_time'):
-        starting_time = node.get_parameter('~starting_time').get_parameter_value().double_value
+    if node.has_parameter('starting_time'):
+        starting_time = float(node.get_parameter('starting_time').value)
 
-    print('Starting time= {} s'.format(starting_time))
+    #starting time_clock = node.get_clock().now() + rclpy.duration.Duration(nanoseconds = starting_time * 1e9)
+    node.get_logger().info('Starting time in = {} s'.format(starting_time))
 
     duration = 0.0
-    if node.has_parameter('~duration'):
-        duration = node.get_parameter('~duration').get_parameter_value().double_value
+    if node.has_parameter('duration'):
+        node.get_logger().info("HEHE " + str(node.get_parameter('duration').get_parameter_value().integer_value))
+        duration = float(node.get_parameter('duration').value)
 
-    if duration == 0.0:
-        print('Duration not set, leaving node...')
+    #compare to eps ?
+    if duration <= 0.0:
+        node.get_logger().info('Duration not set, leaving node...')
         sys.exit(-1)
 
-    print('Duration [s]=', ('Inf.' if duration < 0 else duration))
+    node.get_logger().info('Duration [s]=' + ('Inf.' if duration < 0 else str(duration)))
 
-    force = [0, 0, 0]
-    if node.has_parameter('~force'):
-        force = node.get_parameter('~force').value
-        print(force)
+    force = [0.0, 0.0, 0.0]
+    if node.has_parameter('force'):
+        force = node.get_parameter('force').value
+        #print(force)
         if len(force) != 3:
             raise RuntimeError('Invalid force vector')
+        #Ensure type is float
+        force = [float(elem) for elem in force]
 
-    print('Force [N]=', force)
+    node.get_logger().info('Force [N]=' + str(force))
 
-    torque = [0, 0, 0]
-    if node.has_parameter('~torque'):
-        torque = node.get_parameter('~torque').value
+    torque = [0.0, 0.0, 0.0]
+    if node.has_parameter('torque'):
+        torque = node.get_parameter('torque').value
         if len(torque) != 3:
             raise RuntimeError('Invalid torque vector')
+        #Ensure type is float
+        torque = [float(elem) for elem in torque]
 
-    print('Torque [N]=', torque)
+    node.get_logger().info('Torque [N]=' + str(torque))
 
+    service_name = '/gazebo/apply_link_wrench'
     try:
-        apply_wrench = node.create_client(ApplyBodyWrench, '/gazebo/apply_body_wrench')
-    except rospy.ServiceException as e:
-        print('Service call failed, error=', e)
+        apply_wrench = node.create_client(ApplyLinkWrench, service_name)
+    except Exception as e:
+        node.get_logger().error('Creation of service ' + service_name + ' failed, error=' + str(e))
         sys.exit(-1)
     
     try:
@@ -74,37 +88,74 @@ def main():
         if not ready:
             raise RuntimeError('')
     except:
-        print('Service /gazebo/apply_body_wrench not available! Closing node...')
+        node.get_logger().error('Service ' + service_name + ' not available! Closing node...')
         sys.exit(-1)
+
     ns = node.get_namespace().replace('/', '')
 
     body_name = '%s/base_link' % ns
 
-    if starting_time >= 0:
-        rate = node.create_rate(100)
-        while node.get_clock().now().nanoseconds < starting_time * 1e9:
+    FREQ = 100
+    rate = node.create_rate(FREQ)#, rclpy.clock.Clock(clock_type=rclpy.clock.ClockType.STEADY_TIME))
+    thread = threading.Thread(target=rclpy.spin, args=(node,), daemon=True)
+    thread.start()
+    while time_in_float_sec(node.get_clock().now()) < starting_time:
+        #rclpy.spin_once(node)
+        #Just a guard for really short timeouts
+        if 1.0 / FREQ < starting_time: 
             rate.sleep()
+    
+    # time.sleep(starting_time)
+    # if starting_time >= 0:
+    #     rate = node.create_rate(100)
+    #     while node.get_clock().now() < starting_time_clock:
+    #         rate.sleep()
 
-    apw = ApplyBodyWrench.Request()
-    apw.body_name = body_name
+    apw = ApplyLinkWrench.Request()
+    apw.link_name = body_name
     apw.reference_frame = 'world'
-    apw.reference_point = Point(0, 0, 0)
+    apw.reference_point = Point(x=0.0, y=0.0, z=0.0)
     apw.wrench = Wrench()
-    apw.wrench.force = Vector3(*force)
-    apw.wrench.torque = Vector3(*torque)
-    apw.start_time = node.get_clock().now()
-    apw.duration = rclpy.time.Duration(duration)
+    apw.wrench.force = Vector3(x=force[0], y=force[1], z=force[2])
+    apw.wrench.torque = Vector3(x=torque[0], y=torque[1], z=torque[2])
+    apw.start_time = node.get_clock().now().to_msg()
+    apw.duration = rclpy.time.Duration(seconds=duration).to_msg()
 
-    success = apply_wrench.call(apw)
-        
-    if success:
-        print('Body wrench perturbation applied!')
-        print('\tFrame: ', body_name)
-        print('\tDuration [s]: ', duration)
-        print('\tForce [N]: ', force)
-        print('\tTorque [Nm]: ', torque)
-    else:
-        print('Failed!')
+    future = apply_wrench.call_async(apw)
 
+    #NB : spining is done from another thread    
+    while rclpy.ok():
+        if future.done():
+            try:
+                response = future.result()
+            except Exception as e:
+                node.get_logger().info('Could not apply link wrench %r' % (e,))
+            else:
+                node.get_logger().info('Link wrench perturbation applied!')
+                node.get_logger().info('\tFrame: '+ body_name)
+                node.get_logger().info('\tDuration [s]: ' + str(duration))
+                node.get_logger().info('\tForce [N]: ' + str(force))
+                node.get_logger().info('\tTorque [Nm]: ' + str(torque))
+            break
+
+    #rclpy.spin_until_future_complete(self, future)
+    # if future.result() is not None:
+    #     prop = future.result()
+    #     if prop.succes:
+    #         node.get_logger().info('Body wrench perturbation applied!')
+    #         node.get_logger().info('\tFrame: ', body_name)
+    #         node.get_logger().info('\tDuration [s]: ', duration)
+    #         node.get_logger().info('\tForce [N]: ', force)
+    #         node.get_logger().info('\tTorque [Nm]: ', torque)
+    #     else:
+    #         node.get_logger().error('Could not apply body wrench')
+
+#==============================================================================
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()

@@ -34,7 +34,8 @@
           name="disturbance_manager"
           output="screen">
           <!-- Load  parameters -->
-          <rosparam file="$(arg disturbance_file)" command="load"/>
+          <param from="$(var disturbance_file)"/>
+          <!-- <rosparam file="$(arg disturbance_file)" command="load"/> -->
         </node>
     </group>
 

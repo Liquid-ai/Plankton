@@ -13,28 +13,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
+#from __future__ import print_function
 import rclpy
 import sys
 from numpy import pi
 from uuv_world_ros_plugins_msgs.srv import *
 
 def main():
-    print('Starting current perturbation node')
-
     rclpy.init()
     node = rclpy.create_node('set_gm_current_perturbation')
-
-    print('Programming the generation of a current perturbation')
-    # if rospy.is_shutdown():
-    #     print('ROS master not running!')
-    #     sys.exit(-1)
+    
+    node.get_logger().info('Starting current perturbation node')
+    node.get_logger().info('Programming the generation of a current perturbation')
 
     params = ['component', 'mean', 'min', 'max', 'noise', 'mu']
     values = dict()
     for p in params:
-        assert node.has_parameter('~' + p)
-        values[p] = node.get_parameter('~' + p).value
+        assert node.has_parameter(p)
+        values[p] = node.get_parameter(p).value
 
     assert values['component'] in ['velocity', 'horz_angle', 'vert_angle']
     if values['component'] == 'velocity':
@@ -52,7 +48,6 @@ def main():
         SetCurrentModel,
         '/hydrodynamics/set_current_%s_model' % values['component'])
         
-
     if not set_model.wait_for_service(timeout_sec=30):
         raise RuntimeError("Service %s not running" % (set_model.srv_name))
 
@@ -62,10 +57,22 @@ def main():
     req.max = values['max']
     req.noise =values['noise']
     req.mu =  values['mu']
-    if set_model.call(req):
-        print('Model for <{}> set successfully!'.format(values['component']))
-    else:
-        print('Error setting model!')
 
+    future = set_model.call_async(req)
+    rclpy.spin_until_future_complete(self, future)
+    if future.result() is not None:
+        prop = future.result()
+        if prop.succes:
+            node.get_logger().info(('Model for <{}> set successfully!'.format(values['component']))
+        else:
+            node.get_logger().info(('Error setting model!')
+
+#==============================================================================
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
