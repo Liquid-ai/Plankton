@@ -32,12 +32,18 @@ def __merge_dicts(a, b):
     return a
     
 #==============================================================================       
-def parse_nested_params_to_dict(this_list, separator: str = "."):
+def parse_nested_params_to_dict(this_list, separator: str = ".", unpack_value: bool = False):
     """
     From a dictionary of namespaced ROS 2 parameters, e.g.:  
     {ns1.ns2.param1:value1, ns1.s2.param2:value2, ns3.param3:value3}, returns a 
     dictionary of n dictionaries, e.g.: 
     d['ns1']['ns2]['param1'], d['ns1']['ns2]['param2'], d['ns3']['param3']
+
+    :param this_list: list to parse
+    :param separator: separator used in the list
+    :param unpack_value: False to create dictionary of Parameters, True to get the final values
+
+    :return The created dictionary
     """
         
     parameters_with_prefix = {}
@@ -61,11 +67,13 @@ def parse_nested_params_to_dict(this_list, separator: str = "."):
             else:
                 key_list.insert(0, parameter_name)
 
+        # Create the associated dictionary
         for i, key in enumerate(key_list):
             if i == 0:
-                dict_.update({key: param_value})
+                dict_.update({key: param_value if not unpack_value else param_value.value})
             else:
                 dict_ = ({key: dict_})
+        # Initialize the final global dictionary or merge 
         if len(parameters_with_prefix.keys()) == 0:
             parameters_with_prefix = dict_
         else:
