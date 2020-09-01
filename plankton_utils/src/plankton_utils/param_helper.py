@@ -1,7 +1,9 @@
 def __merge_dicts(a, b):
-    """merges b into a and return merged result
+    """
+    merges b into a and return merged result
 
-    NOTE: tuples and arbitrary objects are not handled as it is totally ambiguous what should happen"""
+    NOTE: tuples and arbitrary objects are not handled as it is totally ambiguous what should happen
+    """
     key = None
     try:
         if a is None or isinstance(a, str) or isinstance(a, int) or isinstance(a, float):
@@ -28,10 +30,11 @@ def __merge_dicts(a, b):
         else:
             raise RuntimeError('NOT IMPLEMENTED "%s" into "%s"' % (b, a))
     except TypeError as e:
-        raise Runtime('TypeError "%s" in key "%s" when merging "%s" into "%s"' % (e, key, b, a))
+        raise RuntimeError('TypeError "%s" in key "%s" when merging "%s" into "%s"' % (e, key, b, a))
     return a
-    
-#==============================================================================       
+
+
+# ==============================================================================  
 def parse_nested_params_to_dict(this_list, separator: str = ".", unpack_value: bool = False):
     """
     From a dictionary of namespaced ROS 2 parameters, e.g.:  
@@ -45,12 +48,12 @@ def parse_nested_params_to_dict(this_list, separator: str = ".", unpack_value: b
 
     :return The created dictionary
     """
-        
+      
     parameters_with_prefix = {}
 
     for parameter_name, param_value in this_list.items():
         dotFound = True
-        
+
         dict_ = {}
         key_list = []
         while dotFound:
@@ -62,7 +65,7 @@ def parse_nested_params_to_dict(this_list, separator: str = ".", unpack_value: b
                 key = parameter_name[:index]
                 key_list.insert(0, key)
 
-                #dict_.update({key: {}})
+                # dict_.update({key: {}})
                 parameter_name = parameter_name[index + 1:]
             else:
                 key_list.insert(0, parameter_name)
@@ -73,15 +76,16 @@ def parse_nested_params_to_dict(this_list, separator: str = ".", unpack_value: b
                 dict_.update({key: param_value if not unpack_value else param_value.value})
             else:
                 dict_ = ({key: dict_})
-        # Initialize the final global dictionary or merge 
+        # Initialize the final global dictionary or merge
         if len(parameters_with_prefix.keys()) == 0:
             parameters_with_prefix = dict_
         else:
             parameters_with_prefix = __merge_dicts(parameters_with_prefix, dict_)
     return parameters_with_prefix
 
-#==============================================================================    
-#TODO Complete function   
+
+# ==============================================================================    
+# TODO Complete function
 def remove_prefix_nested_params(this_list, separator: str = "."):
     """
     From a dictionary of namespaced ROS 2 parameters, e.g.:  

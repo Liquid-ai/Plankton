@@ -21,7 +21,7 @@ from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist, Accel, Vector3
 from sensor_msgs.msg import Joy
 from rclpy.node import Node
-from plankton_utils.param_handler import parse_nested_params_to_dict
+from plankton_utils.param_helper import parse_nested_params_to_dict
 
 
 class VehicleTeleop(Node):

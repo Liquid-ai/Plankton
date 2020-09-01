@@ -25,7 +25,7 @@ import rclpy
 from rclpy.node import Node
 
 from .models import Thruster
-from plankton_utils.param_handler import parse_nested_params_to_dict
+from plankton_utils.param_helper import parse_nested_params_to_dict
 from tf_quaternion import transformations
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 
