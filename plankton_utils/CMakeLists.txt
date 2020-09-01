@@ -17,8 +17,9 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_pytest REQUIRED)
 
-ament_python_install_package(plankton_utils PACKAGE_DIR src)
+ament_python_install_package(plankton_utils PACKAGE_DIR src/plankton_utils)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -27,8 +28,25 @@ if(BUILD_TESTING)
   #set(ament_cmake_copyright_FOUND TRUE)
   # the following line skips cpplint (only works in a git repo)
   # uncomment the line when this package is not in a git repo
-  set(ament_cmake_cpplint_FOUND TRUE)
+  #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+
+  set(plankton_utils_python_tests
+      test/test_time.py
+      test/test_param_helper.py
+  )
+
+  foreach(_test_path ${plankton_utils_python_tests})
+    #ament_add_pytest_test(${PROJECT_NAME}_pytests ${_test_path}) #change for uniqueness
+      get_filename_component(_test_name ${_test_path} NAME_WE)
+      ament_add_pytest_test(${_test_name} ${_test_path}
+        PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}"
+        APPEND_ENV AMENT_PREFIX_PATH=${ament_index_build_path}
+        PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}
+        TIMEOUT 120
+        WERROR ON
+      )
+    endforeach()
 endif()
 
 ament_package()
