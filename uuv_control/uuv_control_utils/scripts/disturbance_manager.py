@@ -14,21 +14,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import rclpy
-import sys
-import numpy as np
 import logging
+import numpy as np
+import sys
+import threading
+
+import rclpy
 from uuv_world_ros_plugins_msgs.srv import *
 from gazebo_msgs.srv import ApplyBodyWrench
 from uuv_gazebo_ros_plugins_msgs.srv import SetThrusterState, SetThrusterEfficiency
 from geometry_msgs.msg import Point, WrenchStamped, Vector3
 from rclpy.node import Node
 
+from plankton_utils.param_helper import parse_nested_params_to_dict
+from plankton_utils.time import time_in_float_sec, float_sec_to_int_sec_nano
+
 
 class DisturbanceManager(Node):
 
     def __init__(self, node_name):
-        super().__init__(node_name)
+        super().__init__(node_name,
+                        allow_undeclared_parameters=True, 
+                        automatically_declare_parameters_from_overrides=True)
+
+        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        self.set_parameters([sim_time])
 
         self._logger = logging.getLogger('dp_local_planner')
         out_hdlr = logging.StreamHandler(sys.stdout)
@@ -36,6 +46,9 @@ class DisturbanceManager(Node):
         out_hdlr.setLevel(logging.INFO)
         self._logger.addHandler(out_hdlr)
         self._logger.setLevel(logging.INFO)
+
+        self.thread = threading.Thread(target=rclpy.spin, args=(self,), daemon=True)
+        self.thread.start()
 
         # Load disturbances and check for missing information
         specs = dict(current=['starting_time', 'velocity', 'horizontal_angle',
@@ -50,42 +63,48 @@ class DisturbanceManager(Node):
 
         thruster_ids = list()
 
-        if self.has_parameter('~disturbances'):
-            self._disturbances = self.get_parameter('~disturbances').value
-            self._logger.info(self._disturbances)
-            if type(self._disturbances) != list:
-                raise RuntimeError('Current specifications must be '
-                                         'given as a list of dict')
-            for i in range(len(self._disturbances)):
-                item = self._disturbances[i]
+        #if self.has_parameter('disturbances'):
+        #self._logger.info(str(self.get_parameters(['/'])))
+        self._disturbances = self.get_parameters_by_prefix('disturbances')
+        self._disturbances = parse_nested_params_to_dict(self._disturbances, unpack_value=True)
+        if self._disturbances != {}:
+        #if type(self._disturbances) != list:
+        #    raise RuntimeError('Current specifications must be '
+        #                            'given as a list of dict')
+            #for i in range(len(self._disturbances)):
+            for key in self._disturbances.keys():
+                item = self._disturbances[key]
                 if type(item) != dict:
                     raise RuntimeError('Disturbance description must be'
-                                             ' given as a dict')
+                                                ' given as a dict')
                 if 'type' not in item:
                     raise RuntimeError('Type of disturbance not '
-                                             'specified')
+                                                'specified')
                 if item['type'] not in specs:
                     raise RuntimeError(
-                        'Invalid type of disturbance, value=%s' % item['type'])
-
+                            'Invalid type of disturbance, value=%s' % item['type'])
                 for spec in specs[item['type']]:
                     if spec not in item:
                         raise RuntimeError(
-                            'Invalid current model specification, '
-                            'missing tag=%s' % spec)
-
+                                'Invalid current model specification, '
+                                'missing tag=%s' % spec)
+            
                 if item['type'] == 'thruster_state':
                     thruster_ids.append(item['thruster_id'])
 
                 # Create flag to indicate that perturbation has been applied
-                self._disturbances[i]['is_applied'] = False
-                self._disturbances[i]['ended'] = False
+                self._disturbances[key]['is_applied'] = False
+                self._disturbances[key]['ended'] = False
+
         else:
             raise RuntimeError('No disturbance specifications given')
 
         # List all disturbances to be applied
-        for i in range(len(self._disturbances)):
-            self._logger.info('Disturbance #%d: %s' % (i, self._disturbances[i]))
+        #for i in range(len(self._disturbances)):
+        cpt = 0
+        for key in self._disturbances.keys():
+            self._logger.info('Disturbance #%d: %s' % (cpt, self._disturbances[key]))
+            cpt = cpt + 1
 
         self._body_force = np.zeros(3)
         self._body_torque = np.zeros(3)
@@ -109,7 +128,7 @@ class DisturbanceManager(Node):
             self._service_cb['wrench'] = service_list[-1]
          
             self._service_cb['thrusters'] = dict()          
-            for item in self._disturbances:
+            for item in self._disturbances.values():
                 if item['type'] == 'thruster_state':
                     thruster_id = item['thruster_id']
                     if 'state' not in self._service_cb['thrusters']:
@@ -162,11 +181,14 @@ class DisturbanceManager(Node):
        
         self._wrench_timer = self.create_timer(0.1, self._publish_wrench_disturbance)
         
-        rate = self.create_rate(100)
+        #rate = self.create_rate(100)
+        #FREQ = 100
+        rate = node.create_rate(100)
         while rclpy.ok():
-            t = self.get_clock().now()
-            for i in range(len(self._disturbances)):
-                d = self._disturbances[i]
+            t = time_in_float_seconds(self.get_clock().now())
+            #for i in range(len(self._disturbances)):
+            for d in self._disturbances.values():
+                #d = self._disturbances[i]
                 if t > d['starting_time'] and not d['is_applied']:
                     ###########################################################
                     if d['type'] == 'current':
@@ -174,7 +196,7 @@ class DisturbanceManager(Node):
                                          d['vertical_angle'])
                     ###########################################################
                     elif d['type'] == 'wrench':
-                        self.set_body_wrench(d['force'],
+                        self.set_link_wrench(d['force'],
                                              d['torque'],
                                              -1,
                                              d['starting_time'])
@@ -188,13 +210,16 @@ class DisturbanceManager(Node):
                     elif d['type'] == 'thrust_efficiency':
                         self.set_thrust_efficiency(d['thruster_id'], d['efficiency'])
                     # Set applied flag to true
-                    self._disturbances[i]['is_applied'] = True
+                    #self._disturbances[i]['is_applied'] = True
+                    d['is_applied'] = True
 
                     if 'duration' in d:
                         if d['duration'] == -1:
-                            self._disturbances[i]['ended'] = True
+                            #self._disturbances[i]['ended'] = True
+                            d['ended'] = True
                     else:
-                        self._disturbances[i]['ended'] = True
+                        #self._disturbances[i]['ended'] = True
+                        d['ended'] = True
                 elif d['is_applied'] and 'duration' in d and not d['ended']:
                     if d['duration'] > 0:
                         if self.get_clock().now().nanoseconds > int((d['starting_time'] + d['duration']) * 1e9):
@@ -206,10 +231,10 @@ class DisturbanceManager(Node):
                             ###########################################################
                             elif d['type'] == 'wrench':
                                 # Cancel out force and torque
-                                self.set_body_wrench([-1 * d['force'][n] for n in range(3)],
+                                self.set_link_wrench([-1 * d['force'][n] for n in range(3)],
                                                      [-1 * d['torque'][n] for n in range(3)],
                                                      -1,
-                                                     self.get_clock().now())
+                                                     time_in_float_sec(self.get_clock().now()))
                             ###########################################################
                             elif d['type'] == 'thruster_state':
                                 self.set_thruster_state(d['thruster_id'], not bool(d['is_on']))
@@ -220,19 +245,29 @@ class DisturbanceManager(Node):
                             elif d['type'] == 'thrust_efficiency':
                                 self.set_thrust_efficiency(d['thruster_id'], 1.0)
 
-                            self._disturbances[i]['ended'] = True
+                            #self._disturbances[i]['ended'] = True
+                            d['ended'] = True
             rate.sleep()
 
+    # =========================================================================
+    def __del__(self):
+        if rclpy.ok(): 
+            self.destroy_node()
+            rclpy.shutdown()
+            self.thread.join()
+
+    # =========================================================================
     def _publish_wrench_disturbance(self, event):
         msg = WrenchStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = 'world'
-        msg.wrench.force = Vector3(*self._body_force)
-        msg.wrench.torque = Vector3(*self._body_torque)
+        msg.wrench.force = Vector3(x=self._body_force[0], y=self._body_force[1], z=self._body_force[2])
+        msg.wrench.torque = Vector3(x=self._body_torque[0], y=self._body_torque[1], z=self._body_torque[2])
         # Publish the applied body wrench
         self._wrench_topic.publish(msg)
         return True
 
+    # =========================================================================
     def set_current(self, velocity, horizontal_angle, vertical_angle):
         self._logger.info('Appying current velocity model...')
         req = SetCurrentVelocity.Request()
@@ -240,16 +275,24 @@ class DisturbanceManager(Node):
         req.horizontal_angle = horizontal_angle
         req.vertical_angle = vertical_angle
 
-        if self._service_cb['current_velocity'].call(req):
-            self._logger.info('Current velocity changed successfully at %f s! vel= %f m/s' % (time_in_float_sec(self.get_clock().now()), velocity))
-        else:
-            self._logger.error('Failed to change current velocity')
+        future = self._service_cb['current_velocity'].call_async(req)
 
-    def set_body_wrench(self, force, torque, duration, starting_time):
+        self.wait_for_service_completion(
+            future,
+            'Current velocity changed successfully at %f s! vel= %f m/s' % (time_in_float_sec(self.get_clock().now()), velocity),
+            'Failed to change current velocity')
+      
+        # if self._service_cb['current_velocity'].call(req):
+        #     self._logger.info('Current velocity changed successfully at %f s! vel= %f m/s' % (time_in_float_sec(self.get_clock().now()), velocity))
+        # else:
+        #     self._logger.error('Failed to change current velocity')
+
+    # =========================================================================
+    def set_link_wrench(self, force, torque, duration, starting_time):
         ns = self.get_namespace().replace('/', '')
         body_name = '%s/base_link' % ns
 
-        req = ApplyBodyWrench.Request()
+        req = ApplyLinkWrench.Request()
 
         self._body_force = np.array([self._body_force[i] + force[i] for i in range(3)])
         self._body_torque = np.array([self._body_torque[i] + torque[i] for i in range(3)])
@@ -257,63 +300,104 @@ class DisturbanceManager(Node):
         self._body_wrench_msg = WrenchStamped()
         self._body_wrench_msg.header.stamp = self.get_clock().now().to_msg()
         self._body_wrench_msg.header.frame_id = 'world'
-        self._body_wrench_msg.wrench.force = Vector3(*self._body_force)
-        self._body_wrench_msg.wrench.torque = Vector3(*self._body_torque)
+        self._body_wrench_msg.wrench.force = Vector3(x=self._body_force[0], 
+                                                     y=self._body_force[1], 
+                                                     z=self._body_force[2])
+        self._body_wrench_msg.wrench.torque = Vector3(x=self._body_torque[0], 
+                                                      y=self._body_torque[1], 
+                                                      z=self._body_torque[2])
 
+        (secs, nsecs) = float_sec_to_int_sec_nano(starting_time)
+        (d_secs, d_nsecs) = float_sec_to_int_sec_nano(duration)
         req.body_name = body_name
         req.reference_frame = 'world'
         req.reference_point = Point(0, 0, 0)
         req.wrench = self._body_wrench_msg.wrench
-        req.start_time = rclpy.time.Time(seconds=starting_time)
-        req.duration rclpy.time.Duration(duration)
+        req.start_time = rclpy.time.Time(seconds=secs, nanoseconds=nsecs).to_msg()
+        req.duration = rclpy.time.Duration(seconds=d_secs, nanoseconds=d_nsecs).to_msg()
 
-        success = self._service_cb['wrench'].call(req)
+        future = self._service_cb['wrench'].call_async(req)
+        wait_for_service_completion(
+            future,
+            'Link wrench perturbation applied!, body_name=%s, t=%.2f s' % (body_name, time_in_float_sec(self.get_clock().now())),
+            'Failed to apply link wrench!, body_name=%s, t=%.2f s' % (body_name, time_in_float_sec(self.get_clock().now())))
 
-        if success:
-            self._logger.info('Body wrench perturbation applied!, body_name=%s, t=%.2f s' % (body_name, time_in_float_sec(self.get_clock().now())))
-        else:
-            self._logger.error('Failed to apply body wrench!, body_name=%s, t=%.2f s' % (body_name, time_in_float_sec(self.get_clock().now())))
+        # if success:
+        #     self._logger.info('Body wrench perturbation applied!, body_name=%s, t=%.2f s' % (body_name, time_in_float_sec(self.get_clock().now())))
+        # else:
+        #     self._logger.error('Failed to apply body wrench!, body_name=%s, t=%.2f s' % (body_name, time_in_float_sec(self.get_clock().now())))
 
+    # =========================================================================
     def set_thruster_state(self, thruster_id, is_on):
-        req = SetThrusterState..Request()
+        req = SetThrusterState.Request()
         req.on = is_on
 
-        if self._service_cb['thrusters']['state'][thruster_id].call(req):
-            time = time_in_float_sec(self.get_clock().now())
-            self._logger.info('Setting state of thruster #%d, state=%s, t=%.2f s' % (thruster_id, 'ON' if is_on else 'OFF', time))
-        else:
-            time = time_in_float_sec(self.get_clock().now())
-            self._logger.error('Setting state of thruster #%d failed! t=%.2f s' % (thruster_id, time))
+        future = self._service_cb['thrusters']['state'][thruster_id].call_async(req)
+        time = time_in_float_sec(self.get_clock().now())
+        wait_for_service_completion(future,
+            'Setting state of thruster #%d, state=%s, t=%.2f s' % (thruster_id, 'ON' if is_on else 'OFF', time),
+            'Setting state of thruster #%d failed! t=%.2f s' % (thruster_id, time))
 
+        # if self._service_cb['thrusters']['state'][thruster_id].call(req):
+            
+        #     self._logger.info('Setting state of thruster #%d, state=%s, t=%.2f s' % (thruster_id, 'ON' if is_on else 'OFF', time))
+        # else:
+        #     time = time_in_float_sec(self.get_clock().now())
+        #     self._logger.error('Setting state of thruster #%d failed! t=%.2f s' % (thruster_id, time))
+
+    # =========================================================================
     def set_propeller_efficiency(self, thruster_id, eff):
         req = SetThrusterEfficiency.Request()
         req.efficiency = eff
 
-        if self._service_cb['thrusters']['propeller_efficiency'][thruster_id].call(req):
-            time = time_in_float_sec(self.get_clock().now())
-            self._logger.info('Setting propeller efficiency of thruster #%d, eff=%s, t=%.2f s' % (thruster_id, eff, time))
-        else:
-            time = time_in_float_sec(self.get_clock().now())
-            self._logger.error('Setting propeller efficiency of thruster #%d failed! t=%.2f s' % (thruster_id, time))
+        future = self._service_cb['thrusters']['propeller_efficiency'][thruster_id].call_async(req)
+        time = time_in_float_sec(self.get_clock().now())
+        wait_for_service_completion(future,
+            'Setting propeller efficiency of thruster #%d, eff=%s, t=%.2f s' % (thruster_id, eff, time),
+            'Setting propeller efficiency of thruster #%d failed! t=%.2f s' % (thruster_id, time))
 
+        # if self._service_cb['thrusters']['propeller_efficiency'][thruster_id].call(req):
+        #     time = time_in_float_sec(self.get_clock().now())
+        #     self._logger.info('Setting propeller efficiency of thruster #%d, eff=%s, t=%.2f s' % (thruster_id, eff, time))
+        # else:
+        #     time = time_in_float_sec(self.get_clock().now())
+        #     self._logger.error('Setting propeller efficiency of thruster #%d failed! t=%.2f s' % (thruster_id, time))
+
+    # =========================================================================
     def set_thrust_efficiency(self, thruster_id, eff):
         req = SetThrusterEfficiency.Request()
         req.efficiency = eff
 
-        if self._service_cb['thrusters']['thrust_efficiency'][thruster_id].call(req):
-            time = time_in_float_sec(self.get_clock().now())
-            self._logger.info('Setting thrust efficiency of thruster #%d, eff=%s, t=%.2f s' % (thruster_id, eff, time))
-        else:
-            time = time_in_float_sec(self.get_clock().now())
-            self._logger.error('Setting thrust efficiency of thruster #%d failed! t=%.2f s' % (thruster_id, time))
+        future = self._service_cb['thrusters']['thrust_efficiency'][thruster_id].call_async(req)
+        time = time_in_float_sec(self.get_clock().now())
+        wait_for_service_completion(
+            future,
+            'Setting thrust efficiency of thruster #%d, eff=%s, t=%.2f s' % (thruster_id, eff, time),
+            'Setting thrust efficiency of thruster #%d failed! t=%.2f s' % (thruster_id, time))
 
+        # if self._service_cb['thrusters']['thrust_efficiency'][thruster_id].call(req):
+        #     time = time_in_float_sec(self.get_clock().now())
+        #     self._logger.info('Setting thrust efficiency of thruster #%d, eff=%s, t=%.2f s' % (thruster_id, eff, time))
+        # else:
+        #     time = time_in_float_sec(self.get_clock().now())
+        #     self._logger.error('Setting thrust efficiency of thruster #%d failed! t=%.2f s' % (thruster_id, time))
+
+    # =========================================================================
+    def wait_for_service_completion(future, success_msg, error_msg):
+        while not future.done():
+            try:
+                response = future.result()
+            except Exception as e:
+                self._logger.error(error_msg)
+            else:
+                self._logger.info(success_msg)
+
+    # =========================================================================
     def build_service_name(self, ns, thruster_id, service_name) -> str :
         return '/%s/thrusters/id_%d/%s' % (ns, thruster_id, service_name)
 
-def time_in_float_sec(time: rclpy.time.Time):
-    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
-    return f_time
 
+# =============================================================================
 def main():
     print('Starting disturbance manager')
     
@@ -322,12 +406,19 @@ def main():
     try:
         node = DisturbanceManager('disturbance_manager')
         rclpy.spin(node)
-    except rclpy.exceptions.ROSInterruptException:
-        print('caught exception')
+    except rclpy.exceptions.ROSInterruptException as rosInter:
+        print('Caught ROSInterruptException exception' + str(rosInter))
     except Exception as e:
-        print(e)
-
+        print('Caught exception: '+str(e))
+    # finally:
+    #     if rclpy.ok():
+    #         rclpy.shutdown()
+            # node.destroy_node()
+            # node.thread.join()
+            
     print('exiting')
 
+
+# =============================================================================
 if __name__ == '__main__':
     main()

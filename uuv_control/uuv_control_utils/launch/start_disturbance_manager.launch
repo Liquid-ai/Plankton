@@ -27,11 +27,11 @@
   <arg name="wrench_duration" default="20"/>
 
   <group>
-    <push-ros-namespace namespace="$(arg uuv_name)"/>
-    <group if="$(arg use_file)">
+    <push-ros-namespace namespace="$(var uuv_name)"/>
+    <group if="$(var use_file)">
         <node pkg="uuv_control_utils"
           exec="disturbance_manager.py"
-          name="disturbance_manager"
+          node-name="disturbance_manager"
           output="screen">
           <!-- Load  parameters -->
           <param from="$(var disturbance_file)"/>
@@ -39,7 +39,32 @@
         </node>
     </group>
 
-    <group unless="$(arg use_file)">
+      <group unless="$(var use_file)">
+      <node pkg="uuv_control_utils"
+        exec="disturbance_manager.py"
+        node-name="disturbance_manager"
+        output="screen">
+        <param name="disturbances">
+          <param name="d1">
+            <param name="type" value="current"/>
+            <param name="starting_time" value="$(var current_starting_time)"/>
+            <param name="velocity" value="$(var current_vel)"/>
+            <param name="horizontal_angle" value="$(var current_horz_angle)"/>
+            <param name="vertical_angle" value="$(var current_vert_angle)"/>
+            <param name="duration" value="$(var current_duration)"/>
+          </param>
+          <param name="d2">
+            <param name="type" value="wrench"/>
+            <param name="starting_time" value="$(var wrench_starting_time)"/>
+            <param name="duration" value="$(var wrench_duration)"/>
+            <param name="force" value="$(var force_x), $(var force_y), $(var force_z)" value-sep=", "/>
+            <param name="force" value="$(var torque_x), $(var torque_y), $(var torque_z)" value-sep=", "/>
+          </param>
+        </param>
+      </node>
+    </group>
+
+    <!-- <group unless="$(var use_file)">
       <node pkg="uuv_control_utils"
         exec="disturbance_manager.py"
         name="disturbance_manager"
@@ -67,7 +92,7 @@
                 - $(arg torque_z)
         </rosparam>
       </node>
-    </group>
+    </group> -->
   </group>
 
 </launch>

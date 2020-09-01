@@ -1,0 +1,34 @@
+/**:
+  ros__parameters:
+    disturbances:
+      d1:
+        type: current
+        starting_time: 5.0
+        velocity: 2.0
+        horizontal_angle: 2.5
+        vertical_angle: 1.5
+        duration: 4.0
+      d2:
+        type: wrench
+        starting_time: 8.0
+        duration: 2.0
+        force: [0.0, 0.0, 0.0]
+        torque: [0.0, 0.0, 0.0]
+
+
+# /**:
+#     ros__parameters:
+#       disturbances:
+#         -
+#           type: current
+#           starting_time: 5.0
+#           velocity: 2.0
+#           horizontal_angle: 2.5
+#           vertical_angle: 1.5
+#           duration: 4.0
+#         -
+#           type: wrench
+#           starting_time: 8.0
+#           duration: 2.0
+#           force: [0.0, 0.0, 0.0]
+#           torque: [0.0, 0.0, 0.0]
