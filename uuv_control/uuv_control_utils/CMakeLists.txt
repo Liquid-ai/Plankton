@@ -6,7 +6,7 @@ find_package(ament_cmake REQUIRED)
 install(
   PROGRAMS 
   scripts/set_timed_current_perturbation.py
-  scripts/apply_body_wrench.py 
+  scripts/apply_link_wrench.py 
   scripts/disturbance_manager.py
   scripts/start_helical_trajectory.py 
   scripts/start_circular_trajectory.py
