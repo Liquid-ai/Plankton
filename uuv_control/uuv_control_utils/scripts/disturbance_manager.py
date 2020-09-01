@@ -21,7 +21,7 @@ import threading
 
 import rclpy
 from uuv_world_ros_plugins_msgs.srv import *
-from gazebo_msgs.srv import ApplyBodyWrench
+from gazebo_msgs.srv import ApplyLinkWrench
 from uuv_gazebo_ros_plugins_msgs.srv import SetThrusterState, SetThrusterEfficiency
 from geometry_msgs.msg import Point, WrenchStamped, Vector3
 from rclpy.node import Node
