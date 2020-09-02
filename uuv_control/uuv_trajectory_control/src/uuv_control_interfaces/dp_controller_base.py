@@ -14,13 +14,11 @@
 # limitations under the License.
 from copy import deepcopy
 import numpy as np
-import rclpy
 import logging
 import sys
-#import tf
 
-#TODO numpy msg...
-#from rospy.numpy_msg import numpy_msg
+import rclpy
+from rclpy.node import Node
 
 from geometry_msgs.msg import WrenchStamped, PoseStamped, TwistStamped, \
     Vector3, Quaternion, Pose
@@ -33,11 +31,12 @@ from tf_quaternion.transformations import euler_from_quaternion, \
 from uuv_control_msgs.msg import Trajectory, TrajectoryPoint
 from uuv_control_msgs.srv import *
 from uuv_auv_control_allocator.msg import AUVCommand
+from plankton_utils.param_helper import get_parameter_or_helper
+from plankton_utils.time import time_in_float_sec
 
 from .dp_controller_local_planner import DPControllerLocalPlanner as LocalPlanner
 from ._log import get_logger
 
-from rclpy.node import Node
 
 class DPControllerBase(Node):
     """General abstract class for DP controllers for underwater vehicles.
@@ -100,7 +99,13 @@ class DPControllerBase(Node):
     def __init__(self, node_name, is_model_based=False, list_odometry_callbacks=None,
         planner_full_dof=False):
 
-        super().__init__(node_name)
+        super().__init__(node_name,
+                        allow_undeclared_parameters=True, 
+                        automatically_declare_parameters_from_overrides=True)
+
+        #Default sim_time to True
+        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        self.set_parameters([sim_time])
 
         # Flag will be set to true when all parameters are initialized correctly
         self._is_init = False
@@ -118,12 +123,12 @@ class DPControllerBase(Node):
             self._logger.info('Setting controller as non-model-based')
 
         self._use_stamped_poses_only = False
-        if self.has_parameter('~use_stamped_poses_only'):
-            self._use_stamped_poses_only = self.get_parameter('~use_stamped_poses_only').get_parameter_value().bool_value
+        if self.has_parameter('use_stamped_poses_only'):
+            self._use_stamped_poses_only = self.get_parameter('use_stamped_poses_only').get_parameter_value().bool_value
 
         # Flag indicating if the vehicle has only thrusters, otherwise
         # the AUV allocation node will be used
-        self.thrusters_only = self.get_parameter('~thrusters_only', True).get_parameter_value().bool_value
+        self.thrusters_only = self.get_parameter_or_helper('thrusters_only', True).get_parameter_value().bool_value
 
         # Instance of the local planner for local trajectory generation
         self._local_planner = LocalPlanner(
@@ -134,19 +139,17 @@ class DPControllerBase(Node):
 
         self._control_saturation = 5000
         # TODO: Fix the saturation term and how it is applied
-        if self.has_parameter('~saturation'):
-            self._thrust_saturation = self.get_parameter('~saturation').value
+        if self.has_parameter('saturation'):
+            self._thrust_saturation = self.get_parameter('saturation').value
             if self._control_saturation <= 0:
                 raise RuntimeError('Invalid control saturation forces')
-
-        #TODO Check if parameters with default value still exist in rclpy
 
         # Flag indicating either use of the AUV control allocator or
         # direct command of fins and thruster
         self.use_auv_control_allocator = False
         if not self.thrusters_only:
-            self.use_auv_control_allocator = self.get_parameter(
-                '~use_auv_control_allocator', False).get_parameter_value().bool_value
+            self.use_auv_control_allocator = self.get_parameter_or_helper(
+                'use_auv_control_allocator', False).get_parameter_value().bool_value
 
         # Remap the following topics, if needed
         # Publisher for thruster allocator
@@ -162,7 +165,7 @@ class DPControllerBase(Node):
         else:
             self._auv_command_pub = None
 
-        self._min_thrust = self.get_parameter('~min_thrust', 40.0).get_parameter_value().double_value
+        self._min_thrust = self.get_parameter_or_helper('min_thrust', 40.0).get_parameter_value().double_value
 
         self._reference_pub = self.create_publisher(TrajectoryPoint, 'reference', 1)
         # Publish error (for debugging)
@@ -207,20 +210,21 @@ class DPControllerBase(Node):
         # Flag to indicate that odometry topic is receiving data
         self._init_odom = False
 
-#TODO numpy msg...
         # Subscribe to odometry topic
         self._odom_topic_sub = self.create_subscription(
-            numpy_msg(Odometry), 'odom', self._odometry_callback)
+            Odometry, 'odom', self._odometry_callback)
 
         # Stores last simulation time
         self._prev_t = -1.0
         self._logger.info('DP controller successfully initialized')
 
+    # =========================================================================
     def __del__(self):
         # Removing logging message handlers
         while self._logger.handlers:
             self._logger.handlers.pop()
 
+    # =========================================================================
     @staticmethod
     def get_controller(name, *args):
         """Create instance of a specific DP controller."""
@@ -229,32 +233,38 @@ class DPControllerBase(Node):
                 self._logger.info('Creating controller={}'.format(name))
                 return controller(*args)
 
+    # =========================================================================
     @staticmethod
     def get_list_of_controllers():
         """Return list of DP controllers using this interface."""
         return [controller.__name__ for controller in
                 DPControllerBase.__subclasses__()]
 
+    # =========================================================================
     @property
     def label(self):
         """`str`: Identifier name of the controller"""
         return self._LABEL
 
+    # =========================================================================
     @property
     def odom_is_init(self):
         """`bool`: `True` if the first odometry message was received"""
         return self._init_odom
 
+    # =========================================================================
     @property
     def error_pos_world(self):
         """`numpy.array`: Position error wrt world frame"""
         return np.dot(self._vehicle_model.rotBtoI, self._errors['pos'])
 
+    # =========================================================================
     @property
     def error_orientation_quat(self):
         """`numpy.array`: Orientation error"""
         return deepcopy(self._errors['rot'][0:3])
 
+    # =========================================================================
     @property
     def error_orientation_rpy(self):
         """`numpy.array`: Orientation error in Euler angles."""
@@ -280,16 +290,19 @@ class DPControllerBase(Node):
         yaw = np.arctan2(rot[1, 0], rot[0, 0])
         return np.array([roll, pitch, yaw])
 
+    # =========================================================================
     @property
     def error_pose_euler(self):
         """`numpy.array`: Pose error with orientation represented in Euler angles."""
         return np.hstack((self._errors['pos'], self.error_orientation_rpy))
 
+    # =========================================================================
     @property
     def error_vel_world(self):
         """`numpy.array`: Linear velocity error"""
         return np.dot(self._vehicle_model.rotBtoI, self._errors['vel'])
 
+    # =========================================================================
     def __str__(self):
         msg = 'Dynamic positioning controller\n'
         msg += 'Controller= ' + self._LABEL + '\n'
@@ -297,6 +310,7 @@ class DPControllerBase(Node):
         msg += 'Vehicle namespace= ' + self._namespace
         return msg
 
+    # =========================================================================
     def _create_vehicle_model(self):
         """Create a new instance of a vehicle model. If controller is not model
         based, this model will have its parameters set to 0 and will be used
@@ -307,6 +321,7 @@ class DPControllerBase(Node):
         self._vehicle_model = Vehicle(
             self, inertial_frame_id=self._local_planner.inertial_frame_id)
 
+    # =========================================================================
     def _update_reference(self):
         """Call the local planner interpolator to retrieve a trajectory 
         point and publish the reference message as `uuv_control_msgs/TrajectoryPoint`.
@@ -337,12 +352,14 @@ class DPControllerBase(Node):
             self._reference_pub.publish(msg)
         return True
 
+    # =========================================================================
     def _update_time_step(self):
         """Update time step."""
         t = time_in_float_sec(self.get_clock().now())
         self._dt = t - self._prev_time
         self._prev_time = t
 
+    # =========================================================================
     def _reset_controller(self):
         """Reset reference and and error vectors."""
         self._init_reference = False
@@ -358,11 +375,17 @@ class DPControllerBase(Node):
                             rot=np.zeros(4),
                             vel=np.zeros(6))
 
+    # =========================================================================
     def reset_controller_callback(self, request):
         """Service handler function."""
         self._reset_controller()
-        return ResetControllerResponse(True)
 
+        response.success = True
+        return response
+        
+        #return ResetControllerResponse(True)
+
+    # =========================================================================
     def update_controller(self):
         """This function must be implemented by derived classes
         with the implementation of the control algorithm.
@@ -370,6 +393,7 @@ class DPControllerBase(Node):
         # Does nothing, must be overloaded
         raise NotImplementedError()
 
+    # =========================================================================
     def update_errors(self):
         """Update error vectors."""
         if not self.odom_is_init:
@@ -411,6 +435,7 @@ class DPControllerBase(Node):
             msg.velocity.angular = Vector3(*np.dot(rotBtoI, self._errors['vel'][3:6]))
             self._error_pub.publish(msg)
 
+    # =========================================================================
     def publish_control_wrench(self, force):
         """Publish the thruster manager control set-point.
         
@@ -447,6 +472,7 @@ class DPControllerBase(Node):
 
         self._thrust_pub.publish(force_msg)
 
+    # =========================================================================
     def publish_auv_command(self, surge_speed, wrench):
         """Publish the AUV control command message
         
@@ -473,6 +499,7 @@ class DPControllerBase(Node):
 
         self._auv_command_pub.publish(msg)
 
+    # =========================================================================
     def _odometry_callback(self, msg):
         """Odometry topic subscriber callback function.
         
@@ -490,6 +517,6 @@ class DPControllerBase(Node):
             for func in self._odometry_callbacks:
                 func()
 
-    def time_in_float_sec(time: Time):
-        f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
-        return f_time
+    # =========================================================================
+    def get_parameter_or_helper(self, name, default_value):
+        return get_parameter_or_helper(self, name, default, value)

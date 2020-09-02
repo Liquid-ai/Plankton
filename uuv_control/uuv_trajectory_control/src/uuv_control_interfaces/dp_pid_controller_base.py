@@ -40,8 +40,8 @@ class DPPIDControllerBase(DPControllerBase):
         # Error for the vehicle pose
         self._error_pose = np.zeros(6)
 
-        if self.has_parameter.has_param('~Kp'):
-            Kp_diag = self.get_parameter('~Kp').get_parameter_value().double_array_value
+        if self.has_parameter.has_param('Kp'):
+            Kp_diag = self.get_parameter('Kp').get_parameter_value().double_array_value
             if len(Kp_diag) == 6:
                 self._Kp = np.diag(Kp_diag)
             else:
@@ -50,8 +50,8 @@ class DPPIDControllerBase(DPControllerBase):
 
         self._logger.info('Kp=' + str([self._Kp[i, i] for i in range(6)]))
 
-        if self.has_parameter('~Kd'):
-            Kd_diag = self.get_parameter('~Kd').get_parameter_value().double_array_value
+        if self.has_parameter('Kd'):
+            Kd_diag = self.get_parameter('Kd').get_parameter_value().double_array_value
             if len(Kd_diag) == 6:
                 self._Kd = np.diag(Kd_diag)
             else:
@@ -60,8 +60,8 @@ class DPPIDControllerBase(DPControllerBase):
 
         self._logger.info('Kd=' + str([self._Kd[i, i] for i in range(6)]))
 
-        if self.has_parameter('~Ki'):
-            Ki_diag = self.get_parameter('~Ki').get_parameter_value().double_array_value
+        if self.has_parameter('Ki'):
+            Ki_diag = self.get_parameter('Ki').get_parameter_value().double_array_value
             if len(Ki_diag) == 6:
                 self._Ki = np.diag(Ki_diag)
             else:
@@ -81,13 +81,15 @@ class DPPIDControllerBase(DPControllerBase):
 
         self._logger.info('PID controller ready!')
 
+    # =========================================================================
     def _reset_controller(self):
         """Reset reference and and error vectors."""
         super(DPPIDControllerBase, self)._reset_controller()
         self._error_pose = np.zeros(6)
         self._int = np.zeros(6)
 
-    def set_pid_params_callback(self, request):
+    # =========================================================================
+    def set_pid_params_callback(self, request, response):
         """Service callback function to set the 
         PID's parameters
         """
@@ -95,21 +97,30 @@ class DPPIDControllerBase(DPControllerBase):
         kd = request.kd
         ki = request.ki
         if len(kp) != 6 or len(kd) != 6 or len(ki) != 6:
-            return SetPIDParamsResponse(False)
+            response.success = False
+            return response
+            #return SetPIDParamsResponse(False)
         self._Kp = np.diag(kp)
         self._Ki = np.diag(ki)
         self._Kd = np.diag(kd)
-        return SetPIDParamsResponse(True)
+        response.success = True
+        return response
+        #return SetPIDParamsResponse(True)
 
-    def get_pid_params_callback(self, request):
+    # =========================================================================
+    def get_pid_params_callback(self, request, response):
         """Service callback function to return 
         the PID's parameters
         """
-        return GetPIDParamsResponse(
-            [self._Kp[i, i] for i in range(6)],
-            [self._Kd[i, i] for i in range(6)],
-            [self._Ki[i, i] for i in range(6)])
+        response.kp = [self._Kp[i, i] for i in range(6)]
+        response.kd = [self._Kd[i, i] for i in range(6)]
+        response.ki = [self._Ki[i, i] for i in range(6)]
+        # return GetPIDParamsResponse(
+        #     [self._Kp[i, i] for i in range(6)],
+        #     [self._Kd[i, i] for i in range(6)],
+        #     [self._Ki[i, i] for i in range(6)])
 
+    # =========================================================================
     def update_pid(self):
         """Return the control signal computed from the PID 
         algorithm. To implement a PID-based controller that

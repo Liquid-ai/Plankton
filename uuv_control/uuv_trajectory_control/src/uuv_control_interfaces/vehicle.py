@@ -12,14 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
 import rclpy
 import numpy as np
 from nav_msgs.msg import Odometry
 from copy import deepcopy
-
-#TODO Numpy msg...
-#from rospy.numpy_msg import numpy_msg
 
 from tf_quaternion.transformations import quaternion_from_euler, euler_from_quaternion, \
     quaternion_matrix, rotation_matrix, is_same_transform
@@ -72,7 +68,7 @@ class Vehicle(object):
 
             tf_trans_ned_to_enu = tf_buffer.lookup_transform(
                 'world', 'world_ned', rclpy.time.Time(),
-                rclpy.time.Duration(10))
+                rclpy.time.Duration(seconds=10))
             
             self.q_ned_to_enu = np.array(
                 [tf_trans_ned_to_enu.transform.rotation.x,
@@ -92,47 +88,47 @@ class Vehicle(object):
             self._logger.info('Transform world_ned (NED) to world (ENU)=\n' +
                                 str(self.transform_ned_to_enu))
 
-        self._mass = 0
-        if self.node.has_parameter('~mass'):
-            self._mass = self.node.get_parameter('~mass').get_parameter_value().double_value
+        self._mass = 0.0
+        if self.node.has_parameter('mass'):
+            self._mass = self.node.get_parameter('mass').value
             if self._mass <= 0:
                 raise RuntimeError('Mass has to be positive')
 
         self._inertial = dict(ixx=0, iyy=0, izz=0, ixy=0, ixz=0, iyz=0)
-        if self.node.has_parameter('~inertial'):
-            inertial = self.node.get_parameter('~inertial').value
+        if self.node.has_parameter('inertial'):
+            inertial = self.node.get_parameter('inertial').value
             for key in self._inertial:
                 if key not in inertial:
                     raise RuntimeError('Invalid moments of inertia')
             self._inertial = inertial
 
         self._cog = [0, 0, 0]
-        if self.node.has_parameter('~cog'):
-            self._cog = self.node.get_parameter('~cog').get_parameter_value().double_array_value
+        if self.node.has_parameter('cog'):
+            self._cog = self.node.get_parameter('cog').get_parameter_value().double_array_value
             if len(self._cog) != 3:
                 raise RuntimeError('Invalid center of gravity vector')
 
         self._cob = [0, 0, 0]
         #bug fix wrt the original code
-        if self.node.has_parameter('~cob'):
-            self._cob = self.node.get_parameter('~cob').get_parameter_value().double_array_value
+        if self.node.has_parameter('cob'):
+            self._cob = self.node.get_parameter('cob').get_parameter_value().double_array_value
             if len(self._cob) != 3:
                 raise RuntimeError('Invalid center of buoyancy vector')
 
         self._body_frame = 'base_link'
-        if self.node.has_parameter('~base_link'):
-            self._body_frame = self.node.get_parameter('~base_link').get_parameter_value().string_value
+        if self.node.has_parameter('base_link'):
+            self._body_frame = self.node.get_parameter('base_link').get_parameter_value().string_value
 
         self._volume = 0.0
-        if self.node.has_parameter('~volume'):
-            self._volume = self.node.get_parameter('~volume').get_parameter_value().double_value
+        if self.node.has_parameter('volume'):
+            self._volume = self.node.get_parameter('volume').value
             if self._volume <= 0:
                 raise RuntimeError('Invalid volume')
 
         # Fluid density
         self._density = 1028.0
-        if self.node.has_parameter('~density'):
-            self._density = self.node.get_parameter('~density').get_parameter_value().double_value
+        if self.node.has_parameter('density'):
+            self._density = self.node.get_parameter('density').value
             if self._density <= 0:
                 raise RuntimeError('Invalid fluid density')
 
@@ -140,18 +136,18 @@ class Vehicle(object):
         self._height = 0.0
         self._length = 0.0
         self._width = 0.0
-        if self.node.has_parameter('~height'):
-            self._height = self.node.get_parameter('~height').get_parameter_value().double_value
+        if self.node.has_parameter('height'):
+            self._height = self.node.get_parameter('height').value
             if self._height <= 0:
                 raise RuntimeError('Invalid height')
 
-        if self.node.has_parameter('~length'):
-            self._length = self.node.get_parameter('~length').get_parameter_value().double_value
+        if self.node.has_parameter('length'):
+            self._length = self.node.get_parameter('length').value
             if self._length <= 0:
                 raise RuntimeError('Invalid length')
 
-        if self.node.has_parameter('~width'):
-            self._width = self.node.get_parameter('~width').get_parameter_value().double_value
+        if self.node.has_parameter('width'):
+            self._width = self.node.get_parameter('width').value
             if self._width <= 0:
                 raise RuntimeError('Invalid width')
 
@@ -167,8 +163,8 @@ class Vehicle(object):
 
         # Loading the added-mass matrix
         self._Ma = np.zeros((6, 6))
-        if self.node.has_parameter('~Ma'):
-            self._Ma = np.array(self.node.get_parameter('~Ma').value)
+        if self.node.has_parameter('Ma'):
+            self._Ma = np.array(self.node.get_parameter('Ma').value)
             if self._Ma.shape != (6, 6):
                 raise RuntimeError('Invalid added mass matrix')
 
@@ -187,8 +183,8 @@ class Vehicle(object):
 
         # Loading the linear damping coefficients
         self._linear_damping = np.zeros(shape=(6, 6))
-        if self.node.has_parameter('~linear_damping'):
-            self._linear_damping = np.array(self.node.get_parameter('~linear_damping').value)
+        if self.node.has_parameter('linear_damping'):
+            self._linear_damping = np.array(self.node.get_parameter('linear_damping').value)
             if self._linear_damping.shape == (6,):
                 self._linear_damping = np.diag(self._linear_damping)
             if self._linear_damping.shape != (6, 6):
@@ -196,16 +192,16 @@ class Vehicle(object):
 
         # Loading the nonlinear damping coefficients
         self._quad_damping = np.zeros(shape=(6,))
-        if self.node.has_parameter('~quad_damping'):
-            self._quad_damping = np.array(self.node.get_parameter('~quad_damping').value)
+        if self.node.has_parameter('quad_damping'):
+            self._quad_damping = np.array(self.node.get_parameter('quad_damping').value)
             if self._quad_damping.shape != (6,):
                 raise RuntimeError('Quadratic damping must be given defined with 6 coefficients')
 
         # Loading the linear damping coefficients proportional to the forward speed
         self._linear_damping_forward_speed = np.zeros(shape=(6, 6))
-        if self.node.has_parameter('~linear_damping_forward_speed'):
+        if self.node.has_parameter('linear_damping_forward_speed'):
             self._linear_damping_forward_speed = np.array(
-                self.node.get_parameter('~linear_damping_forward_speed').value)
+                self.node.get_parameter('linear_damping_forward_speed').value)
             if self._linear_damping_forward_speed.shape == (6,):
                 self._linear_damping_forward_speed = np.diag(self._linear_damping_forward_speed)
             if self._linear_damping_forward_speed.shape != (6, 6):
@@ -227,6 +223,7 @@ class Vehicle(object):
         # Generalized forces
         self._gen_forces = np.zeros(6)        
 
+    # =========================================================================
     @staticmethod
     def q_to_matrix(q):
         """Convert quaternion into orthogonal rotation matrix.
@@ -255,61 +252,73 @@ class Vehicle(object):
                        1 - 2 * (e1**2 + e2**2)]])
         return R
 
+    # =========================================================================
     @property
     def namespace(self):
         """`str`: Return robot namespace."""
         return self._namespace
 
+    # =========================================================================
     @property
     def body_frame_id(self):
         """`str`: Body frame ID"""
         return self._body_frame_id
 
+    # =========================================================================
     @property
     def inertial_frame_id(self):
         """`str`: Inertial frame ID"""
         return self._inertial_frame_id
 
+    # =========================================================================
     @property
     def mass(self):
         """`float`: Mass in kilograms"""
         return self._mass
 
+    # =========================================================================
     @property
     def volume(self):
         """`float`: Volume of the vehicle in m^3"""
         return self._volume
 
+    # =========================================================================
     @property
     def gravity(self):
         """`float`: Magnitude of acceleration of gravity m / s^2"""
         return self._gravity
 
+    # =========================================================================
     @property
     def density(self):
         """`float`: Fluid density as kg / m^3"""
         return self._density
 
+    # =========================================================================
     @property
     def height(self):
         """`float`: Height of the vehicle in meters"""
         return self._height
 
+    # =========================================================================
     @property
     def width(self):
         """`float`: Width of the vehicle in meters"""
         return self._width
 
+    # =========================================================================
     @property
     def length(self):
         """`float`: Length of the vehicle in meters"""
         return self._length
 
+    # =========================================================================
     @property
     def pos(self):
         """`numpy.array`: Position of the vehicle in meters."""
         return deepcopy(self._pose['pos'])
 
+    # =========================================================================
     @pos.setter
     def pos(self, position):
         pos = np.array(position)
@@ -318,21 +327,25 @@ class Vehicle(object):
         else:
             self._pose['pos'] = pos
 
+    # =========================================================================
     @property
     def depth(self):
         """`numpy.array`: Depth of the vehicle in meters."""
         return deepcopy(np.abs(self._pose['pos'][2]))
 
+    # =========================================================================
     @property
     def heading(self):
         """`float`: Heading of the vehicle in radians."""
         return deepcopy(self.euler[2])
 
+    # =========================================================================
     @property
     def quat(self):
         """`numpy.array`: Orientation quaternion as `(qx, qy, qz, qw)`."""
         return deepcopy(self._pose['rot'])
 
+    # =========================================================================
     @quat.setter
     def quat(self, q):
         q_rot = np.array(q)
@@ -341,16 +354,19 @@ class Vehicle(object):
         else:
             self._pose['rot'] = q_rot
 
+    # =========================================================================
     @property
     def quat_dot(self):
         """`numpy.array`: Time derivative of the quaternion vector."""
         return np.dot(self.TBtoIquat, self.vel[3:6])
 
+    # =========================================================================
     @property
     def vel(self):
         """`numpy.array`: Linear and angular velocity vector."""
         return deepcopy(self._vel)
 
+    # =========================================================================
     @vel.setter
     def vel(self, velocity):
         """Set the velocity vector in the BODY frame."""
@@ -360,11 +376,13 @@ class Vehicle(object):
         else:
             self._vel = v
 
+    # =========================================================================
     @property
     def acc(self):
         """`numpy.array`: Linear and angular acceleration vector."""
         return deepcopy(self._acc)
 
+    # =========================================================================
     @property
     def euler(self):
         """`list`: Orientation in Euler angles in radians 
@@ -381,6 +399,7 @@ class Vehicle(object):
         yaw = np.arctan2(rot[1, 0], rot[0, 0])
         return roll, pitch, yaw
 
+    # =========================================================================
     @property
     def euler_dot(self):
         """`numpy.array`: Time derivative of the Euler 
@@ -388,12 +407,14 @@ class Vehicle(object):
         """
         return np.dot(self.TItoBeuler, self.vel[3:6])
 
+    # =========================================================================
     @property
     def restoring_forces(self):
         """`numpy.array`: Restoring force vector in N."""
         self._update_restoring()
         return deepcopy(self._g)
 
+    # =========================================================================
     @property
     def Mtotal(self):
         """`numpy.array`: Combined system inertia 
@@ -401,16 +422,19 @@ class Vehicle(object):
         """
         return deepcopy(self._Mtotal)
 
+    # =========================================================================
     @property
     def Ctotal(self):
         """`numpy.array`: Combined Coriolis matrix"""
         return deepcopy(self._C)
 
+    # =========================================================================
     @property
     def Dtotal(self):
         """`numpy.array`: Linear and non-linear damping matrix"""
         return deepcopy(self._D)
 
+    # =========================================================================
     @property
     def pose_euler(self):
         """`numpy.array`: Pose as a vector, orientation in Euler angles."""
@@ -422,6 +446,7 @@ class Vehicle(object):
         pose[5] = yaw
         return pose
 
+    # =========================================================================
     @property
     def pose_quat(self):
         """`numpy.array`: Pose as a vector, orientation as quaternion."""
@@ -430,11 +455,13 @@ class Vehicle(object):
         pose[3:7] = self.quat
         return pose
 
+    # =========================================================================
     @property
     def rotItoB(self):
         """`numpy.array`: Rotation matrix from INERTIAL to BODY frame"""
         return self.rotBtoI.T
 
+    # =========================================================================
     @property
     def rotBtoI(self):
         """`numpy.array`: Rotation from BODY to INERTIAL 
@@ -444,6 +471,7 @@ class Vehicle(object):
         # Using the (x, y, z, w) format to describe quaternions
         return self.q_to_matrix(self._pose['rot'])
 
+    # =========================================================================
     @property
     def TItoBeuler(self):
         r, p, y = self.euler
@@ -452,6 +480,7 @@ class Vehicle(object):
                       [0, -np.sin(r), np.cos(p) * np.cos(r)]])
         return T
 
+    # =========================================================================
     @property
     def TBtoIeuler(self):
         r, p, y = self.euler
@@ -463,6 +492,7 @@ class Vehicle(object):
              [0, np.sin(r), np.cos(r)]])
         return T
 
+    # =========================================================================
     @property
     def TBtoIquat(self):
         """
@@ -481,6 +511,7 @@ class Vehicle(object):
         )
         return T
 
+    # =========================================================================
     def to_SNAME(self, x):
         if self._body_frame_id == 'base_link_ned':
             return x
@@ -495,11 +526,13 @@ class Vehicle(object):
             self._logger.error('Message=' + str(e))
             return None
 
+    # =========================================================================
     def from_SNAME(self, x):
         if self._body_frame_id == 'base_link_ned':
             return x
         return self.to_SNAME(x)
 
+    # =========================================================================
     def print_info(self):
         """Print the vehicle's parameters."""
         print('Namespace: {}'.format(self._namespace))
@@ -513,9 +546,11 @@ class Vehicle(object):
         print('Center of buoyancy: {}'.format(self._cob))
         print('Inertial:\n{}'.format(self._calc_inertial_tensor()))
 
+    # =========================================================================
     def _calc_mass_matrix(self):
         self._Mtotal = self._M + self._Ma
 
+    # =========================================================================
     def _update_coriolis(self, vel=None):
         if vel is not None:
             if vel.shape != (6,):
@@ -538,6 +573,7 @@ class Vehicle(object):
         self._C[3:6, 0:3] = S_12
         self._C[3:6, 3:6] = S_22
 
+    # =========================================================================
     def _update_damping(self, vel=None):
         if vel is not None:
             if vel.shape != (6,):
@@ -581,6 +617,7 @@ class Vehicle(object):
         self._g[3:6] = -1 * np.dot(rotItoB,
                                    np.cross(self._cog, Fg) + np.cross(self._cob, Fb))        
 
+    # =========================================================================
     def set_added_mass(self, Ma):
         """Set added-mass matrix coefficients."""
         if Ma.shape != (6, 6):
@@ -589,7 +626,8 @@ class Vehicle(object):
         self._Ma = np.array(Ma, copy=True)
         self._calc_mass_matrix()
         return True
-
+    
+    # =========================================================================
     def set_damping_coef(self, linear_damping, quad_damping):
         """Set linear and quadratic damping coefficients."""
         if linear_damping.size != 6 or quad_damping.size != 6:
@@ -599,6 +637,7 @@ class Vehicle(object):
         self._quad_damping = np.array(quad_damping, copy=True)
         return True
 
+    # =========================================================================
     def compute_force(self, acc=None, vel=None, with_restoring=True, use_sname=True):
         """Return the sum of forces acting on the vehicle.
 
@@ -643,6 +682,7 @@ class Vehicle(object):
 
         return f
 
+    # =========================================================================
     def compute_acc(self, gen_forces=None, use_sname=True):
         """Calculate inverse dynamics to obtain the acceleration vector."""
         self._gen_forces = np.zeros(shape=(6,))
@@ -668,6 +708,7 @@ class Vehicle(object):
 
         return self._acc
 
+    # =========================================================================
     def get_jacobian(self):
         """
         Return the Jacobian for the current orientation using transformations
@@ -679,6 +720,7 @@ class Vehicle(object):
         jac[3:6, 3:6] = self.TBtoIeuler
         return jac
     
+    # =========================================================================
     def update_odometry(self, msg):
         """Odometry topic subscriber callback function."""
         # The frames of reference delivered by the odometry seems to be as
