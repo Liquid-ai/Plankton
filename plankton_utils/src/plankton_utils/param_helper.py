@@ -1,3 +1,6 @@
+import rclpy
+
+
 def __merge_dicts(a, b):
     """
     merges b into a and return merged result
@@ -82,6 +85,13 @@ def parse_nested_params_to_dict(this_list, separator: str = ".", unpack_value: b
         else:
             parameters_with_prefix = __merge_dicts(parameters_with_prefix, dict_)
     return parameters_with_prefix
+
+
+# =============================================================================
+def get_parameter_or_helper(node, name, default_value):
+    default_param = rclpy.Parameter(
+            name, rclpy.Parameter.Type.from_parameter_value(default_value), default_value)
+    node.parameter_or(name, default_param)
 
 
 # ==============================================================================    
