@@ -69,7 +69,7 @@ class FootprintsPublisher(Node):
             points.append(p)
 
         new_poly = PolygonStamped()
-        new_poly.header.stamp = self.get_clock().now #rospy.Time.now()
+        new_poly.header.stamp = self.get_clock().now().to_msg() #rospy.Time.now()
         new_poly.header.frame_id = 'world'
         new_poly.polygon.points = points
         self.get
