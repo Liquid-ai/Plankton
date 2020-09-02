@@ -36,14 +36,14 @@ class ThrusterAllocatorNode(ThrusterManager):
     def __init__(self, node_name):
         """Class constructor."""
         ThrusterManager.__init__(self, node_name)
-        self.get_logger().info("hello allocator")
+ 
         self.last_update = time_in_float_sec(self.get_clock().now())
-        self.get_logger().info("hello allocator 1.5")
+   
         # Subscriber to the wrench to be applied on the UUV
         self.input_sub = self.create_subscription(Wrench, 'thruster_manager/input',
                                           self.input_callback, 10)
 
-        self.get_logger().info("hello allocator 1.8")
+    
         # To deliver the wrench input with an option to use another body frame
         # (options: base_link and base_link_ned), use the wrench stamped
         # message
@@ -63,14 +63,11 @@ class ThrusterAllocatorNode(ThrusterManager):
             GetThrusterManagerConfig, 'thruster_manager/get_config',
             self.get_config)
 
-        self.get_logger().info("hello allocator 2")
         #rate = self.create_rate(self.config['update_rate'].value)
         self.timer_function = self.create_timer(
             1.0 / self.config['update_rate'].value, self.spin_function)
-        
-        self.get_logger().info("hello allocator 2.1")
 
-    #==============================================================================
+    # ==============================================================================
     def spin_function(self):
         if self.config['timeout'].value > 0:
             # If a timeout is set, zero the outputs to the thrusters if
@@ -82,27 +79,47 @@ class ThrusterAllocatorNode(ThrusterManager):
                     self.command_thrusters()        
             
 
-    #==============================================================================
-    def get_thruster_info(self, request):
+    # ==============================================================================
+    def get_thruster_info(self, request, response):
         """Return service callback with thruster information."""
-        return ThrusterManagerInfoResponse(
-            self.n_thrusters,
-            self.configuration_matrix.flatten().tolist(),
-            self.namespace + self.config['base_link'].value)
+        response.n_thrusters = n_thrusters
+        response.allocation_matrix = self.configuration_matrix.flatten().tolist()
+        response.reference_frame = self.namespace + self.config['base_link'].value
 
-    #==============================================================================
-    def get_thruster_curve(self, request):
+        return response
+        # return ThrusterManagerInfoResponse(
+        #     self.n_thrusters,
+        #     self.configuration_matrix.flatten().tolist(),
+        #     self.namespace + self.config['base_link'].value)
+
+    # ==============================================================================
+    def get_thruster_curve(self, request, response):
         """Return service callback for computation of thruster curve."""
+
         if self.n_thrusters == 0:
-            return GetThrusterCurveResponse([], [])
+            response.input = []
+            response.thrust = []
+        
         # TODO Get thruster index, for the case the vehicle has different
         # models
         input_values, thrust_values = self.thrusters[0].get_curve(
             request.min, request.max, request.n_points)
-        return GetThrusterCurveResponse(input_values, thrust_values)
 
-    #==============================================================================
-    def set_config(self, request):
+        response.input = input_values
+        response.thrust = thrust_values
+
+        return response
+
+        # if self.n_thrusters == 0:
+        #     return GetThrusterCurveResponse([], [])
+        # # TODO Get thruster index, for the case the vehicle has different
+        # # models
+        # input_values, thrust_values = self.thrusters[0].get_curve(
+        #     request.min, request.max, request.n_points)
+        # return GetThrusterCurveResponse(input_values, thrust_values)
+
+    # ==============================================================================
+    def set_config(self, request, response):
         old_config = deepcopy(self.config)
         self.ready = False
         self.config['base_link'].value = request.base_link
@@ -117,22 +134,37 @@ class ThrusterAllocatorNode(ThrusterManager):
             self.get_logger().info('Configuration parameters are invalid, going back to old configuration...')
             self.config = old_config
             self.update_tam(recalculate=True)
-        return SetThrusterManagerConfigResponse(True)
 
-    #==============================================================================
-    def get_config(self, request):
-        return GetThrusterManagerConfigResponse(
-            self.namespace,
-            self.config['base_link'].value,
-            self.config['thruster_frame_base'].value,
-            self.config['thruster_topic_prefix'].value,
-            self.config['thruster_topic_suffix'].value,
-            self.config['timeout'].value,
-            self.config['max_thrust'].value,
-            self.n_thrusters,
-            self.configuration_matrix.flatten().tolist())
+        response.success = True
+        return response
 
-    #==============================================================================
+        # return SetThrusterManagerConfigResponse(True)
+
+    # ==============================================================================
+    def get_config(self, request, response):
+        response.tf_prefix = self.namespace
+        response.base_link = self.config['base_link'].value
+        response.thruster_frame_base = self.config['thruster_frame_base'].value
+        response.thruster_topic_prefix = self.config['thruster_topic_prefix'].value
+        response.thruster_topic_suffix = self.config['thruster_topic_suffix'].value
+        response.timeout = self.config['timeout'].value
+        response.max_thrust = self.config['max_thrust'].value
+        response.n_thrusters = self.n_thrusters
+        response.allocation_matrix = self.configuration_matrix.flatten().tolist()
+
+        return response
+        # return GetThrusterManagerConfigResponse(
+        #     self.namespace,
+        #     self.config['base_link'].value,
+        #     self.config['thruster_frame_base'].value,
+        #     self.config['thruster_topic_prefix'].value,
+        #     self.config['thruster_topic_suffix'].value,
+        #     self.config['timeout'].value,
+        #     self.config['max_thrust'].value,
+        #     self.n_thrusters,
+        #     self.configuration_matrix.flatten().tolist())
+
+    # ==============================================================================
     def input_callback(self, msg):
         """
         Callback to the subscriber that receiver the wrench to be applied on
@@ -151,7 +183,7 @@ class ThrusterAllocatorNode(ThrusterManager):
 
         self.last_update = time_in_float_sec(self.get_clock().now())
     
-    #==============================================================================
+    # ==============================================================================
     def input_stamped_callback(self, msg):
         """
         Callback to the subscriber that receiver the stamped wrench to be
@@ -170,7 +202,7 @@ class ThrusterAllocatorNode(ThrusterManager):
         self.publish_thrust_forces(force, torque, msg.header.frame_id.split('/')[-1])
         self.last_update = time_in_float_sec(self.get_clock().now())
 
-#==============================================================================
+# ==============================================================================
 def main():
     rclpy.init()
 
@@ -178,11 +210,13 @@ def main():
         node = ThrusterAllocatorNode('thruster_allocator')
         rclpy.spin(node)
 
-        rclpy.shutdown()
     except Exception as e:
         print('ThrusterAllocatorNode::Exception ' + str(e))
+    finally:
+        if rclpy.ok()
+            rclpy.shutdown()
     print('Leaving ThrusterAllocatorNode')
 
-#==============================================================================
+# ==============================================================================
 if __name__ == '__main__':
     main()
