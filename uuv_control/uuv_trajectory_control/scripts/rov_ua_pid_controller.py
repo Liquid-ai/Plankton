@@ -40,8 +40,8 @@ class ROVUnderActuatedPIDController(DPControllerBase):
         # Error for the vehicle pose
         self._error_pose = np.zeros(4)
 
-        if self.has_parameter('~Kp'):
-            Kp_diag = self.get_parameter('~Kp').get_parameter_value().double_array_value
+        if self.has_parameter('Kp'):
+            Kp_diag = self.get_parameter('Kp').get_parameter_value().double_array_value
             if len(Kp_diag) == 4:
                 self._Kp = np.diag(Kp_diag)
             else:
@@ -50,8 +50,8 @@ class ROVUnderActuatedPIDController(DPControllerBase):
 
         self._logger.info('Kp=' + str([self._Kp[i, i] for i in range(4)]))
 
-        if self.has_parameter('~Kd'):
-            Kd_diag = self.get_parameter('~Kd').get_parameter_value().double_array_value
+        if self.has_parameter('Kd'):
+            Kd_diag = self.get_parameter('Kd').get_parameter_value().double_array_value
             if len(Kd_diag) == 4:
                 self._Kd = np.diag(Kd_diag)
             else:
@@ -60,8 +60,8 @@ class ROVUnderActuatedPIDController(DPControllerBase):
 
         self._logger.info('Kd=' + str([self._Kd[i, i] for i in range(4)]))
 
-        if self.has_parameter('~Ki'):
-            Ki_diag = self.get_parameter('~Ki').get_parameter_value().double_array_value
+        if self.has_parameter('Ki'):
+            Ki_diag = self.get_parameter('Ki').get_parameter_value().double_array_value
             if len(Ki_diag) == 4:
                 self._Ki = np.diag(Ki_diag)
             else:
@@ -70,40 +70,57 @@ class ROVUnderActuatedPIDController(DPControllerBase):
 
         self._logger.info('Ki=' + str([self._Ki[i, i] for i in range(4)]))
 
-        self._services['set_pid_params'] = self.create_service(
+        srv_name = 'set_pid_params'
+        self._services[srv_name] = self.create_service(
             SetPIDParams,
-            'set_pid_params',
+            srv_name,
             self.set_pid_params_callback)
-        self._services['get_pid_params'] = self.create_service(
+
+        srv_name = 'get_pid_params'
+        self._services[srv_name] = self.create_service(
             GetPIDParams,
-            'get_pid_params',
+            ssrv_name,
             self.get_pid_params_callback)
 
         self._is_init = True
         self._logger.info('Underactuated PID controller ready!')
 
+    # =========================================================================
     def _reset_controller(self):
         super(DPPIDControllerBase, self)._reset_controller()
         self._error_pose = np.zeros(4)
         self._int = np.zeros(4)
 
-    def set_pid_params_callback(self, request):
+    # =========================================================================
+    def set_pid_params_callback(self, request, response):
         kp = request.kp
         kd = request.kd
         ki = request.ki
         if len(kp) != 4 or len(kd) != 4 or len(ki) != 4:
-            return SetPIDParamsResponse(False)
-        self._Kp = np.diag(kp)
-        self._Ki = np.diag(ki)
-        self._Kd = np.diag(kd)
-        return SetPIDParamsResponse(True)
+            response.success = False
+            #return SetPIDParamsResponse(False)
+        else:
+            self._Kp = np.diag(kp)
+            self._Ki = np.diag(ki)
+            self._Kd = np.diag(kd)
+            response.success = True
+        return response
+        # return SetPIDParamsResponse(True)
 
-    def get_pid_params_callback(self, request):
-        return GetPIDParamsResponse(
-            [self._Kp[i, i] for i in range(4)],
-            [self._Kd[i, i] for i in range(4)],
-            [self._Ki[i, i] for i in range(4)])
+    # =========================================================================
+    def get_pid_params_callback(self, request, response):
+        response.kp = [self._Kp[i, i] for i in range(4)]
+        response.kd = [self._Kd[i, i] for i in range(4)]
+        response.ki = [self._Ki[i, i] for i in range(4)]
 
+        return response
+
+        # return GetPIDParamsResponse(
+        #     [self._Kp[i, i] for i in range(4)],
+        #     [self._Kd[i, i] for i in range(4)],
+        #     [self._Ki[i, i] for i in range(4)])
+
+    # =========================================================================
     def update_controller(self):
         if not self.odom_is_init:
             return False
@@ -128,6 +145,8 @@ class ROVUnderActuatedPIDController(DPControllerBase):
         self.publish_control_wrench(self._tau)
         return True
 
+
+# =============================================================================
 if __name__ == '__main__':
     print('Starting Underactuated PID Controller')
     rclpy.init()
@@ -137,4 +156,7 @@ if __name__ == '__main__':
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
     print('Exiting')

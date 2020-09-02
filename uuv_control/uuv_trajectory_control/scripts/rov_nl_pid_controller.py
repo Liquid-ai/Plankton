@@ -53,11 +53,13 @@ class ROV_NLPIDController(DPPIDControllerBase):
         self._is_init = True
         self._logger.info(self._LABEL + ' ready')
 
+    # =========================================================================
     def _reset_controller(self):
         super(ROV_NLPIDController, self)._reset_controller()
         self._accel_ff = np.zeros(6)
         self._pid_control = np.zeros(6)
 
+    # =========================================================================
     def update_controller(self):
         if not self._is_init:
             return False
@@ -74,6 +76,8 @@ class ROV_NLPIDController(DPPIDControllerBase):
         self.publish_control_wrench(self._tau)
         return True
 
+
+# =============================================================================
 def main():
     rclpy.init()
 
@@ -82,7 +86,12 @@ def main():
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
     print('exiting')    
 
+
+# =============================================================================
 if __name__ == '__main__':
     main()

@@ -17,9 +17,8 @@ import rclpy
 import numpy as np
 from uuv_control_interfaces import DPControllerBase
 
-def time_in_float_sec(time: Time):
-    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
-    return f_time
+from plankton_utils.time import time_in_float_sec
+
 
 class ROV_SFController(DPControllerBase):
     """
@@ -44,8 +43,8 @@ class ROV_SFController(DPControllerBase):
 
         self._Kd = np.zeros(shape=(6, 6))
 
-        if self.has_parameter('~Kd'):
-            coefs = rclpy.get_parameter('~Kd').get_parameter_value().double_array_value
+        if self.has_parameter('Kd'):
+            coefs = rclpy.get_parameter('Kd').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._Kd = np.diag(coefs)
             else:
@@ -57,7 +56,7 @@ class ROV_SFController(DPControllerBase):
         # Build delta matrix
         self._delta = np.zeros(shape=(6, 6))
 
-        l = self.get_parameter('~lambda', [0.0]).get_parameter_value().double_array_value
+        l = self.get_parameter('lambda', [0.0]).get_parameter_value().double_array_value
 
         if len(l) == 1:
             self._delta[0:3, 0:3] = l[0] * np.eye(3)
@@ -67,7 +66,7 @@ class ROV_SFController(DPControllerBase):
             raise RuntimeError(
                 'lambda: either a scalar or a 3 element vector must be provided')
 
-        c = self.get_parameter('~c', [0.0]).get_parameter_value().double_array_value
+        c = self.get_parameter('c', [0.0]).get_parameter_value().double_array_value
 
         if len(c) == 1:
             self._delta[3:6, 3:6] = c[0] * np.eye(3)
@@ -85,6 +84,7 @@ class ROV_SFController(DPControllerBase):
         self._is_init = True
         self._logger.info(self._LABEL + ' ready')
 
+    # =========================================================================
     def update_controller(self):
         if not self._is_init:
             return False
@@ -136,6 +136,7 @@ class ROV_SFController(DPControllerBase):
         return True
 
 
+# =============================================================================
 def main():
     rclpy.init()
 
@@ -144,7 +145,12 @@ def main():
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))
-    print('exiting')
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
+    print('Exiting')
 
+
+# =============================================================================
 if __name__ == '__main__':
     main()

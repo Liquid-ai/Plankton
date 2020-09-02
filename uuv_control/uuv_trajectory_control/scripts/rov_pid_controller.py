@@ -27,6 +27,7 @@ class ROV_PIDController(DPPIDControllerBase):
         DPPIDControllerBase.__init__(self, node_name, False)
         self._is_init = True
 
+    # =========================================================================
     def update_controller(self):
         if not self._is_init:
             return False
@@ -35,6 +36,8 @@ class ROV_PIDController(DPPIDControllerBase):
         self.publish_control_wrench(self._tau)
         return True
 
+
+# =============================================================================
 def main():
     print('Starting PID')
     rclpy.init()
@@ -44,7 +47,12 @@ def main():
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))
-    print('exiting')
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
+    print('Exiting')
 
+
+# =============================================================================
 if __name__ == '__main__':
     main()

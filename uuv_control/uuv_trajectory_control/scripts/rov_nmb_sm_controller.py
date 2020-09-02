@@ -18,9 +18,7 @@ import numpy as np
 from uuv_control_interfaces import DPControllerBase
 from uuv_control_msgs.srv import *
 
-def time_in_float_sec(time: Time):
-    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
-    return f_time
+from plankton_utils.time import time_in_float_sec
 
 
 class ROV_NMB_SMController(DPControllerBase):
@@ -55,8 +53,8 @@ class ROV_NMB_SMController(DPControllerBase):
         # Overall proportional gains
         self._slope = np.zeros(6)
 
-        if self.has_parameter('~K'):
-            coefs = self.get_parameter('~K').get_parameter_value().double_array_value
+        if self.has_parameter('K'):
+            coefs = self.get_parameter('K').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._K = np.array(coefs)
             else:
@@ -65,8 +63,8 @@ class ROV_NMB_SMController(DPControllerBase):
 
         self._logger.info('K=' + str(self._K))
 
-        if self.has_parameter('~Kd'):
-            coefs = self.get_parameter('~Kd').get_parameter_value().double_array_value
+        if self.has_parameter('Kd'):
+            coefs = self.get_parameter('Kd').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._Kd = np.array(coefs)
             else:
@@ -75,8 +73,8 @@ class ROV_NMB_SMController(DPControllerBase):
 
         self._logger.info('Kd=' + str(self._Kd))
 
-        if self.has_parameter('~Ki'):
-            coefs = self.get_parameter('~Ki').get_parameter_value().double_array_value
+        if self.has_parameter('Ki'):
+            coefs = self.get_parameter('Ki').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._Ki = np.array(coefs)
             else:
@@ -84,8 +82,8 @@ class ROV_NMB_SMController(DPControllerBase):
                                          'needed')
         self._logger.info('Ki=' + str(self._Ki))
 
-        if self.has_parameter('~slope'):
-            coefs = self.get_parameter('~slope').get_parameter_value().double_array_value
+        if self.has_parameter('slope'):
+            coefs = self.get_parameter('slope').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._slope = np.array(coefs)
             else:
@@ -95,8 +93,8 @@ class ROV_NMB_SMController(DPControllerBase):
         self._logger.info('slope=' + str(self._slope))
 
         self._sat_epsilon = 0.8
-        if self.has_parameter('~sat_epsilon'):
-            self._sat_epsilon = max(0.0, self.get_parameter('~sat_epsilon').get_parameter_value().double_value)
+        if self.has_parameter('sat_epsilon'):
+            self._sat_epsilon = max(0.0, self.get_parameter('sat_epsilon').value)
 
         self._logger.info('Saturation limits=' + str(self._sat_epsilon))
 
@@ -108,18 +106,22 @@ class ROV_NMB_SMController(DPControllerBase):
 
         self._tau = np.zeros(6)
 
-        self._services['set_sm_controller_params'] = self.create_service(
+        srv_name = 'set_sm_controller_params'
+        self._services[srv_name] = self.create_service(
             SetSMControllerParams,
-            'set_sm_controller_params',
+            srv_name,
             self.set_sm_controller_params_callback)
-        self._services['get_sm_controller_params'] = self.create_service(
+        
+        srv_name = 'get_sm_controller_params'
+        self._services[srv_name] = self.create_service(
             GetSMControllerParams,
-            'get_sm_controller_params',
+            srv_name,
             self.get_sm_controller_params_callback)
 
         self._is_init = True
         self._logger.info(self._LABEL + ' ready')
 
+    # =========================================================================
     def _reset_controller(self):
         super(ROV_NMB_SMController, self)._reset_controller()
         self._first_pass = True
@@ -133,16 +135,28 @@ class ROV_NMB_SMController(DPControllerBase):
         self._prev_sign_sn_angular_b = np.array([0, 0, 0])
         self._tau = np.zeros(6)
 
-    def set_sm_controller_params_callback(self, request):
-        return SetSMControllerParamsResponse(True)
+    # =========================================================================
+    def set_sm_controller_params_callback(self, request, response):
+        response.success = True
+        return response
+        #return SetSMControllerParamsResponse(True)
 
-    def get_sm_controller_params_callback(self, request):
-        return GetSMControllerParamsResponse(
-            self._K.tolist(),
-            self._Kd.tolist(),
-            self._Ki.tolist(),
-            self._slope.tolist())
+    # =========================================================================
+    def get_sm_controller_params_callback(self, request, response):
+        response.k = self._K.tolist()
+        response.kd = self._Kd.tolist()
+        response.ki = self._Ki.tolist()
+        response.slope = self._slope.tolist()
 
+        return response
+
+        # return GetSMControllerParamsResponse(
+        #     self._K.tolist(),
+        #     self._Kd.tolist(),
+        #     self._Ki.tolist(),
+        #     self._slope.tolist())
+
+    # =========================================================================
     def update_controller(self):
         if not self._is_init:
             return False
@@ -204,6 +218,7 @@ class ROV_NMB_SMController(DPControllerBase):
         self._prev_sign_sn_angular_b = self.sat(sn_angular_b, self._sat_epsilon)
         self._prev_t = t
 
+    # =========================================================================
     @staticmethod
     def sat(value, epsilon=0.5):
         assert epsilon >= 0, 'Saturation constant must be greate or equal to zero'
@@ -221,6 +236,8 @@ class ROV_NMB_SMController(DPControllerBase):
                 output[i] = vec[i]
         return output
 
+
+# =============================================================================
 def main():
     print('Starting Non-model-based Sliding Mode Controller')
     rclpy.init()
@@ -230,7 +247,13 @@ def main():
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))
-    print('exiting')
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
+        
+    print('Exiting')
 
+
+# =============================================================================
 if __name__ == '__main__':
     main()

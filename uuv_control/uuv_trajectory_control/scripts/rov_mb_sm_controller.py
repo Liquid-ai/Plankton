@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
+
 import rclpy
 import numpy as np
 from uuv_control_interfaces import DPControllerBase
@@ -49,8 +49,8 @@ class ROV_MB_SMController(DPControllerBase):
         # Drift prevent - Drift prevention slope
         self._drift_prevent = 0
 
-        if self.has_parameter('~lambda'):
-            coefs = self.get_parameter('~lambda').get_parameter_value().double_array_value
+        if self.has_parameter('lambda'):
+            coefs = self.get_parameter('lambda').get_parameter_value().double_array_value
             if len(coefs) == 6:
                 self._lambda = np.array(coefs)
             else:
@@ -58,53 +58,53 @@ class ROV_MB_SMController(DPControllerBase):
                                          'needed')
         print('lambda=', self._lambda)
 
-        if self.has_parameter('~rho_constant'):
-            coefs = self.get_parameter('~rho_constant').get_parameter_value().double_array_value
-            if len(coefs) == 6:
-                self._rho_constant = np.array(coefs)
+        if self.has_parameter('rho_constant'):
+            coeffs = self.get_parameter('rho_constant').get_parameter_value().double_array_value
+            if len(coeffs) == 6:
+                self._rho_constant = np.array(coeffs)
             else:
                 raise RuntimeError('rho_constant coefficients: 6 coefficients '
                                          'needed')
         print('rho_constant=', self._rho_constant)
 
-        if self.has_parameter('~k'):
-            coefs = self.get_parameter('~k').get_parameter_value().double_array_value
-            if len(coefs) == 6:
-                self._k = np.array(coefs)
+        if self.has_parameter('k'):
+            coeffs = self.get_parameter('k').get_parameter_value().double_array_value
+            if len(coeffs) == 6:
+                self._k = np.array(coeffs)
             else:
                 raise RuntimeError('k coefficients: 6 coefficients '
                                          'needed')
         print('k=', self._k)
 
-        if self.has_parameter('~c'):
-            coefs = self.get_parameter('~c').get_parameter_value().double_array_value
-            if len(coefs) == 6:
-                self._c = np.array(coefs)
+        if self.has_parameter('c'):
+            coeffs = self.get_parameter('c').get_parameter_value().double_array_value
+            if len(coeffs) == 6:
+                self._c = np.array(coeffs)
             else:
                 raise RuntimeError('c coefficients: 6 coefficients '
                                          'needed')
         print('c=', self._c)
 
-        if self.has_parameter('~adapt_slope'):
-            coefs = self.get_parameter('~adapt_slope').get_parameter_value().double_array_value
-            if len(coefs) == 3:
-                self._adapt_slope = np.array(coefs)
+        if self.has_parameter('adapt_slope'):
+            coeffs = self.get_parameter('adapt_slope').get_parameter_value().double_array_value
+            if len(coeffs) == 3:
+                self._adapt_slope = np.array(coeffs)
             else:
                 raise RuntimeError('adapt_slope coefficients: 6 coefficients '
                                          'needed')
         print('adapt_slope=', self._adapt_slope)
 
-        if self.has_parameter('~rho_0'):
-            coefs = self.get_parameter('~rho_0').get_parameter_value().double_array_value
-            if len(coefs) == 6:
-                self._rho_0 = np.array(coefs)
+        if self.has_parameter('rho_0'):
+            coeffs = self.get_parameter('rho_0').get_parameter_value().double_array_value
+            if len(coeffs) == 6:
+                self._rho_0 = np.array(coeffs)
             else:
                 raise RuntimeError('rho_0 coefficients: 6 coefficients '
                                          'needed')
         print('rho_0=', self._rho_0)
 
-        if self.has_parameter('~drift_prevent'):
-            scalar = self.get_parameter('~drift_prevent').get_parameter_value().double_value
+        if self.has_parameter('drift_prevent'):
+            scalar = self.get_parameter('drift_prevent').get_parameter_value().double_value
             if not isinstance(scalar, list):
                 self._drift_prevent = scalar
             else:
@@ -113,40 +113,40 @@ class ROV_MB_SMController(DPControllerBase):
         print('drift_prevent=', self._drift_prevent)
 
         # Enable(1) / disable(0) integral term in the sliding surface
-        if self.has_parameter('~enable_integral_term'):
-            self._sliding_int = self.get_parameter('~enable_integral_term').get_parameter_value().integer_value
+        if self.has_parameter('enable_integral_term'):
+            self._sliding_int = self.get_parameter('enable_integral_term').get_parameter_value().integer_value
         else:
             self._sliding_int = 0
 
         # Enable(1) / disable(0) adaptive uncertainty upper boundaries for
         # robust control
-        if self.has_parameter('~adaptive_bounds'):
-            self._adaptive_bounds = self.get_parameter('~adaptive_bounds').get_parameter_value().integer_value
+        if self.has_parameter('adaptive_bounds'):
+            self._adaptive_bounds = self.get_parameter('adaptive_bounds').get_parameter_value().integer_value
         else:
             self._adaptive_bounds = 1
 
         # Enable(1) / disable(0) constant uncertainty upper boundaries for
         # robust control
-        if self.has_parameter('~constant_bound'):
-            self._constant_bound = self.get_parameter('~constant_bound').get_parameter_value().integer_value
+        if self.has_parameter('constant_bound'):
+            self._constant_bound = self.get_parameter('constant_bound').get_parameter_value().integer_value
         else:
             self._constant_bound = 1
 
         # Enable(1) / disable(0) equivalent control term
-        if self.has_parameter('~ctrl_eq'):
-            self._ctrl_eq = self.get_parameter('~ctrl_eq').get_parameter_value().integer_value
+        if self.has_parameter('ctrl_eq'):
+            self._ctrl_eq = self.get_parameter('ctrl_eq').get_parameter_value().integer_value
         else:
             self._ctrl_eq = 1
 
         # Enable(1) / disable(0) linear control term
-        if self.has_parameter('~ctrl_lin'):
-            self._ctrl_lin = self.get_parameter('~ctrl_lin').get_parameter_value().integer_value
+        if self.has_parameter('ctrl_lin'):
+            self._ctrl_lin = self.get_parameter('ctrl_lin').get_parameter_value().integer_value
         else:
             self._ctrl_lin = 1
 
         # Enable(1) / disable(0) robust control term
-        if self.has_parameter('~ctrl_robust'):
-            self._ctrl_robust = self.get_parameter('~ctrl_robust').get_parameter_value().integer_value
+        if self.has_parameter('ctrl_robust'):
+            self._ctrl_robust = self.get_parameter('ctrl_robust').get_parameter_value().integer_value
         else:
             self._ctrl_robust = 1
         # Integrator component
@@ -176,18 +176,21 @@ class ROV_MB_SMController(DPControllerBase):
         # Total control
         self._tau = np.zeros(6)
 
-        self._services['set_mb_sm_controller_params'] = self.create_service(
+        srv_name = 'set_mb_sm_controller_params'
+        self._services[srv_name] = self.create_service(
             SetMBSMControllerParams,
-            'set_mb_sm_controller_params',
+            srv_name,
             self.set_mb_sm_controller_params_callback)
 
-        self._services['get_mb_sm_controller_params'] = self.create_service(
+        srv_name = 'get_mb_sm_controller_params'
+        self._services[srv_name] = self.create_service(
             GetMBSMControllerParams,
-            'get_mb_sm_controller_params',
+            srv_name,
             self.get_mb_sm_controller_params_callback)
         self._is_init = True
         self._logger.info(self._LABEL + ' ready')
 
+    # =========================================================================
     def _reset_controller(self):
         super(ROV_MB_SMController, self)._reset_controller()
         self._sliding_int = 0
@@ -211,19 +214,33 @@ class ROV_MB_SMController(DPControllerBase):
         self._f_robust = np.zeros(6)
         self._tau = np.zeros(6)
 
-    def set_mb_sm_controller_params_callback(self, request):
-        return SetMBSMControllerParamsResponse(True)
+    # =========================================================================
+    def set_mb_sm_controller_params_callback(self, request, response):
+        reponse.success = True
+        return response
+        #return SetMBSMControllerParamsResponse(True)
 
-    def get_mb_sm_controller_params_callback(self, request):
-        return GetMBSMControllerParamsResponse(
-            self._lambda.tolist(),
-            self._rho_constant.tolist(),
-            self._k.tolist(),
-            self._c.tolist(),
-            self._adapt_slope.tolist(),
-            self._rho_0.tolist(),
-            self._drift_prevent)
+    # =========================================================================
+    def get_mb_sm_controller_params_callback(self, request, response):
+        response.lambda = self._lambda.tolist()
+        response.rho_constant = self._rho_constant.tolist()
+        response.k = self._k.tolist()
+        response.c = self._c.tolist()
+        response.adapt_slope = self._adapt_slope.tolist()
+        response.rho_0 = self._rho_0.tolist()
+        response.drift_prevent = self._drift_prevent
 
+        return response
+        # return GetMBSMControllerParamsResponse(
+        #     self._lambda.tolist(),
+        #     self._rho_constant.tolist(),
+        #     self._k.tolist(),
+        #     self._c.tolist(),
+        #     self._adapt_slope.tolist(),
+        #     self._rho_0.tolist(),
+        #     self._drift_prevent)
+
+    # =========================================================================
     def update_controller(self):
         if not self._is_init:
             return False
@@ -294,6 +311,7 @@ class ROV_MB_SMController(DPControllerBase):
         self._prev_t = t
         
 
+# =============================================================================
 def main():
     print('Starting Model-based Sliding Mode Controller')
     rclpy.init()
@@ -303,7 +321,11 @@ def main():
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
     print('exiting')
 
+# =============================================================================
 if __name__ == '__main__':
     main()

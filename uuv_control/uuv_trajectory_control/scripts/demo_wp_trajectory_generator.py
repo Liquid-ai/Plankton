@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -120,6 +119,7 @@ def run_generator(waypoint_set, interp_method):
     ax.set_title('Angular accelerations - ' + interp_method)
     ax.set_xlim(pnts[0].t, pnts[-1].t)
 
+#==============================================================================
 def main():
     # For a helical trajectory
     wp_set = uuv_trajectory_generator.WaypointSet()
@@ -141,5 +141,6 @@ def main():
 
     plt.show()
 
+#==============================================================================
 if __name__ == '__main__':
     main()

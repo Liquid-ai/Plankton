@@ -38,8 +38,8 @@ class ROV_PD_GComp_Controller(DPControllerBase):
 
         self._tau = np.zeros(6)
 
-        if self.has_parameter('~Kp'):
-            Kp_diag = self.get_parameter('~Kp').get_parameter_value().double_array_value
+        if self.has_parameter('Kp'):
+            Kp_diag = self.get_parameter('Kp').get_parameter_value().double_array_value
             if len(Kp_diag) == 6:
                 self._Kp = np.diag(Kp_diag)
             else:
@@ -48,8 +48,8 @@ class ROV_PD_GComp_Controller(DPControllerBase):
 
         self._logger.info('Kp=' + str([self._Kp[i, i] for i in range(6)]))
 
-        if self.has_parameter('~Kd'):
-            Kd_diag = self.get_parameter('~Kd').get_parameter_value().double_array_value
+        if self.has_parameter('Kd'):
+            Kd_diag = self.get_parameter('Kd').get_parameter_value().double_array_value
             if len(Kd_diag) == 6:
                 self._Kd = np.diag(Kd_diag)
             else:
@@ -61,10 +61,12 @@ class ROV_PD_GComp_Controller(DPControllerBase):
         self._is_init = True
         self._logger.info(self._LABEL + ' ready')
 
+    # =========================================================================
     def _reset_controller(self):
         super(DPControllerBase, self)._reset_controller()
         self._error_pose = np.zeros(6)
 
+    # =========================================================================
     def update_controller(self):
         if not self._is_init:
             return False
@@ -77,6 +79,8 @@ class ROV_PD_GComp_Controller(DPControllerBase):
 
         self.publish_control_wrench(self._tau)
 
+
+# =============================================================================
 def main():
     print('Starting PD controller with compensation of restoring forces')
     rclpy.init()
@@ -86,7 +90,11 @@ def main():
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))
-    print('exiting')  
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
+    print('Exiting')  
 
+# =============================================================================
 if __name__ == '__main__':
     main()

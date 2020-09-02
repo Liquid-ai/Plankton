@@ -19,6 +19,8 @@ import numpy as np
 from uuv_control_interfaces import DPPIDControllerBase
 from uuv_control_msgs.srv import *
 
+from plankton_utils.time import time_in_float_seconds
+
 class ROV_MBFLController(DPPIDControllerBase):
     """
     Modelbased Feedback Linearization Controller
@@ -28,8 +30,8 @@ class ROV_MBFLController(DPPIDControllerBase):
     """
     _LABEL = 'Model-based Feedback Linearization Controller'
 
-    def __init__(self):
-        DPPIDControllerBase.__init__(self, True)
+    def __init__(self, node_name):
+        DPPIDControllerBase.__init__(self, node_name, True)
         self._logger.info('Initializing: ' + self._LABEL)
 
         # Control forces and torques
@@ -41,16 +43,18 @@ class ROV_MBFLController(DPPIDControllerBase):
         self._last_t = None
         self._logger.info(self._LABEL + ' ready')
 
+    # ==============================================================================
     def _reset_controller(self):
         super(ROV_MBFLController, self).reset_controller()
         self._pid_control = np.zeros(6)
         self._tau = np.zeros(6)
 
+    # ==============================================================================
     def update_controller(self):
         if not self._is_init:
             return False
 
-        t = rospy.get_time()
+        t = time_in_float_seconds(self.get_clock().now())#rospy.get_time()
         if self._last_t is None:
             self._last_t = t
             self._last_vel = self._vehicle_model.to_SNAME(self._reference['vel']) 
@@ -83,6 +87,7 @@ class ROV_MBFLController(DPPIDControllerBase):
         return True
 
 
+# ==============================================================================
 def main():
     print('Starting Modelbased Feedback Linearization Controller')
     rclpy.init()
@@ -90,9 +95,15 @@ def main():
     try:
         node = ROV_MBFLController('rov_mb_fl_controller')
         rclpy.spin(node)
-    except rospy.ROSInterruptException:
-        print('caught exception')
-    print('exiting')
+    except rclpy.exceptions.ROSInterruptException as excep:
+        print('Caught ROSInterruptException exception: ' + str((excep)))
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
+    print('Exiting')
 
+# ==============================================================================
 if __name__ == '__main__':
     main()
