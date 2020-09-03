@@ -1,16 +1,18 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="3">
     <name>plankton</name>
-    <version>0.6.13</version>
-    <description>TODO</description>
+    <version>0.5.0</version>
+    <description>Open source simulator for maritime robotics research</description>
 
-    <author email="todo@todo.com">TODO</author>
+    <author email="loic.mougeolle@naval-group.com">Loïc Mougeolle</author>
+    <author email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</author>
 
-    <maintainer email="todo@todo.com">TODO</maintainer>
+    <maintainer email="loic.mougeolle@naval-group.com">Loic Mougeolle</maintainer>
+    <maintainer email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</maintainer>
 
-    <license>TODO</license>
+    <license>Apache-2.0</license>
 
-    <!-- <url type="documentation">https://uuvsimulator.github.io/</url> -->
+    <url type="documentation">https://uuvsimulator.github.io/</url>
 
     <buildtool_depend>ament_cmake</buildtool_depend>
 
