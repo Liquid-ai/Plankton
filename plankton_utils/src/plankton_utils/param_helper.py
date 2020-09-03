@@ -91,7 +91,7 @@ def parse_nested_params_to_dict(this_list, separator: str = ".", unpack_value: b
 def get_parameter_or_helper(node, name, default_value):
     default_param = rclpy.Parameter(
             name, rclpy.Parameter.Type.from_parameter_value(default_value), default_value)
-    node.parameter_or(name, default_param)
+    return node.get_parameter_or(name, default_param)
 
 
 # ==============================================================================    
