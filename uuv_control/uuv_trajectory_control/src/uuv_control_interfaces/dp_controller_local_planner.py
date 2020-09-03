@@ -38,7 +38,7 @@ from ._log import get_logger
 from rclpy.node import Node
 
 from plankton_utils.param_helper import get_parameter_or_helper
-from plankton_utils.time import time_in_float_seconds as to_fsec
+from plankton_utils.time import time_in_float_sec as to_fsec
 from plankton_utils.time import float_sec_to_int_sec_nano
 
 
@@ -139,7 +139,7 @@ class DPControllerLocalPlanner(object):
 
         self._logger.info('Inertial frame ID=' + self.inertial_frame_id)
 
-        node.set_parameter('inertial_frame_id', self.inertial_frame_id)
+        #node.set_parameter('inertial_frame_id', self.inertial_frame_id)
 
         try:
             import tf2_ros
@@ -149,7 +149,7 @@ class DPControllerLocalPlanner(object):
 
             tf_trans_ned_to_enu = tf_buffer.lookup_transform(
                 'world', 'world_ned', rclpy.time.Time(),
-                rclpy.time.Duration(10))
+                rclpy.time.Duration(seconds=10))
             
             self.q_ned_to_enu = np.array(
                 [tf_trans_ned_to_enu.transform.rotation.x,
@@ -232,8 +232,7 @@ class DPControllerLocalPlanner(object):
 
         self._max_time_pub = node.create_publisher(Float64, 'time_to_target', 1)
 
-        self._traj_info_update_timer = rclpy.time.Timer(rclpy.time.Duration(nanoseconds=(0.2 * 1e9)),
-            self._publish_trajectory_info)
+        self._traj_info_update_timer = node.create_timer(0.2, self._publish_trajectory_info)
         # Flag to activate station keeping
         self._station_keeping_on = True
         # Flag to set vehicle control to automatic

@@ -22,7 +22,7 @@ from rclpy.node import Node
 
 from geometry_msgs.msg import WrenchStamped, PoseStamped, TwistStamped, \
     Vector3, Quaternion, Pose
-from std_msgs.msg import Time
+from builtin_interfaces.msg import Time
 from nav_msgs.msg import Odometry
 from uuv_control_interfaces.vehicle import Vehicle
 from tf_quaternion.transformations import euler_from_quaternion, \
@@ -121,15 +121,15 @@ class DPControllerBase(Node):
             self._logger.info('Setting controller as model-based')
         else:
             self._logger.info('Setting controller as non-model-based')
-
+  
         self._use_stamped_poses_only = False
         if self.has_parameter('use_stamped_poses_only'):
             self._use_stamped_poses_only = self.get_parameter('use_stamped_poses_only').get_parameter_value().bool_value
-
+      
         # Flag indicating if the vehicle has only thrusters, otherwise
         # the AUV allocation node will be used
         self.thrusters_only = self.get_parameter_or_helper('thrusters_only', True).get_parameter_value().bool_value
-
+     
         # Instance of the local planner for local trajectory generation
         self._local_planner = LocalPlanner(
             self,
@@ -143,14 +143,14 @@ class DPControllerBase(Node):
             self._thrust_saturation = self.get_parameter('saturation').value
             if self._control_saturation <= 0:
                 raise RuntimeError('Invalid control saturation forces')
-
+      
         # Flag indicating either use of the AUV control allocator or
         # direct command of fins and thruster
         self.use_auv_control_allocator = False
         if not self.thrusters_only:
             self.use_auv_control_allocator = self.get_parameter_or_helper(
                 'use_auv_control_allocator', False).get_parameter_value().bool_value
-
+      
         # Remap the following topics, if needed
         # Publisher for thruster allocator
         if self.thrusters_only:
@@ -212,7 +212,7 @@ class DPControllerBase(Node):
 
         # Subscribe to odometry topic
         self._odom_topic_sub = self.create_subscription(
-            Odometry, 'odom', self._odometry_callback)
+            Odometry, 'odom', self._odometry_callback, 10)
 
         # Stores last simulation time
         self._prev_t = -1.0
@@ -343,12 +343,27 @@ class DPControllerBase(Node):
             msg = TrajectoryPoint()
             msg.header.stamp = self.get_clock().now().to_msg()
             msg.header.frame_id = self._local_planner.inertial_frame_id
-            msg.pose.position = Vector3(*self._reference['pos'])
-            msg.pose.orientation = Quaternion(*self._reference['rot'])
-            msg.velocity.linear = Vector3(*self._reference['vel'][0:3])
-            msg.velocity.angular = Vector3(*self._reference['vel'][3:6])
-            msg.acceleration.linear = Vector3(*self._reference['acc'][0:3])
-            msg.acceleration.angular = Vector3(*self._reference['acc'][3:6])
+            msg.pose.position = Vector3(x=self._reference['pos'][0], 
+                                        y=self._reference['pos'][1], 
+                                        z=self._reference['pos'][2])
+            msg.pose.orientation = Quaternion(x=self._reference['rot'][0],
+                                              y=self._reference['rot'][1],
+                                              z=self._reference['rot'][2],
+                                              w=self._reference['rot'][3])
+            msg.velocity.linear = Vector3(x=self._reference['vel'][0],
+                                          y=self._reference['vel'][1],
+                                          z=self._reference['vel'][2])
+
+            msg.velocity.angular = Vector3(x=self._reference['vel'][3],
+                                           y=self._reference['vel'][4], 
+                                           z=self._reference['vel'][5])
+            msg.acceleration.linear = Vector3(x=self._reference['acc'][0], 
+                                              y=self._reference['acc'][1], 
+                                              z=self._reference['acc'][2])
+
+            msg.acceleration.angular = Vector3(x=self._reference['acc'][3], 
+                                               y=self._reference['acc'][4], 
+                                               z=self._reference['acc'][5])
             self._reference_pub.publish(msg)
         return True
 
@@ -428,11 +443,15 @@ class DPControllerBase(Node):
             msg.header.stamp = stamp
             msg.header.frame_id = self._local_planner.inertial_frame_id
             # Publish pose error
-            msg.pose.position = Vector3(*np.dot(rotBtoI, self._errors['pos']))
-            msg.pose.orientation = Quaternion(*self._errors['rot'])
+            pos_error = np.dot(rotBtoI, self._errors['pos'])
+            msg.pose.position = Vector3(x=pos_error[0], y=pos_error[1], z=pos_error[2])
+            msg.pose.orientation = Quaternion(x=self._errors['rot'][0], y=self._errors['rot'][1], z=self._errors['rot'][2])
             # Publish velocity errors in INERTIAL frame
-            msg.velocity.linear = Vector3(*np.dot(rotBtoI, self._errors['vel'][0:3]))
-            msg.velocity.angular = Vector3(*np.dot(rotBtoI, self._errors['vel'][3:6]))
+            vel_errors = np.dot(rotBtoI, self._errors['vel'][0:3])
+            msg.velocity.linear = Vector3(x = vel_errors[0], y=vel_errors[1], z=vel_errors[2])
+            vel_errors = np.dot(rotBtoI, self._errors['vel'][3:6])
+            msg.velocity.angular = Vector3(x = vel_errors[0], y=vel_errors[1], z=vel_errors[2])
+            # msg.velocity.angular = Vector3(*np.dot(rotBtoI, self._errors['vel'][3:6]))
             self._error_pub.publish(msg)
 
     # =========================================================================
@@ -519,4 +538,4 @@ class DPControllerBase(Node):
 
     # =========================================================================
     def get_parameter_or_helper(self, name, default_value):
-        return get_parameter_or_helper(self, name, default, value)
+        return get_parameter_or_helper(self, name, default_value)

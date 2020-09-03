@@ -39,7 +39,7 @@ class ROV_PD_GComp_Controller(DPControllerBase):
         self._tau = np.zeros(6)
 
         if self.has_parameter('Kp'):
-            Kp_diag = self.get_parameter('Kp').get_parameter_value().double_array_value
+            Kp_diag = self.get_parameter('Kp').value
             if len(Kp_diag) == 6:
                 self._Kp = np.diag(Kp_diag)
             else:
@@ -49,7 +49,7 @@ class ROV_PD_GComp_Controller(DPControllerBase):
         self._logger.info('Kp=' + str([self._Kp[i, i] for i in range(6)]))
 
         if self.has_parameter('Kd'):
-            Kd_diag = self.get_parameter('Kd').get_parameter_value().double_array_value
+            Kd_diag = self.get_parameter('Kd').value
             if len(Kd_diag) == 6:
                 self._Kd = np.diag(Kd_diag)
             else:

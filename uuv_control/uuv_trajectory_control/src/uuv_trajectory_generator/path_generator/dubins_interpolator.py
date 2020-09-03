@@ -520,14 +520,15 @@ class DubinsInterpolator(PathGenerator):
 
     def _get_circle_marker(self, center, radius, heading, delta, frame_id, 
         circle_color=[0, 1, 0]):
-        import rospy
+        #import rclpy.time
         marker = Marker()
         marker.header.frame_id = frame_id
-        try:
-            if not rospy.is_shutdown():
-                marker.header.stamp = rospy.Time.now()
-        except:
-            pass
+        # TODO Find a solution and re-enable this ?
+        # try:
+        #     if not rospy.is_shutdown():
+        #         marker.header.stamp = rospy.Time.now()
+        # except:
+        #     pass
         marker.ns = 'dubins'
         marker.id = self._marker_id
         self._marker_id += 1
@@ -549,11 +550,11 @@ class DubinsInterpolator(PathGenerator):
         self._marker_id += 1
         marker_pnt = Marker()
         marker_pnt.header.frame_id = frame_id
-        try:
-            if not rospy.is_shutdown():
-                marker_pnt.header.stamp = rospy.Time.now()
-        except:
-            pass
+        # try:
+        #     if not rospy.is_shutdown():
+        #         marker_pnt.header.stamp = rospy.Time.now()
+        # except:
+        #     pass
         marker_pnt.ns = 'dubins'
         marker_pnt.id = self._marker_id
         self._marker_id += 1

@@ -25,9 +25,9 @@ class DPPIDControllerBase(DPControllerBase):
     """
 
     def __init__(self, node_name, *args):
-        super().__init__(node_name)
+        #super().__init__(node_name)
         # Start the super class
-        DPControllerBase.__init__(self, *args)
+        DPControllerBase.__init__(self, node_name, *args)
         self._logger.info('Initializing: PID controller')
         # Proportional gains
         self._Kp = np.zeros(shape=(6, 6))
@@ -40,8 +40,9 @@ class DPPIDControllerBase(DPControllerBase):
         # Error for the vehicle pose
         self._error_pose = np.zeros(6)
 
-        if self.has_parameter.has_param('Kp'):
-            Kp_diag = self.get_parameter('Kp').get_parameter_value().double_array_value
+        if self.has_parameter('Kp'):
+            # Use 'value' in case int values are specified instead of double
+            Kp_diag = self.get_parameter('Kp').value
             if len(Kp_diag) == 6:
                 self._Kp = np.diag(Kp_diag)
             else:
@@ -51,7 +52,7 @@ class DPPIDControllerBase(DPControllerBase):
         self._logger.info('Kp=' + str([self._Kp[i, i] for i in range(6)]))
 
         if self.has_parameter('Kd'):
-            Kd_diag = self.get_parameter('Kd').get_parameter_value().double_array_value
+            Kd_diag = self.get_parameter('Kd').value
             if len(Kd_diag) == 6:
                 self._Kd = np.diag(Kd_diag)
             else:
@@ -61,7 +62,7 @@ class DPPIDControllerBase(DPControllerBase):
         self._logger.info('Kd=' + str([self._Kd[i, i] for i in range(6)]))
 
         if self.has_parameter('Ki'):
-            Ki_diag = self.get_parameter('Ki').get_parameter_value().double_array_value
+            Ki_diag = self.get_parameter('Ki').value
             if len(Ki_diag) == 6:
                 self._Ki = np.diag(Ki_diag)
             else:

@@ -34,7 +34,8 @@ from uuv_control_msgs.msg import TrajectoryPoint
 from uuv_control_interfaces import DPControllerLocalPlanner
 from tf_quaternion.transformations import quaternion_matrix
 
-from plankton_utils.param_helper import parse_nested_params_to_dict
+from plankton_utils.param_helper import parse_nested_params_to_dict, \
+                                        get_parameter_or_helper
 
 
 class AUVGeometricTrackingController(Node):
@@ -324,9 +325,7 @@ class AUVGeometricTrackingController(Node):
 
     #==========================================================================
     def get_parameter_or_helper(self, name, default_value):
-        default_param = rclpy.Parameter(
-            name, rclpy.Parameter.Type.from_parameter_value(default_value), default_value)
-        self.parameter_or(name, default_param)
+        return get_parameter_or_helper(self, name, default_value)
 
     # =========================================================================
     def build_thruster_topic_name(namespace, topic_prefix, id, topic_suffix):

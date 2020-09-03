@@ -24,7 +24,7 @@ from nav_msgs.msg import Path
 from .wp_trajectory_generator import WPTrajectoryGenerator
 from .trajectory_point import TrajectoryPoint
 from ._log import get_logger
-from plankton_utils.time import time_in_float_seconds_from_msg, float_sec_to_int_sec_nano
+from plankton_utils.time import float_sec_to_int_sec_nano
 from tf_quaternion.transformations import euler_from_quaternion
 import uuv_control_msgs.msg as uuv_control_msgs
 from uuv_waypoints import WaypointSet
@@ -373,7 +373,6 @@ class TrajectoryGenerator(object):
         return False
 
     # =========================================================================
-    def set_start_time(self, t):
     def generate_reference(self, t, *args):
         if self._wp_interp_on:
             return self._wp_interp.generate_reference(t, *args)
@@ -381,7 +380,6 @@ class TrajectoryGenerator(object):
             return None
 
     # =========================================================================
-    def set_start_time(self, t):
     def interpolate(self, t, *args):
         if not self._wp_interp_on:
             self._this_pnt = TrajectoryPoint()

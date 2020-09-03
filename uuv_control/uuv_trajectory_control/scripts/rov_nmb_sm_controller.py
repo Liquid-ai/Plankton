@@ -54,7 +54,7 @@ class ROV_NMB_SMController(DPControllerBase):
         self._slope = np.zeros(6)
 
         if self.has_parameter('K'):
-            coefs = self.get_parameter('K').get_parameter_value().double_array_value
+            coefs = self.get_parameter('K').value
             if len(coefs) == 6:
                 self._K = np.array(coefs)
             else:
@@ -64,7 +64,7 @@ class ROV_NMB_SMController(DPControllerBase):
         self._logger.info('K=' + str(self._K))
 
         if self.has_parameter('Kd'):
-            coefs = self.get_parameter('Kd').get_parameter_value().double_array_value
+            coefs = self.get_parameter('Kd').value
             if len(coefs) == 6:
                 self._Kd = np.array(coefs)
             else:
@@ -74,7 +74,7 @@ class ROV_NMB_SMController(DPControllerBase):
         self._logger.info('Kd=' + str(self._Kd))
 
         if self.has_parameter('Ki'):
-            coefs = self.get_parameter('Ki').get_parameter_value().double_array_value
+            coefs = self.get_parameter('Ki').value
             if len(coefs) == 6:
                 self._Ki = np.array(coefs)
             else:
@@ -83,7 +83,7 @@ class ROV_NMB_SMController(DPControllerBase):
         self._logger.info('Ki=' + str(self._Ki))
 
         if self.has_parameter('slope'):
-            coefs = self.get_parameter('slope').get_parameter_value().double_array_value
+            coefs = self.get_parameter('slope').value
             if len(coefs) == 6:
                 self._slope = np.array(coefs)
             else:

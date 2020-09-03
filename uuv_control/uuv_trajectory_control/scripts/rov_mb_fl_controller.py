@@ -19,7 +19,7 @@ import numpy as np
 from uuv_control_interfaces import DPPIDControllerBase
 from uuv_control_msgs.srv import *
 
-from plankton_utils.time import time_in_float_seconds
+from plankton_utils.time import time_in_float_sec
 
 class ROV_MBFLController(DPPIDControllerBase):
     """
@@ -54,7 +54,7 @@ class ROV_MBFLController(DPPIDControllerBase):
         if not self._is_init:
             return False
 
-        t = time_in_float_seconds(self.get_clock().now())#rospy.get_time()
+        t = time_in_float_sec(self.get_clock().now())#rospy.get_time()
         if self._last_t is None:
             self._last_t = t
             self._last_vel = self._vehicle_model.to_SNAME(self._reference['vel']) 

@@ -18,7 +18,7 @@ import rclpy.time
 from uuv_control_msgs.msg import TrajectoryPoint as TrajectoryPointMsg
 import geometry_msgs.msg as geometry_msgs
 from tf_quaternion.transformations import quaternion_from_euler, euler_from_quaternion, quaternion_matrix
-from plankton_utils.time import time_in_float_sec, time_in_float_sec_from_msg \
+from plankton_utils.time import time_in_float_sec, time_in_float_sec_from_msg, \
                                 float_sec_to_int_sec_nano
 
 class TrajectoryPoint(object):

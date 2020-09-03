@@ -44,7 +44,7 @@ class ROV_SFController(DPControllerBase):
         self._Kd = np.zeros(shape=(6, 6))
 
         if self.has_parameter('Kd'):
-            coefs = rclpy.get_parameter('Kd').get_parameter_value().double_array_value
+            coefs = rclpy.get_parameter('Kd').value
             if len(coefs) == 6:
                 self._Kd = np.diag(coefs)
             else:
@@ -56,7 +56,11 @@ class ROV_SFController(DPControllerBase):
         # Build delta matrix
         self._delta = np.zeros(shape=(6, 6))
 
-        l = self.get_parameter('lambda', [0.0]).get_parameter_value().double_array_value
+        l = self.get_parameter('lambda', [0.0]).value
+
+        # Turn l into a list if it is not the case
+        if type(l) is not list:
+            l = [l]
 
         if len(l) == 1:
             self._delta[0:3, 0:3] = l[0] * np.eye(3)
@@ -66,7 +70,11 @@ class ROV_SFController(DPControllerBase):
             raise RuntimeError(
                 'lambda: either a scalar or a 3 element vector must be provided')
 
-        c = self.get_parameter('c', [0.0]).get_parameter_value().double_array_value
+        c = self.get_parameter('c', [0.0]).value
+
+        # Turn c into a list if it is not the case
+        if type(c) is not list:
+            c = [c]
 
         if len(c) == 1:
             self._delta[3:6, 3:6] = c[0] * np.eye(3)

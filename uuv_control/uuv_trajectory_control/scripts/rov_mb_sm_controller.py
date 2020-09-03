@@ -20,9 +20,8 @@ from uuv_control_interfaces import DPControllerBase
 from uuv_control_msgs.srv import *
 from uuv_control_interfaces.vehicle import cross_product_operator
 
-def time_in_float_sec(time: Time):
-    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
-    return f_time
+from plankton_utils.time import time_in_float_sec
+
 
 class ROV_MB_SMController(DPControllerBase):
     _LABEL = 'Model-based Sliding Mode Controller'
@@ -216,13 +215,14 @@ class ROV_MB_SMController(DPControllerBase):
 
     # =========================================================================
     def set_mb_sm_controller_params_callback(self, request, response):
+        # TODO What does this function do ?
         reponse.success = True
         return response
         #return SetMBSMControllerParamsResponse(True)
 
     # =========================================================================
     def get_mb_sm_controller_params_callback(self, request, response):
-        response.lambda = self._lambda.tolist()
+        response.lambda_array = self._lambda.tolist()
         response.rho_constant = self._rho_constant.tolist()
         response.k = self._k.tolist()
         response.c = self._c.tolist()
@@ -324,7 +324,7 @@ def main():
     finally:
         if rclpy.ok():
             rclpy.shutdown()
-    print('exiting')
+    print('Exiting')
 
 # =============================================================================
 if __name__ == '__main__':

@@ -104,14 +104,14 @@ class Vehicle(object):
 
         self._cog = [0, 0, 0]
         if self.node.has_parameter('cog'):
-            self._cog = self.node.get_parameter('cog').get_parameter_value().double_array_value
+            self._cog = self.node.get_parameter('cog').value
             if len(self._cog) != 3:
                 raise RuntimeError('Invalid center of gravity vector')
 
         self._cob = [0, 0, 0]
-        #bug fix wrt the original code
+        # bug fix wrt the original code
         if self.node.has_parameter('cob'):
-            self._cob = self.node.get_parameter('cob').get_parameter_value().double_array_value
+            self._cob = self.node.get_parameter('cob').value
             if len(self._cob) != 3:
                 raise RuntimeError('Invalid center of buoyancy vector')
 

@@ -41,7 +41,7 @@ class ROVUnderActuatedPIDController(DPControllerBase):
         self._error_pose = np.zeros(4)
 
         if self.has_parameter('Kp'):
-            Kp_diag = self.get_parameter('Kp').get_parameter_value().double_array_value
+            Kp_diag = self.get_parameter('Kp').value
             if len(Kp_diag) == 4:
                 self._Kp = np.diag(Kp_diag)
             else:
@@ -51,7 +51,7 @@ class ROVUnderActuatedPIDController(DPControllerBase):
         self._logger.info('Kp=' + str([self._Kp[i, i] for i in range(4)]))
 
         if self.has_parameter('Kd'):
-            Kd_diag = self.get_parameter('Kd').get_parameter_value().double_array_value
+            Kd_diag = self.get_parameter('Kd').value
             if len(Kd_diag) == 4:
                 self._Kd = np.diag(Kd_diag)
             else:
@@ -61,7 +61,7 @@ class ROVUnderActuatedPIDController(DPControllerBase):
         self._logger.info('Kd=' + str([self._Kd[i, i] for i in range(4)]))
 
         if self.has_parameter('Ki'):
-            Ki_diag = self.get_parameter('Ki').get_parameter_value().double_array_value
+            Ki_diag = self.get_parameter('Ki').value
             if len(Ki_diag) == 4:
                 self._Ki = np.diag(Ki_diag)
             else:
