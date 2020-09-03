@@ -14,7 +14,8 @@
 # limitations under the License.
 
 ---
-float64[] lambda
+# lambda is a reserved keyword
+float64[] lambda_array
 float64[] rho_constant
 float64[] k
 float64[] c

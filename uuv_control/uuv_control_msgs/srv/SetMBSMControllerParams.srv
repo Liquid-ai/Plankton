@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-float64[] lambda
+float64[] lambda_array
 float64[] rho_constant
 float64[] k
 float64[] c
