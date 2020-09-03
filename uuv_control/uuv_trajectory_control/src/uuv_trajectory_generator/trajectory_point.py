@@ -12,15 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import rclpy
 import numpy as np
+import rclpy.time
+
 from uuv_control_msgs.msg import TrajectoryPoint as TrajectoryPointMsg
 import geometry_msgs.msg as geometry_msgs
 from tf_quaternion.transformations import quaternion_from_euler, euler_from_quaternion, quaternion_matrix
+from plankton_utils.time import time_in_float_sec, time_in_float_sec_from_msg \
+                                float_sec_to_int_sec_nano
 
-def time_in_float_sec(time: Time):
-    f_time = time.seconds_nanoseconds[0] + time.seconds_nanoseconds[1] / 1e9
-    return f_time
 class TrajectoryPoint(object):
     """Trajectory point data structure.
     
@@ -49,6 +49,7 @@ class TrajectoryPoint(object):
         self._acc = np.hstack((lin_acc, ang_acc))
         self._t = t
 
+    # =========================================================================
     def __str__(self):
         msg = 'Time [s] = {}\n'.format(self._t)
         msg += 'Position [m] = ({}, {}, {})\n'.format(self._pos[0], self._pos[1], self._pos[2])
@@ -58,129 +59,156 @@ class TrajectoryPoint(object):
         msg += 'Ang. velocity [m/s] = ({}, {}, {})\n'.format(self._vel[3], self._vel[4], self._vel[5])
         return msg
 
+    # =========================================================================
     def __eq__(self, pnt):
         return self._t == pnt._t and np.array_equal(self._pos, pnt._pos) and \
             np.array_equal(self._rot, pnt._rot) and \
             np.array_equal(self._vel, pnt._vel) and \
             np.array_equal(self._acc, pnt._acc)
 
+    # =========================================================================
     @property
     def p(self):
         """`numpy.array`: Position vector"""
         return self._pos
 
+    # =========================================================================
     @property
     def q(self):
         """`numpy.array`: Quaternion vector as `(x, y, z, w)`"""
         return self._rot
 
+    # =========================================================================
     @property
     def v(self):
         """`numpy.array`: Linear velocity vector"""
         return self._vel[0:3]
 
+    # =========================================================================
     @property
     def w(self):
         """`numpy.array`: Angular velocity vector"""
         return self._vel[3::]
 
+    # =========================================================================
     @property
     def a(self):
         """`numpy.array`: Linear acceleration vector"""
         return self._acc[0:3]
 
+    # =========================================================================
     @property
     def alpha(self):
         """`numpy.array`: Angular acceleartion vector"""
         return self._acc[3::]
 
+    # =========================================================================
     @property
     def x(self):
         """`float`: X coordinate of position vector"""
         return self._pos[0]
 
+    # =========================================================================
     @x.setter
     def x(self, x):
         self._pos[0] = x
 
+    # =========================================================================
     @property
     def y(self):
         """`float`: Y coordinate of position vector"""
         return self._pos[1]
 
+    # =========================================================================
     @y.setter
     def y(self, y):
         self._pos[1] = y
 
+    # =========================================================================
     @property
     def z(self):
         """`float`: Z coordinate of position vector"""
         return self._pos[2]
 
+    # =========================================================================
     @z.setter
     def z(self, z):
         self._pos[2] = z
 
+    # =========================================================================
     @property
     def t(self):
         """`float`: Time stamp"""
         return self._t
 
+    # =========================================================================
     @t.setter
     def t(self, new_t):
         self._t = new_t
 
+    # =========================================================================
     @property
     def pos(self):
         """`numpy.array`: Position vector"""
         return self._pos
 
+    # =========================================================================
     @pos.setter
     def pos(self, new_pos):
         self._pos = np.array(new_pos)
 
+    # =========================================================================
     @property
     def rot(self):
         """`numpy.array`: `roll`, `pitch` and `yaw` angles"""
         rpy = euler_from_quaternion(self._rot)
         return np.array([rpy[0], rpy[1], rpy[2]])
 
+    # =========================================================================
     @rot.setter
     def rot(self, new_rot):
         self._rot = quaternion_from_euler(*new_rot)
 
+    # =========================================================================
     @property
     def rot_matrix(self):
         """`numpy.array`: Rotation matrix"""
         return quaternion_matrix(self._rot)[0:3, 0:3]
 
+    # =========================================================================
     @property
     def rotq(self):
         """`numpy.array`: Quaternion vector as `(x, y, z, w)`"""
         return self._rot
 
+    # =========================================================================
     @rotq.setter
     def rotq(self, quat):
         self._rot = quat
 
+    # =========================================================================
     @property
     def vel(self):
         """`numpy.array`: Linear velocity vector"""
         return self._vel
 
+    # =========================================================================
     @vel.setter
     def vel(self, new_vel):
         self._vel = np.array(new_vel)
 
+    # =========================================================================
     @property
     def acc(self):
         """`numpy.array`: Linear acceleration vector"""
         return self._acc
 
+    # =========================================================================
     @acc.setter
     def acc(self, new_acc):
         self._acc = np.array(new_acc)
 
+    # =========================================================================
     def to_message(self):
         """Convert current data to a trajectory point message.
         
@@ -190,15 +218,17 @@ class TrajectoryPoint(object):
         """
         p_msg = TrajectoryPointMsg()
         # FIXME Sometimes the time t stored is NaN
-        p_msg.header.stamp = rclpy.time.Time(self.t)
-        p_msg.pose.position = geometry_msgs.Vector3(*self.p)
-        p_msg.pose.orientation = geometry_msgs.Quaternion(*self.q)
-        p_msg.velocity.linear = geometry_msgs.Vector3(*self.v)
-        p_msg.velocity.angular = geometry_msgs.Vector3(*self.w)
-        p_msg.acceleration.linear = geometry_msgs.Vector3(*self.a)
-        p_msg.acceleration.angular = geometry_msgs.Vector3(*self.alpha)
+        (secs, nsecs) = float_sec_to_int_sec_nano(self.t)
+        p_msg.header.stamp = rclpy.time.Time(seconds=secs, nanoseconds=nsecs)
+        p_msg.pose.position = geometry_msgs.Vector3(x=self.p[0], y= self.p[1], z=self.p[2])
+        p_msg.pose.orientation = geometry_msgs.Quaternion(x=self.q[0], y=self.q[1], z=self.q[2], w=self.q[3])
+        p_msg.velocity.linear = geometry_msgs.Vector3(x=self.v[0], y=self.v[1], z=self.v[2])
+        p_msg.velocity.angular = geometry_msgs.Vector3(x=self.w[0], y=self.w[1], z=self.w[2])
+        p_msg.acceleration.linear = geometry_msgs.Vector3(x=self.a[0], y=self.a[1], z=self.a[2])
+        p_msg.acceleration.angular = geometry_msgs.Vector3(x=self.alpha[0], y=self.alpha[1], z=self.alpha[2])
         return p_msg
 
+    # =========================================================================
     def from_message(self, msg):
         """Parse a trajectory point message of type `uuv_control_msgs/TrajectoryPoint`
         into the `uuv_trajectory_generator/TrajectoryPoint`.
@@ -207,7 +237,7 @@ class TrajectoryPoint(object):
         
         * `msg` (*type:* `uuv_control_msgs/TrajectoryPoint`): Input trajectory message
         """
-        t = time_in_float_sec(msg.header.stamp)
+        t = time_in_float_sec_from_msg(msg.header.stamp)
         p = msg.pose.position
         q = msg.pose.orientation
         v = msg.velocity.linear
@@ -222,6 +252,7 @@ class TrajectoryPoint(object):
         self._acc = np.array([a.x, a.y, a.z, al.x, al.y, al.z])
         return True
 
+    # =========================================================================
     def from_dict(self, data):
         """Initialize the trajectory point attributes from a `dict`.
         
@@ -238,6 +269,7 @@ class TrajectoryPoint(object):
         self._vel = np.array(data['vel'])
         self._acc = np.array(data['acc'])
 
+    # =========================================================================
     def to_dict(self):
         """Convert trajectory point to `dict`.
         

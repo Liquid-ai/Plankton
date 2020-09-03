@@ -12,19 +12,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import rclpy
-import numpy as np
 from copy import deepcopy
+import numpy as np
+
+#import rclpy
+import rclpy.time
+from rclpy.node import Node
 from geometry_msgs.msg import Vector3, PoseStamped, Quaternion
-import uuv_control_msgs.msg as uuv_control_msgs
 from nav_msgs.msg import Path
-from uuv_waypoints import WaypointSet
+
 from .wp_trajectory_generator import WPTrajectoryGenerator
 from .trajectory_point import TrajectoryPoint
-from tf_quaternion.transformations import euler_from_quaternion
 from ._log import get_logger
-
-from rclpy.node import Node
+from plankton_utils.time import time_in_float_seconds_from_msg, float_sec_to_int_sec_nano
+from tf_quaternion.transformations import euler_from_quaternion
+import uuv_control_msgs.msg as uuv_control_msgs
+from uuv_waypoints import WaypointSet
 
 
 class TrajectoryGenerator(object):
@@ -53,6 +56,7 @@ class TrajectoryGenerator(object):
         self._has_started = False
         self._is_finished = False
 
+    # =========================================================================
     @property
     def points(self):
         """List of `uuv_trajectory_generator.TrajectoryPoint`: List of trajectory points"""
@@ -61,17 +65,21 @@ class TrajectoryGenerator(object):
         else:
             return self._points
 
+    # =========================================================================
     @property
     def time(self):
         """List of `float`: List of timestamps"""
         return self._time
 
+    # =========================================================================
     def use_finite_diff(self, flag):
         self._wp_interp.use_finite_diff = flag
 
+    # =========================================================================
     def is_using_finite_diff(self):
         return self._wp_interp.use_finite_diff
 
+    # =========================================================================
     def set_stamped_pose_only(self, flag):
         """Set flag to enable or disable computation of trajectory
         points
@@ -86,27 +94,32 @@ class TrajectoryGenerator(object):
         """
         self._wp_interp.stamped_pose_only = flag
 
+    # =========================================================================
     def is_using_stamped_pose_only(self):
         return self._wp_interp.stamped_pose_only
 
+    # =========================================================================
     def set_interp_method(self, method):
         return self._wp_interp.set_interpolation_method(method)
 
     def get_interp_method(self):
         return self._wp_interp.get_interpolation_method()
 
+    # =========================================================================
     def get_interpolator_tags(self):
         return self._wp_interp.interpolator_tags
 
     def set_interpolator_parameters(self, method, params):
         return self._wp_interp.set_interpolator_parameters(method, params)
 
+    # =========================================================================
     def get_visual_markers(self):
         if self._wp_interp_on:
             return self._wp_interp.get_visual_markers()
         else:
             return None
 
+    # =========================================================================
     def _reset(self):
         self._points = None
         self._time = None
@@ -114,6 +127,7 @@ class TrajectoryGenerator(object):
         self._has_started = False
         self._is_finished = False
 
+    # =========================================================================
     def get_trajectory_as_message(self):
         """
         Return the trajectory points as a Trajectory type message. If waypoints
@@ -125,7 +139,7 @@ class TrajectoryGenerator(object):
             return None
         msg = uuv_control_msgs.Trajectory()
         try:
-            msg.header.stamp = self.get_clock().now().to_msg()
+            msg.header.stamp = self.node.get_clock().now().to_msg()
         except:
             self._logger.warning(
                 'A ROS node was not initialized, no '
@@ -136,6 +150,7 @@ class TrajectoryGenerator(object):
             msg.points.append(pnt.to_message())
         return msg
         
+    # =========================================================================
     def is_using_waypoints(self):
         """Return true if the waypoint interpolation is being used."""
         return self._wp_interp_on
@@ -151,6 +166,7 @@ class TrajectoryGenerator(object):
         else:
             return False
 
+    # =========================================================================
     def get_waypoints(self):
         """
         Return the waypoints used by the waypoint interpolator,
@@ -162,6 +178,7 @@ class TrajectoryGenerator(object):
             return None
         return self._wp_interp.get_waypoints()
 
+    # =========================================================================
     def add_waypoint(self, waypoint, add_to_beginning=False):
         """
         Add waypoint to the current waypoint set, if one has been initialized.
@@ -171,6 +188,7 @@ class TrajectoryGenerator(object):
         self._wp_interp.add_waypoint(waypoint, add_to_beginning)
         return True
 
+    # =========================================================================
     def add_trajectory_point(self, pnt):
         """
         If a trajectory set is currently being used in the interpolation
@@ -192,6 +210,7 @@ class TrajectoryGenerator(object):
                          'waypoint interpolation mode!')
             return False
 
+    # =========================================================================
     def add_trajectory_point_from_msg(self, msg):
         if not self._wp_interp_on:
             pnt = TrajectoryPoint()
@@ -206,6 +225,7 @@ class TrajectoryGenerator(object):
                          'waypoint interpolation mode!')
             return False
 
+    # =========================================================================
     def set_duration(self, t):
         if not self._wp_interp_on:
             self._logger.error('Waypoint interpolation is not activated')
@@ -213,6 +233,7 @@ class TrajectoryGenerator(object):
         else:
             return self._wp_interp.set_duration(t)
 
+    # =========================================================================
     def get_max_time(self):
         if self._points is None and not self._wp_interp_on:
             return None
@@ -221,21 +242,25 @@ class TrajectoryGenerator(object):
         else:
             return self._points[-1].t
 
+    # =========================================================================
     def is_running(self):
         return self._has_started and not self._is_finished
 
+    # =========================================================================
     def has_started(self):
         if self._wp_interp_on:
             return self._wp_interp.started
         else:
             return self._has_started
 
+    # =========================================================================
     def has_finished(self):
         if self._wp_interp_on:
             return self._wp_interp.is_finished()
         else:
             return self._is_finished
 
+    # =========================================================================
     def init_from_trajectory_message(self, msg):
         self._wp_interp_on = False
         self._points = None
@@ -243,7 +268,7 @@ class TrajectoryGenerator(object):
 
         last_t = None
         for p_msg in msg.points:
-            t = p_msg.header.stamp.to_sec()
+            t = time_in_float_sec_from_msg(p_msg.header.stamp)
 
             if last_t is None:
                 last_t = t
@@ -257,11 +282,13 @@ class TrajectoryGenerator(object):
         self._has_started = True
         return True
 
+    # =========================================================================
     def init_from_waypoint_message(self, msg):
         wp_set = WaypointSet.from_message(msg)
         self._wp_interp.init_waypoints(wp_set)
         self._wp_interp_on = True
 
+    # =========================================================================
     def init_from_waypoint_file(self, filename):
         wp_set = WaypointSet()
         success = wp_set.read_from_file(filename)
@@ -270,12 +297,13 @@ class TrajectoryGenerator(object):
             self._wp_interp_on = True
         return success
 
+    # =========================================================================
     def gen_trajectory_message(self):
         if self._points is None:
             return None
         msg = uuv_control_msgs.Trajectory()
         try:
-            msg.header.stamp = self.get_clock().now().to_msg()
+            msg.header.stamp = self.node.get_clock().now().to_msg()
             set_timestamps = True
         except:
             set_timestamps = False
@@ -283,17 +311,19 @@ class TrajectoryGenerator(object):
                 'ROS node was not initialized, no timestamp '
                 'can be assigned to trajectory message')
         msg.header.frame_id = 'world'
+        #TODO Simplify following
         if not self.is_using_waypoints:
             for p in self._points:
                 p_msg = uuv_control_msgs.TrajectoryPoint()
                 if set_timestamps:
-                    p_msg.header.stamp = rclpy.time.Time(p.t)
-                p_msg.pose.position = Vector3(*p.p)
-                p_msg.pose.orientation = Quaternion(*p.q)
-                p_msg.velocity.linear = Vector3(*p.v)
-                p_msg.velocity.angular = Vector3(*p.w)
-                p_msg.acceleration.linear = Vector3(*p.a)
-                p_msg.acceleration.angular = Vector3(*p.alpha)
+                    (secs, nsecs) = float_sec_to_int_sec_nano(p.t)
+                    p_msg.header.stamp = rclpy.time.Time(seconds=secs, nanoseconds=nsecs)
+                p_msg.pose.position = Vector3(x=p.p[0], y=p.p[1], z=p.p[2])
+                p_msg.pose.orientation = Quaternion(x=p.q[0], y=p.q[1], z=p.q[2], w=p.q[3])
+                p_msg.velocity.linear = Vector3(x=p.v[0], y=p.v[1], z=p.v[2])
+                p_msg.velocity.angular = Vector3(x=p.w[0], y=p.w[1], z=p.w[2])
+                p_msg.acceleration.linear = Vector3(x=p.a[0], y=p.a[1], z=p.a[2])
+                p_msg.acceleration.angular = Vector3(x=p.alpha[0], y=p.alpha[1], z=p.alpha[2])
                 msg.points.append(p_msg)
         else:
             dt = 0.05 * self._wp_interp.get_max_time()
@@ -301,20 +331,22 @@ class TrajectoryGenerator(object):
                 pnt = self._wp_interp.interpolate(ti)
                 p_msg = uuv_control_msgs.TrajectoryPoint()
                 if set_timestamps:
-                    p_msg.header.stamp = rclpy.time.Time(pnt.t)
-                p_msg.pose.position = Vector3(*pnt.p)
-                p_msg.pose.orientation = Quaternion(*pnt.q)
-                p_msg.velocity.linear = Vector3(*pnt.v)
-                p_msg.velocity.angular = Vector3(*pnt.w)
-                p_msg.acceleration.linear = Vector3(*pnt.a)
-                p_msg.acceleration.angular = Vector3(*pnt.alpha)
+                    (secs, nsecs) = float_sec_to_int_sec_nano(pnt.t)
+                    p_msg.header.stamp = rclpy.time.Time(seconds=secs, nanoseconds=nsecs)
+                p_msg.pose.position = Vector3(x=pnt.p[0], y=pnt.p[1], z=pnt.p[2])
+                p_msg.pose.orientation = Quaternion(x=pnt.q[0], y=pnt.q[1], z=pnt.q[2], w=pnt.q[3])
+                p_msg.velocity.linear = Vector3(x=pnt.v[0], y=pnt.v[1], z=pnt.v[2])
+                p_msg.velocity.angular = Vector3(x=pnt.w[0], y=pnt.w[1], z=pnt.w[2])
+                p_msg.acceleration.linear = Vector3(x=pnt.a[0], y=pnt.a[1], z=pnt.a[2])
+                p_msg.acceleration.angular = Vector3(x=pnt.alpha[0], y=pnt.alpha[1], z=pnt.alpha[2])
                 msg.points.append(p_msg)
         return msg
 
+    # =========================================================================
     def get_path_message(self):
         path_msg = Path()
         try:
-            path_msg.header.stamp = self.get_clock().now().to_msg()
+            path_msg.header.stamp = self.node.get_clock().now().to_msg()
             set_timestamps = True
         except:
             set_timestamps = False
@@ -327,23 +359,29 @@ class TrajectoryGenerator(object):
         for point in self._local_planner.points:
             pose = PoseStamped()
             if set_timestamps:
-                pose.header.stamp = rclpy.time.Time(point.t)
-            pose.pose.position = Vector3(*point.p)
-            pose.pose.orientation = Quaternion(*point.q)
+                (secs, nsecs) = float_sec_to_int_sec_nano(point.t)
+                pose.header.stamp = rclpy.time.Time(seconds=secs, nanoseconds=nsecs)
+            pose.pose.position = Vector3(x=point.p[0], y=point.p[1], z=point.p[2])
+            pose.pose.orientation = Quaternion(x=point.q[0], y=point.q[1], z=point.q[2], w=point.q[3])
             path_msg.poses.append(pose)
 
+    # =========================================================================
     def set_start_time(self, t):
         if self._wp_interp_on:
             self._wp_interp.set_start_time(t)
             return True
         return False
 
+    # =========================================================================
+    def set_start_time(self, t):
     def generate_reference(self, t, *args):
         if self._wp_interp_on:
             return self._wp_interp.generate_reference(t, *args)
         else:
             return None
 
+    # =========================================================================
+    def set_start_time(self, t):
     def interpolate(self, t, *args):
         if not self._wp_interp_on:
             self._this_pnt = TrajectoryPoint()

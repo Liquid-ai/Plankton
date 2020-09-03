@@ -102,21 +102,25 @@ class WPTrajectoryGenerator(object):
 
         self._init_rot = quaternion_about_axis(0.0, [0, 0, 1])
 
+    # =========================================================================
     def __del__(self):
         # Removing logging message handlers
         while self._logger.handlers:
             self._logger.handlers.pop()
 
+    # =========================================================================
     @property
     def started(self):
         """`bool`: Flag set to true if the interpolation has started."""
         return self._has_started
 
+    # =========================================================================
     @property
     def closest_waypoint(self):
         """Return the closest waypoint to the current position on the path."""
         return self._path_generators[self._interp_method].closest_waypoint
 
+    # =========================================================================
     @property
     def closest_waypoint_idx(self):
         """`int`: Index of the closest waypoint to the current position on the
@@ -124,16 +128,19 @@ class WPTrajectoryGenerator(object):
         """
         return self._path_generators[self._interp_method].closest_waypoint_idx
 
+    # =========================================================================
     @property
     def interpolator(self):
         """`str`: Name of the interpolation method"""
         return self._path_generators[self._interp_method]
 
+    # =========================================================================
     @property
     def interpolator_tags(self):
         """List of `str`: List of all interpolation method"""
         return [gen.get_label() for gen in PathGenerator.get_all_generators()]
 
+    # =========================================================================
     @property
     def use_finite_diff(self):
         """`bool`: Use finite differentiation for computation of 
@@ -141,26 +148,32 @@ class WPTrajectoryGenerator(object):
         """
         return self._use_finite_diff
 
+    # =========================================================================
     @use_finite_diff.setter
     def use_finite_diff(self, flag):
         assert type(flag) == bool
         self._use_finite_diff = flag
 
+    # =========================================================================
     @property
     def stamped_pose_only(self):
         """`bool`: Flag to enable computation of stamped poses"""
         return self._stamped_pose_only
 
+    # =========================================================================
     @stamped_pose_only.setter
     def stamped_pose_only(self, flag):
         self._stamped_pose_only = flag
 
+    # =========================================================================
     def get_interpolation_method(self):
         return self._interp_method
 
+    # =========================================================================
     def get_visual_markers(self):
         return self.interpolator.get_visual_markers()
 
+    # =========================================================================
     def set_interpolation_method(self, method):
         if method in self._path_generators:
             self._interp_method = method
@@ -170,22 +183,26 @@ class WPTrajectoryGenerator(object):
             self._logger.info('Invalid interpolation method, keeping the current method <%s>' % self._interp_method)
             return False
 
+    # =========================================================================
     def set_interpolator_parameters(self, method, params):
         if method not in self.interpolator_tags:
             self._logger.error('Invalid interpolation method: ' + str(method))
             return False
         return self._path_generators[method].set_parameters(params)
 
+    # =========================================================================
     def is_full_dof(self):
         """Return true if the trajectory is generated for all 6 degrees of
         freedom.
         """
         return self._is_full_dof
 
+    # =========================================================================
     def get_max_time(self):
         """Return maximum trajectory time."""
         return self.interpolator.max_time
 
+    # =========================================================================
     def set_duration(self, t):
         """Set a new maximum trajectory time."""
         if t > 0:
@@ -197,10 +214,12 @@ class WPTrajectoryGenerator(object):
             self._logger.info('Invalid max. time, time=%.2f s' % t)
             return False
 
+    # =========================================================================
     def is_finished(self):
         """Return true if the trajectory has finished."""
         return self._has_ended
 
+    # =========================================================================
     def reset(self):
         """Reset all class attributes to allow a new trajectory to be
         computed.
@@ -213,22 +232,26 @@ class WPTrajectoryGenerator(object):
         self._has_ended = False
         self._cur_s = 0
 
+    # =========================================================================
     def init_waypoints(self, waypoint_set, init_rot=(0, 0, 0, 1)):
         """Initialize the waypoint set."""
         self.reset()
         self.interpolator.reset()
         return self.interpolator.init_waypoints(waypoint_set, init_rot)
 
+    # =========================================================================
     def add_waypoint(self, waypoint, add_to_beginning=False):
         """Add waypoint to the existing waypoint set. If no waypoint set has
         been initialized, create new waypoint set structure and add the given
         waypoint."""
         return self.interpolator.add_waypoint(waypoint, add_to_beginning)
 
+    # =========================================================================
     def get_waypoints(self):
         """Return waypoint set."""
         return self.interpolator.waypoints
 
+    # =========================================================================
     def update_dt(self, t):
         """Update the time stamp."""
         if self._last_t is None:
@@ -241,17 +264,20 @@ class WPTrajectoryGenerator(object):
         self._last_t = t
         return (True if self._dt > 0 else False)
 
+    # =========================================================================
     def get_samples(self, step=0.005):
         """Return pose samples from the interpolated path."""
         assert step > 0, 'Step size must be positive'
         return self.interpolator.get_samples(0.0, step)
 
+    # =========================================================================
     def set_start_time(self, t):
         """Set a custom starting time to the interpolated trajectory."""
         assert t >= 0, 'Starting time must be positive'
         self.interpolator.start_time = t
         self._logger.info('Setting new starting time, t=%.2f s' % t)
 
+    # =========================================================================
     def _motion_regression_1d(self, pnts, t):
         """
         Computation of the velocity and acceleration for the target time t
@@ -300,6 +326,7 @@ class WPTrajectoryGenerator(object):
                          st2x * (st * st - n * st2))
         return v, a
 
+    # =========================================================================
     def _motion_regression_6d(self, pnts, qt, t):
         """
         Compute translational and rotational velocities and accelerations in
@@ -337,6 +364,7 @@ class WPTrajectoryGenerator(object):
 
         return np.hstack((lin_vel, ang_vel[0:3])), np.hstack((lin_acc, ang_acc[0:3]))
 
+    # =========================================================================
     def generate_pnt(self, t, pos, rot):
         """Return trajectory sample for the current parameter s."""
         cur_s = (t - self.interpolator.start_time) / (self.interpolator.max_time - self.interpolator.start_time)
@@ -380,6 +408,7 @@ class WPTrajectoryGenerator(object):
             pnt.acc = np.zeros(6)
         return pnt
 
+    # =========================================================================
     def _generate_vel(self, s=None):
         if self._stamped_pose_only:
             return np.zeros(6)
@@ -411,6 +440,7 @@ class WPTrajectoryGenerator(object):
                ang_vel[2]]
         return np.array(vel)
 
+    # =========================================================================
     def generate_reference(self, t, *args):
         t = max(t, self.interpolator.start_time)
         t = min(t, self.interpolator.max_time)
@@ -418,6 +448,7 @@ class WPTrajectoryGenerator(object):
         pnt.t = t
         return pnt
 
+    # =========================================================================
     def interpolate(self, t, *args):
         if not self._has_started:
             tic = time.time()

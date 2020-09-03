@@ -12,8 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
-import rclpy
+import rclpy.time
+from rclpy.node import Node
 import numpy as np
 import os
 import yaml
@@ -52,6 +52,7 @@ class WaypointSet(object):
         self._inertial_frame_id = inertial_frame_id
         self._max_surge_speed = max_surge_speed
 
+    # =========================================================================
     def __str__(self):
         if self.num_waypoints:
             msg = '================================\n'
@@ -67,46 +68,55 @@ class WaypointSet(object):
         else:
             return 'Waypoint set is empty'
 
+    # =========================================================================
     @property
     def num_waypoints(self):
         """`int`: Number of waypoints"""
         return len(self._waypoints)
 
+    # =========================================================================
     @property
     def x(self):
         """`list`: List of the X-coordinates of all waypoints"""
         return [wp.x for wp in self._waypoints]
 
+    # =========================================================================
     @property
     def y(self):
         """`list`: List of the Y-coordinates of all waypoints"""
         return [wp.y for wp in self._waypoints]
 
+    # =========================================================================
     @property
     def z(self):
         """`list`: List of the Z-coordinates of all waypoints"""
         return [wp.z for wp in self._waypoints]
 
+    # =========================================================================
     @property
     def is_empty(self):
         """`bool`: True if the list of waypoints is empty"""
         return len(self._waypoints) == 0
 
+    # =========================================================================
     @property
     def inertial_frame_id(self):
         """`str`: Name of inertial reference frame"""
         return self._inertial_frame_id
 
+    # =========================================================================
     @inertial_frame_id.setter
     def inertial_frame_id(self, frame_id):
         assert frame_id in ['world', 'world_ned'], \
             'Inertial reference frame can only be either world or world_ned'
         self._inertial_frame_id = frame_id
 
+    # =========================================================================
     def clear_waypoints(self):
         """Clear the list of waypoints"""
         self._waypoints = list()
 
+    # =========================================================================
     def set_constraint_status(self, index, flag):
         """Set the flag violates_constraint to a waypoint
         
@@ -124,6 +134,7 @@ class WaypointSet(object):
         self._waypoints[index].violates_constraint = flag
         return True
 
+    # =========================================================================
     def get_waypoint(self, index):
         """Return a waypoint
         
@@ -139,6 +150,7 @@ class WaypointSet(object):
             return None
         return self._waypoints[index]
 
+    # =========================================================================
     def add_waypoint(self, waypoint, add_to_beginning=False):
         """Add a waypoint to the set
         
@@ -167,6 +179,7 @@ class WaypointSet(object):
                 self._waypoints = [waypoint] + self._waypoints
         return True
 
+    # =========================================================================
     def add_waypoint_from_msg(self, msg):
         """Add waypoint from ROS `uuv_control_msgs/Waypoint` message
         
@@ -182,6 +195,7 @@ class WaypointSet(object):
         waypoint.from_message(msg)
         return self.add_waypoint(waypoint)
 
+    # =========================================================================
     def get_start_waypoint(self):
         """Return the starting waypoint
         
@@ -194,6 +208,7 @@ class WaypointSet(object):
         else:
             return None
 
+    # =========================================================================
     def get_last_waypoint(self):
         """Return the final waypoint
         
@@ -205,6 +220,7 @@ class WaypointSet(object):
             return self._waypoints[-1]
         return None
 
+    # =========================================================================
     def remove_waypoint(self, waypoint):
         """Remove waypoint from set.
         
@@ -219,6 +235,7 @@ class WaypointSet(object):
             new_waypoints.append(point)
         self._waypoints = new_waypoints
 
+    # =========================================================================
     def read_from_file(self, filename):
         """Read waypoint set from a YAML file.
         
@@ -269,6 +286,7 @@ class WaypointSet(object):
             return False
         return True
 
+    # =========================================================================
     def export_to_file(self, path, filename):
         """Export waypoint set to YAML file.
         
@@ -297,6 +315,7 @@ class WaypointSet(object):
             print('Error occured while exporting waypoint file, message={}'.format(e))
             return False
 
+    # =========================================================================
     def to_message(self, node):
         """Convert waypoints set to message `uuv_control_msgs/WaypointSet`
         
@@ -314,6 +333,7 @@ class WaypointSet(object):
             msg.waypoints.append(wp_msg)
         return msg
 
+    # =========================================================================
     def from_message(self, msg):
         """Convert `uuv_control_msgs/WaypointSet` message into `uuv_waypoints.WaypointSet`
         
@@ -326,6 +346,7 @@ class WaypointSet(object):
         for pnt in msg.waypoints:
             self.add_waypoint_from_msg(pnt)
 
+    # =========================================================================
     def dist_to_waypoint(self, pos, index=0):
         """Compute the distance of a waypoint in the set to point 
         
@@ -343,6 +364,7 @@ class WaypointSet(object):
             return wp.dist(pos)
         return None
 
+    # =========================================================================
     def set_radius_of_acceptance(self, index, radius):
         """Set the radius of acceptance around each waypoint 
         inside which a vehicle is considered to have reached 
@@ -356,6 +378,7 @@ class WaypointSet(object):
         if index >= 0 and index < len(self._waypoints):
             self._waypoints[index].radius_of_acceptance = radius
 
+    # =========================================================================
     def get_radius_of_acceptance(self, index):
         """Return the radius of acceptance for a waypoint
         
@@ -374,6 +397,7 @@ class WaypointSet(object):
         else:
             return None
 
+    # =========================================================================
     def to_path_marker(self, node: Node, clear=False):
         """Return a `nav_msgs/Path` message with all waypoints in the set
         
@@ -393,7 +417,7 @@ class WaypointSet(object):
             for i in range(self.num_waypoints):
                 wp = self.get_waypoint(i)
                 pose = PoseStamped()
-                pose.header.stamp = rclpy.time.Time(i)
+                pose.header.stamp = rclpy.time.Time(seconds=i) # TODO check
                 pose.header.frame_id = self._inertial_frame_id
                 pose.pose.position.x = wp.x
                 pose.pose.position.y = wp.y
@@ -401,6 +425,7 @@ class WaypointSet(object):
                 path.poses.append(pose)
         return path
 
+    # =========================================================================
     def to_marker_list(self, node, clear=False):
         """Return waypoint set as a markers list message of type `visualization_msgs/MarkerArray`
         
@@ -448,6 +473,7 @@ class WaypointSet(object):
                 list_waypoints.markers.append(marker)
         return list_waypoints
 
+    # =========================================================================
     def generate_circle(self, radius, center, num_points, max_forward_speed,
         theta_offset=0.0, heading_offset=0.0, append=False):
         """Generate a set of waypoints describing a circle
@@ -492,6 +518,7 @@ class WaypointSet(object):
             self.add_waypoint(wp)
         return True
 
+    # =========================================================================
     def generate_helix(self, radius, center, num_points, max_forward_speed, delta_z,
                        num_turns, theta_offset=0.0, heading_offset=0.0,
                        append=False):
