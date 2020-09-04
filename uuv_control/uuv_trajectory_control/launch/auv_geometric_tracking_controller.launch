@@ -47,24 +47,66 @@
 
   <!-- This node just reads the trajectory and waypoint topics and publishes
        visualization markers for RViz -->
-  <group if="$(arg gui_on)">
-    <group ns="$(arg uuv_name)">
+  <group if="$(var gui_on)">
+    <group>
+      <push-ros-namespace namespace="$(var uuv_name)"/>
       <node pkg="uuv_control_utils"
             type="trajectory_marker_publisher.py"
-            name="trajectory_marker_publisher"
+            node-name="trajectory_marker_publisher"
             output="screen"/>
     </group>
   </group>
 
     <group>
-      <push-ros-namespace namespace="$(arg uuv_name)"/>
+      <push-ros-namespace namespace="$(var uuv_name)"/>
       <node pkg="uuv_trajectory_control"
             exec="auv_geometric_tracking_controller.py"
-            name="auv_geometric_tracking_controller"
+            node-name="auv_geometric_tracking_controller"
             output="screen"
-            unless="$(arg use_ned_frame)">
+            unless="$(var use_ned_frame)">
         <remap from="odom" to="pose_gt"/>
-        <rosparam subst_value="true">
+
+        <param name="max_forward_speed" value="$(var max_forward_speed)"/>
+        <param name="base_link" value="base_link"/>
+        <param name="is_underactuated" value="true"/>
+        <param name="inertial_frame_id" value="world"/>
+        <param name="min_thrust" value="$(var min_thrust)"/>
+        <param name="max_thrust" value="$(var max_thrust)"/>
+        <param name="thruster_topic" value="$(var thruster_topic)"/>
+        <param name="thrust_p_gain" value="$(var thrust_p_gain)"/>
+        <param name="thrust_d_gain" value="$(var thrust_d_gain)"/>
+        <param name="gain_roll" value="$(var gain_roll)"/>
+        <param name="gain_pitch" value="$(var gain_pitch)"/>
+        <param name="gain_yaw" value="$(var gain_yaw)"/>
+        <param name="n_fins" value="$(var n_fins)"/>
+        <param name="map_roll" value="[$(var map_roll)]"/>
+        <param name="map_pitch" value="[$(var map_pitch)]"/>
+        <param name="map_yaw" value="[$(var map_yaw)]"/>
+        <param name="fin_topic_prefix" value="$(var fin_topic_prefix)"/>
+        <param name="fin_topic_suffix" value="$(var fin_topic_suffix)"/>
+        <param name="max_fin_angle" value="$(var max_fin_angle)"/>
+        <param name="idle_radius" value="$(var idle_radius)"/>
+        <param name="look_ahead_delay" value="look_ahead_delay"/>
+        <param name="desired_pitch_limit" value="$(var desired_pitch_limit)"/>
+        <param name="yaw_error_limit" value="$(var yaw_error_limit)"/>
+        <param name="dubins">
+          <param name="radius" value="$(var dubins_radius)"/>
+          <param name="max_pitch" value="$(var dubins_max_pitch)"/>
+        </param>
+        <param name="thruster_config">
+          <param name="topic_prefix" value="$(var thruster_topic_prefix)"/>
+          <param name="topic_suffix" value="$(var thruster_topic_suffix)"/>
+          <param name="frame_base" value="$(var thruster_frame_base)"/>
+          <param name="max_thrust" value="$(var max_thrust)"/>
+          <param name="conversion_fcn" value="$(var thruster_conversion_fcn)"/>
+          <param name="conversion_fcn_params">
+            <param name="gain" value="$(var thruster_gain)"/>
+            <param name="input" value="[$(var thruster_input)]"/>
+            <param name="output" value="[$(var thruster_output)]"/>
+          </param>
+        </param>
+
+        <!-- <rosparam subst_value="true">
           max_forward_speed: $(arg max_forward_speed)
           base_link: base_link
           is_underactuated: true
@@ -85,7 +127,7 @@
           fin_topic_suffix: $(arg fin_topic_suffix)
           max_fin_angle: $(arg max_fin_angle)
           idle_radius: $(arg idle_radius)
-          look_ahead_delay: $(arg look_ahead_delay)
+          look_ahead_delay: look_ahead_delay
           desired_pitch_limit: $(arg desired_pitch_limit)
           yaw_error_limit: $(arg yaw_error_limit)
           dubins:
@@ -101,16 +143,56 @@
                   gain: $(arg thruster_gain)
                   input: [$(arg thruster_input)]
                   output: [$(arg thruster_output)]
-        </rosparam>
+        </rosparam>-->
       </node>
 
       <node pkg="uuv_trajectory_control"
             exec="auv_geometric_tracking_controller.py"
-            name="auv_geometric_tracking_controller"
+            node-name="auv_geometric_tracking_controller"
             output="screen"
-            if="$(arg use_ned_frame)">
+            if="$(var use_ned_frame)">
         <remap from="odom" to="pose_gt_ned"/>
-        <rosparam subst_value="true">
+
+        <param name="max_forward_speed" value="$(var max_forward_speed)"/>
+        <param name="base_link" value="base_link_ned"/>
+        <param name="is_underactuated" value="true"/>
+        <param name="inertial_frame_id" value="world_ned"/>
+        <param name="min_thrust" value="$(var min_thrust)"/>
+        <param name="max_thrust" value="$(var max_thrust)"/>
+        <param name="thruster_topic" value="$(var thruster_topic)"/>
+        <param name="thrust_gain" value="$(var thrust_gain)"/>
+        <param name="gain_roll" value="$(var gain_roll)"/>
+        <param name="gain_pitch" value="$(var gain_pitch)"/>
+        <param name="gain_yaw" value="$(var gain_yaw)"/>
+        <param name="n_fins" value="$(var n_fins)"/>
+        <param name="map_roll" value="[$(var map_roll)]"/>
+        <param name="map_pitch" value="[$(var map_pitch)]"/>
+        <param name="map_yaw" value="[$(var map_yaw)]"/>
+        <param name="fin_topic_prefix" value="$(var fin_topic_prefix)"/>
+        <param name="fin_topic_suffix" value="$(var fin_topic_suffix)"/>
+        <param name="max_fin_angle" value="$(var max_fin_angle)"/>
+        <param name="idle_radius" value="$(var idle_radius)"/>
+        <param name="look_ahead_delay" value="$(var look_ahead_delay)"/>
+        <param name="desired_pitch_limit" value="$(var desired_pitch_limit)"/>
+        <param name="yaw_error_limit" value="$(var yaw_error_limit)"/>
+        <param name="dubins">
+          <param name="radius" value="$(var dubins_radius)"/>
+          <param name="max_pitch" value="$(var dubins_max_pitch)"/>
+        </param>
+        <param name="thruster_config">
+          <param name="topic_prefix" value="$(var thruster_topic_prefix)"/>
+          <param name="topic_suffix" value="$(var thruster_topic_suffix)"/>
+          <param name="frame_base" value="$(var thruster_frame_base)"/>
+          <param name="max_thrust" value="$(var max_thrust)"/>
+          <param name="conversion_fcn" value="$(var thruster_conversion_fcn)"/>
+          <param name="conversion_fcn_params">
+            <param name="gain" value="$(var thruster_gain)"/>
+            <param name="input" value="[$(var thruster_input)]"/>
+            <param name="output" value="[$(var thruster_output)]"/>
+          </param>
+        </param>
+
+        <!-- <rosparam subst_value="true">
           max_forward_speed: $(arg max_forward_speed)
           base_link: base_link_ned
           is_underactuated: true
@@ -146,7 +228,7 @@
                   gain: $(arg thruster_gain)
                   input: [$(arg thruster_input)]
                   output: [$(arg thruster_output)]
-        </rosparam>
+        </rosparam>  -->
       </node>
     </group>
 
