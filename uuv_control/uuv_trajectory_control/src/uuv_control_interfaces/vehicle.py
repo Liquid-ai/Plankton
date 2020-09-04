@@ -167,7 +167,7 @@ class Vehicle(object):
         self._Ma = np.zeros((6, 6))
         if self.node.has_parameter('Ma'):
             # Get 1D array
-            Ma = np.array(self.node.get_parameter('Ma').value)
+            Ma = self.node.get_parameter('Ma').value
             # Reshape the array.
             self._Ma = numpy.reshape(Ma, (6, 6))
             if self._Ma.shape != (6, 6):
