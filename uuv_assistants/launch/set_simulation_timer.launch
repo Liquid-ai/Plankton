@@ -1,7 +1,7 @@
 <launch>
     <arg name="timeout" />
 
-    <!-- FIXME Required is currently not defined in the xml and should required python way launch files... -->
+    <!-- FIXME Required is currently not defined in the xml and needs python way launch files... -->
     <node node-name="simulation_timeout" pkg="uuv_assistants" exec="set_simulation_timer.py" required="true"
           output="screen">
         <param name="timeout" value="$(var timeout)"/>
