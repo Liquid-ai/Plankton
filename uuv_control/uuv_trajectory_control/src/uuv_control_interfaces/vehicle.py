@@ -96,7 +96,9 @@ class Vehicle(object):
 
         self._inertial = dict(ixx=0, iyy=0, izz=0, ixy=0, ixz=0, iyz=0)
         if self.node.has_parameter('inertial'):
-            inertial = self.node.get_parameter('inertial').value
+            #inertial = self.node.get_parameter('inertial').value
+            inertial = self.node.get_parameters_by_prefix('inertial')
+            inertial = {key: val.value for key, val in inertial.items()}
             for key in self._inertial:
                 if key not in inertial:
                     raise RuntimeError('Invalid moments of inertia')
@@ -164,7 +166,10 @@ class Vehicle(object):
         # Loading the added-mass matrix
         self._Ma = np.zeros((6, 6))
         if self.node.has_parameter('Ma'):
-            self._Ma = np.array(self.node.get_parameter('Ma').value)
+            # Get 1D array
+            Ma = np.array(self.node.get_parameter('Ma').value)
+            # Reshape the array.
+            self._Ma = numpy.reshape(Ma, (6, 6))
             if self._Ma.shape != (6, 6):
                 raise RuntimeError('Invalid added mass matrix')
 
