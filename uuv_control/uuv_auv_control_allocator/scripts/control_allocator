@@ -13,14 +13,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
-import rclpy
+
 import numpy as np
-from uuv_auv_control_allocator.msg import AUVCommand
 import os
 import casadi
-from uuv_auv_actuator_interface import ActuatorManager
+
+import rclpy
 from rclpy.node import Node
+
+from uuv_auv_control_allocator.msg import AUVCommand
+from uuv_auv_actuator_interface import ActuatorManager
+
+from plankton_utils.time import time_in_float_sec
 
 
 class AUVControlAllocator(ActuatorManager):
@@ -31,18 +35,18 @@ class AUVControlAllocator(ActuatorManager):
         # Retrieve the output file path to store the CAM
         # matrix for future use
         self.output_dir = None
-        if self.has_parameter('~output_dir'):
-            self.output_dir = self.get_parameter('~output_dir').get_parameter_value().string_value
+        if self.has_parameter('output_dir'):
+            self.output_dir = self.get_parameter('output_dir').get_parameter_value().string_value
             if not os.path.isdir(self.output_dir):
                 raise RuntimeError(
                     'Invalid output directory, output_dir=' + self.output_dir)
             self.get_logger().info('output_dir=' + str(self.output_dir))
 
-        self.update_rate = self.get_parameter('~update_rate', 10).get_parameter_value().double_value
+        self.update_rate = self.get_parameter('update_rate', 10).value
         if self.update_rate <= 0:
             raise RuntimeError('Update rate must be a positive number')
 
-        self.timeout = self.get_parameter('~timeout', -1).get_parameter_value().double_value       
+        self.timeout = self.get_parameter('timeout', -1).value       
 
         # Control allocation matrix for thruster and fin lift forces
         self.u = casadi.SX.sym('u')
@@ -59,20 +63,25 @@ class AUVControlAllocator(ActuatorManager):
       
         self.sub = self.create_subscription(AUVCommand, 'control_input', self.control_callback, 10)
 
+        #rate = self.create_rate(self.update_rate)
+
+        # NB : no spin before, the sim time clock() is automatically 0
+        self.last_update = time_in_float_sec(self.get_clock().now())
+
         rate = self.create_rate(self.update_rate)
-
-        self.last_update = self.get_clock().now()
-
+        thread = threading.Thread(target=rclpy.spin, args=(self,), daemon=True)
+        thread.start()
         while rclpy.ok():
-            
+            #rclpy.spin_once(self)
             if self.timeout > -1:
-                if self.get_clock().now() - self.last_update > self.timeout:
+                if time_in_float_sec(self.get_clock().now()) - self.last_update > self.timeout:
                     self.input_surge_speed = 0.0
                     self.input_tau = np.zeros(6)            
             output = self.allocate(self.input_tau, self.input_surge_speed)            
             self.publish_commands(output)
             rate.sleep()
 
+    # =========================================================================
     def init(self):
         """Calculate the control allocation matrix, if one is not given."""
                 
@@ -93,6 +102,7 @@ class AUVControlAllocator(ActuatorManager):
         
         return True
 
+    # =========================================================================
     def allocate(self, tau, u):        
         output = np.zeros(self.n_fins + 1)
 
@@ -122,6 +132,7 @@ class AUVControlAllocator(ActuatorManager):
                 output[i] = sol['x'][i]
         return output
 
+    # =========================================================================
     def control_callback(self, msg):
         self.input_surge_speed = msg.surge_speed
         self.input_tau = np.array([msg.command.force.x, 
@@ -136,19 +147,26 @@ class AUVControlAllocator(ActuatorManager):
             self.input_tau[4::] = np.dot(self.base_link_ned_to_enu, self.input_tau[4::])
         
         self.last_update = rospy.Time.now()
-            
+
+      
+# =============================================================================
 def main():
-    #rospy.init_node('auv_control_allocator')
     rclpy.init()
 
     try:
         node = AUVControlAllocator('auv_control_allocator')
         rospy.spin(node)
     except rclpy.ROSInterruptException:
-        print('AUVControlAllocator::Exception')
+        print('AUVControlAllocator::ROSInterruptException Exception')
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
     print('Leaving AUVControlAllocator')
 
 
+# =============================================================================
 if __name__ == '__main__':
     main()
         

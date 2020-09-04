@@ -37,6 +37,7 @@ class FinModel:
         
         self.pub = self.node.create_publisher(FloatStamped, self.topic, 3)
     
+    # =========================================================================
     def publish_command(self, delta):
         msg = FloatStamped()
         msg.header.stamp = self.node.get_clock().now()#rospy.Time.now()

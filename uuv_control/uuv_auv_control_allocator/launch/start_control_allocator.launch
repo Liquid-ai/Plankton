@@ -32,12 +32,39 @@
     <arg name="update_rate" default="10"/>
 
     <group>
-        <push-ros-namespace namespace="$(arg uuv_name)"/>
+        <push-ros-namespace namespace="$(var uuv_name)"/>
         <node pkg="uuv_auv_control_allocator"
               exec="control_allocator"
-              name="control_allocator"
+              node-name="control_allocator"
               output="screen">
-            <rosparam subst_value="true">
+            <param name="output_dir" value="$(var output_dir)"/>
+            <param name="base_link" value="$(var base_link)"/>
+            <param name="thruster_config">
+                <param name="topic_prefix" value="$(var thruster_topic_prefix)"/>
+                <param name="topic_suffix" value="$(var thruster_topic_suffix)"/>
+                <param name="frame_base" value="$(var thruster_frame_base)"/>
+                <param name="max_thrust" value="$(var max_thrust)"/>
+                <param name="conversion_fcn" value="$(var thruster_conversion_fcn)"/>
+                <param name="conversion_fcn_params">
+                    <param name="gain" value="$(var thruster_gain)"/>
+                    <param name="input" value="[$(var thruster_input)]"/>
+                    <param name="output" value="[$(var thruster_output)]"/>
+                </param>
+            </param>
+            <param name="fin_config">
+                <param name="frame_base" value="$(var fin_frame_base)"/>
+                <param name="fluid_density" value="$(var fluid_density)"/>
+                <param name="lift_coefficient" value="$(var lift_coefficient)"/>
+                <param name="fin_area" value="$(var fin_area)"/>
+                <param name="topic_prefix" value="$(var fin_topic_prefix)"/>
+                <param name="topic_suffix" value="$(var fin_topic_suffix)  "/>
+                <param name="lower_limit" value="$(var fin_lower_joint_limit)"/>
+                <param name="upper_limit" value="$(var fin_upper_joint_limit)"/>
+            </param>
+            <param name="timeout" value="$(var timeout)"/>
+            <param name="update_rate" value="$(var update_rate)"/>
+
+            <!-- <rosparam subst_value="true">
                 output_dir: $(arg output_dir)
                 base_link: $(arg base_link)
                 thruster_config:
@@ -61,8 +88,9 @@
                     upper_limit: $(arg fin_upper_joint_limit)
                 timeout: $(arg timeout)
                 update_rate: $(arg update_rate)
-            </rosparam>
-            <remap from="control_input" to="$(arg input_topic)"/>
+            </rosparam> -->
+
+            <remap from="control_input" to="$(var input_topic)"/>
         </node>
     </group>
 </launch>
