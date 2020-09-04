@@ -47,7 +47,7 @@ class VehicleTeleop(Node):
                                rollfast=2, pitchfast=2, yawfast=2)
 
         mapping = self.get_parameters_by_prefix('mapping')
-        if mapping != 0:       
+        if len(mapping) != 0:       
         #if self.has_parameter('mapping'):
             mapping = parse_nested_params_to_dict(mapping, '.')
             for tag in self._axes:

@@ -28,9 +28,15 @@ from rclpy.node import Node
 
 class FinnedUUVControllerNode(Node):
     def __init__(self):
-        super.__init__('finned_uuv_teleop')
+        super.__init__('finned_uuv_teleop',
+                      allow_undeclared_parameters=True, 
+                      automatically_declare_parameters_from_overrides=True)
 
-        print('FinnedUUVControllerNode: initializing node')
+        #Default sim_time to True
+        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        self.set_parameters([sim_time])
+
+        self.get_logger().info('FinnedUUVControllerNode: initializing node')
         
         self._ready = False
 
@@ -50,7 +56,7 @@ class FinnedUUVControllerNode(Node):
         # Thruster joy axis gain
         self._thruster_joy_gain = 1
         if self.has_parameter('thruster_joy_gain'):
-            self._thruster_joy_gain = self.get_parameter('thruster_joy_gain').get_parameter_value().double_value
+            self._thruster_joy_gain = self.get_parameter('thruster_joy_gain').value
 
         # Read the vector for contribution of each fin on the change on
         # orientation
@@ -78,7 +84,8 @@ class FinnedUUVControllerNode(Node):
         self._fin_topic_prefix = self.get_parameter('fin_topic_prefix').get_parameter_value().string_value
         self._fin_topic_suffix = self.get_parameter('fin_topic_suffix').get_parameter_value().string_value
         for i in range(self._n_fins):
-            topic = self._fin_topic_prefix + str(i) + self._fin_topic_suffix
+            topic = build_topic_name(self._fin_topic_prefix, i, self._fin_topic_suffix)
+            #topic = self._fin_topic_prefix + str(i) + self._fin_topic_suffix
             self._pub_cmd.append(self.create_publisher(FloatStamped, topic, 10))
 
         #TODO 
@@ -86,12 +93,13 @@ class FinnedUUVControllerNode(Node):
         try:
             self._thruster_topic = self.get_parameter('thruster_topic').get_parameter_value().string_value
             self._thruster_params = self.get_parameters_by_prefix('thruster_model')
+            #self._thruster_params['params'] = {key: val.value for key, val in params.items()}
             if 'max_thrust' not in self._thruster_params:
                 raise rclpy.exceptions.ParameterException('No limit to thruster output was given')
             self._thruster_model = Thruster.create_thruster(
-                        self._thruster_params['name'], 0,
+                        self._thruster_params['name'].value, 0,
                         self._thruster_topic, None, None,
-                        **self._thruster_params['params'])
+                        **{key: val.value for key, val in self._thruster_params['params'].items()})
         except:
             raise RuntimeError('Thruster model could not be initialized')
         
@@ -141,18 +149,28 @@ class FinnedUUVControllerNode(Node):
                   'if the joy_id corresponds to the joystick ' 
                   'being used. message={}'.format(e))
 
-#==============================================================================
+    # =========================================================================
+    def build_topic_name(_fin_topic_prefix, id, _fin_topic_prefix):
+        return _fin_topic_prefix + 'id_' + str(id) + _fin_topic_prefix
+
+
+# ==============================================================================
 def main(args=None):
     print('starting FinnedUUVControllerNode.py')
-    #rospy.init_node('finned_uuv_teleop')
+
     rclpy.init(args=args)
 
     try:
         node = FinnedUUVControllerNode()
         rclpy.spin(node)
-    except rospy.ROSInterruptException:
-        print('caught exception')
-    print('exiting')
+    except rospy.ROSInterruptException as excep:
+        print('Caught ROSInterruptException exception: ' + str(excep))
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
+    print('Exiting')
 
 #==========================================================================
 if __name__ == '__main__':
