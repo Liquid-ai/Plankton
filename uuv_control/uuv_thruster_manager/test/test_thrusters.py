@@ -13,16 +13,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import roslib
 import unittest
 import numpy as np
 import random
+
+import rclpy
+
 from tf_quaternion import transformations
 from uuv_thrusters import ThrusterManager
 from uuv_thrusters.models import Thruster
 
-PKG = 'uuv_thruster_manager'
-roslib.load_manifest(PKG)
 
 IDX = 0
 TOPIC = '/thruster'
@@ -32,13 +32,38 @@ AXES = [
     np.array([0, 0, 1, 0])
 ]
 
+
 def get_force_vector(pos, orientation, axis):
     thrust_body = transformations.quaternion_matrix(orientation).dot(
         axis.transpose())[0:3]
     torque_body = np.cross(pos, thrust_body)
     return np.hstack((thrust_body, torque_body)).transpose()
 
+
+# =============================================================================
 class TestThrusters(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        # Initialize the ROS context for the test node
+        rclpy.init()
+
+    # =========================================================================
+    @classmethod
+    def tearDownClass(cls):
+        # Shutdown the ROS context
+        rclpy.shutdown()
+
+    # =========================================================================
+    def setUp(self):
+        # Create a ROS node for tests
+        self.node = rclpy.create_node('test_thrusters')
+
+    # =========================================================================
+    def tearDown(self):
+        self.node.destroy_node()
+
+    # =========================================================================
     def test_thruster(self):
         # Use random positions and quaternions
         for axis in AXES:
@@ -46,6 +71,7 @@ class TestThrusters(unittest.TestCase):
             q = transformations.random_quaternion()
             
             thruster = Thruster(
+                self.node,
                 index=IDX,
                 topic=TOPIC,
                 pos=pos,
@@ -56,6 +82,7 @@ class TestThrusters(unittest.TestCase):
             self.assertEqual(thruster.topic, TOPIC)
             self.assertTrue((thruster.tam_column == get_force_vector(pos, q, axis)).all())
 
+    # =========================================================================
     def test_thruster_proportional(self):
         # Use random positions and quaternions
         for axis in AXES:
@@ -64,6 +91,7 @@ class TestThrusters(unittest.TestCase):
             gain = random.random()
             
             thruster = Thruster.create_thruster(
+                self.node,
                 'proportional',
                 IDX,
                 TOPIC,
@@ -89,6 +117,7 @@ class TestThrusters(unittest.TestCase):
                 y = thruster.get_command_value(x)
                 self.assertEqual(y, np.sign(x) * np.sqrt(np.abs(x) / gain))
     
+    # =========================================================================
     def test_thruster_custom(self):
         input_values = np.linspace(-50, 50, 10)
         output_values = np.linspace(-10000, 10000, 10)
@@ -101,6 +130,7 @@ class TestThrusters(unittest.TestCase):
             q = transformations.random_quaternion()
                         
             thruster = Thruster.create_thruster(
+                self.node,
                 'custom',
                 IDX,
                 TOPIC,
@@ -122,6 +152,6 @@ class TestThrusters(unittest.TestCase):
             y = random.random() * 10000
             self.assertTrue(np.isclose(thruster.get_command_value(y), y / gain))
 
-if __name__ == '__main__':
-    import rosunit
-    rosunit.unitrun(PKG, 'test_thrusters', TestThrusters)
+# if __name__ == '__main__':
+#     import rosunit
+#     rosunit.unitrun(PKG, 'test_thrusters', TestThrusters)

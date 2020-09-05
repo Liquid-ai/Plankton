@@ -9,6 +9,7 @@ endif()
 find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_pytest REQUIRED)
 
 rosidl_generate_interfaces(
   ${PROJECT_NAME} 
@@ -48,8 +49,54 @@ install(
 
 install(DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME}
-  PATTERN "*~"
-  EXCLUDE)
+  PATTERN "*~" EXCLUDE)
+
+
+if(BUILD_TESTING)
+  #find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # uncomment the line when a copyright and license is not present in all source files
+  #set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # uncomment the line when this package is not in a git repo
+  #set(ament_cmake_cpplint_FOUND TRUE)
+  #ament_lint_auto_find_test_dependencies()
+  
+  # Unit tests
+  set(THRUSTER_PYTHON_UNIT_TESTS
+      test/test_thrusters.py
+  )
+
+  foreach(T ${THRUSTER_PYTHON_UNIT_TESTS})
+    get_filename_component(TEST_NAME ${T} NAME_WE)
+    ament_add_pytest_test(${TEST_NAME} ${T}
+      PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}"
+      APPEND_ENV AMENT_PREFIX_PATH=${ament_index_build_path}
+      PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}
+      TIMEOUT 120
+    )   
+  endforeach()
+
+  # ROS tests
+  # set(THRUSTER_PYTHON_ROS_TESTS
+  #   test/test_thruster_allocator_x_axis.py
+  #   test/test_thruster_allocator_y_axis.py
+  #   test/test_thruster_allocator_z_axis.py
+  #   test/test_thruster_manager_proportional_correct.py
+  # )
+
+  # foreach(T ${THRUSTER_PYTHON_ROS_TESTS})
+  #   get_filename_component(TEST_NAME ${T} NAME_WE)
+  #   add_launch_test(
+  #     ${T}
+  #     TARGET ${TEST_NAME}
+  #     PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}"
+  #     APPEND_ENV AMENT_PREFIX_PATH=${ament_index_build_path}
+  #     PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}
+  #     TIMEOUT 120
+  #   )
+  # endforeach()
+endif()
 
 #TODO Enable tests
 # if(BUILD_TESTING)
