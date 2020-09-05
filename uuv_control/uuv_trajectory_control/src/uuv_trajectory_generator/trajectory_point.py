@@ -43,10 +43,10 @@ class TrajectoryPoint(object):
     def __init__(self, t=0.0, pos=[0, 0, 0], quat=[0, 0, 0, 1],
                  lin_vel=[0, 0, 0], ang_vel=[0, 0, 0], lin_acc=[0, 0, 0],
                  ang_acc=[0, 0, 0]):
-        self._pos = np.array(pos)
-        self._rot = np.array(quat)
-        self._vel = np.hstack((lin_vel, ang_vel))
-        self._acc = np.hstack((lin_acc, ang_acc))
+        self._pos = np.array([float(val) for val in pos], dtype=float)
+        self._rot = np.array(quat, dtype=float)
+        self._vel = np.hstack((lin_vel, ang_vel)).astype(float)
+        self._acc = np.hstack((lin_acc, ang_acc)).astype(float)
         self._t = t
 
     # =========================================================================
@@ -155,14 +155,14 @@ class TrajectoryPoint(object):
     # =========================================================================
     @pos.setter
     def pos(self, new_pos):
-        self._pos = np.array(new_pos)
+        self._pos = np.array(new_pos, dtype=float)
 
     # =========================================================================
     @property
     def rot(self):
         """`numpy.array`: `roll`, `pitch` and `yaw` angles"""
         rpy = euler_from_quaternion(self._rot)
-        return np.array([rpy[0], rpy[1], rpy[2]])
+        return np.array([rpy[0], rpy[1], rpy[2]], dtype=float)
 
     # =========================================================================
     @rot.setter
@@ -184,7 +184,7 @@ class TrajectoryPoint(object):
     # =========================================================================
     @rotq.setter
     def rotq(self, quat):
-        self._rot = quat
+        self._rot = np.array(quat, dtype=float)
 
     # =========================================================================
     @property
@@ -195,7 +195,7 @@ class TrajectoryPoint(object):
     # =========================================================================
     @vel.setter
     def vel(self, new_vel):
-        self._vel = np.array(new_vel)
+        self._vel = np.array(new_vel, dtype=float)
 
     # =========================================================================
     @property
@@ -206,7 +206,7 @@ class TrajectoryPoint(object):
     # =========================================================================
     @acc.setter
     def acc(self, new_acc):
-        self._acc = np.array(new_acc)
+        self._acc = np.array(new_acc, dtype=float)
 
     # =========================================================================
     def to_message(self):
@@ -219,8 +219,9 @@ class TrajectoryPoint(object):
         p_msg = TrajectoryPointMsg()
         # FIXME Sometimes the time t stored is NaN
         (secs, nsecs) = float_sec_to_int_sec_nano(self.t)
-        p_msg.header.stamp = rclpy.time.Time(seconds=secs, nanoseconds=nsecs)
-        p_msg.pose.position = geometry_msgs.Vector3(x=self.p[0], y= self.p[1], z=self.p[2])
+        p_msg.header.stamp = rclpy.time.Time(seconds=secs, nanoseconds=nsecs).to_msg()
+        print(str(type(self.p[0])))
+        p_msg.pose.position = geometry_msgs.Point(x=self.p[0], y= self.p[1], z=self.p[2])
         p_msg.pose.orientation = geometry_msgs.Quaternion(x=self.q[0], y=self.q[1], z=self.q[2], w=self.q[3])
         p_msg.velocity.linear = geometry_msgs.Vector3(x=self.v[0], y=self.v[1], z=self.v[2])
         p_msg.velocity.angular = geometry_msgs.Vector3(x=self.w[0], y=self.w[1], z=self.w[2])

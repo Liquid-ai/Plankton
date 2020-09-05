@@ -46,15 +46,15 @@ class Waypoint(object):
         assert inertial_frame_id in ['world', 'world_ned'], \
             'Invalid inertial reference frame, options' \
                 ' are world or world_ned, provided={}'.format(inertial_frame_id)
-        self._x = x
-        self._y = y
-        self._z = z
+        self._x = float(x)
+        self._y = float(y)
+        self._z = float(z)
         self._inertial_frame_id = inertial_frame_id
-        self._max_forward_speed = max_forward_speed
-        self._heading_offset = heading_offset
+        self._max_forward_speed = float(max_forward_speed)
+        self._heading_offset = float(heading_offset)
         self._violates_constraint = False
         self._use_fixed_heading = use_fixed_heading
-        self._radius_acceptance = radius_acceptance
+        self._radius_acceptance = float(radius_acceptance)
 
     # =========================================================================
     def __eq__(self, other):
