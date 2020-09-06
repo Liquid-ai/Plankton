@@ -20,21 +20,27 @@
   <exec_depend>tf2</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>rclpy</exec_depend>
-  <exec_depend>python-yaml</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
   <exec_depend>uuv_gazebo_ros_plugins_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>uuv_assistants</exec_depend>
   <exec_depend>plankton_utils</exec_depend>
 
   <!-- TODO finalize migration -->
-  <!-- <test_depend>rosunit</test_depend> 
-  <test_depend>rostest</test_depend>
-  <test_depend>python-numpy</test_depend>
+  <test_depend>python3-numpy</test_depend>
   <test_depend>uuv_assistants</test_depend>
   <test_depend>geometry_msgs</test_depend>
   <test_depend>joint_state_publisher</test_depend>
   <test_depend>robot_state_publisher</test_depend>
-  <test_depend>xacro</test_depend> -->
+  <test_depend>xacro</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <!-- <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend> -->
+
+  <test_depend>launch</test_depend>
+  <test_depend>launch_testing</test_depend>
+  <test_depend>launch_testing_ros</test_depend>
+  <test_depend>launch_testing_ament_cmake</test_depend>
 
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>

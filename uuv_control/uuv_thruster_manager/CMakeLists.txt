@@ -9,7 +9,6 @@ endif()
 find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_pytest REQUIRED)
 
 rosidl_generate_interfaces(
   ${PROJECT_NAME} 
@@ -61,6 +60,11 @@ if(BUILD_TESTING)
   # uncomment the line when this package is not in a git repo
   #set(ament_cmake_cpplint_FOUND TRUE)
   #ament_lint_auto_find_test_dependencies()
+
+  find_package(xacro REQUIRED)
+  find_package(ament_cmake_pytest REQUIRED)
+  find_package(launch_testing_ament_cmake REQUIRED)
+
   
   # Unit tests
   set(THRUSTER_PYTHON_UNIT_TESTS
@@ -78,24 +82,25 @@ if(BUILD_TESTING)
   endforeach()
 
   # ROS tests
-  # set(THRUSTER_PYTHON_ROS_TESTS
-  #   test/test_thruster_allocator_x_axis.py
-  #   test/test_thruster_allocator_y_axis.py
-  #   test/test_thruster_allocator_z_axis.py
-  #   test/test_thruster_manager_proportional_correct.py
-  # )
+  set(THRUSTER_PYTHON_ROS_TESTS
+  test/test_thruster_allocator.py
+    # test/test_thruster_allocator_x_axis.py
+    # test/test_thruster_allocator_y_axis.py
+    # test/test_thruster_allocator_z_axis.py
+    # test/test_thruster_manager_proportional_correct.py
+  )
 
-  # foreach(T ${THRUSTER_PYTHON_ROS_TESTS})
-  #   get_filename_component(TEST_NAME ${T} NAME_WE)
-  #   add_launch_test(
-  #     ${T}
-  #     TARGET ${TEST_NAME}
-  #     PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}"
-  #     APPEND_ENV AMENT_PREFIX_PATH=${ament_index_build_path}
-  #     PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}
-  #     TIMEOUT 120
-  #   )
-  # endforeach()
+  foreach(T ${THRUSTER_PYTHON_ROS_TESTS})
+    get_filename_component(TEST_NAME ${T} NAME_WE)
+    add_launch_test(
+      ${T}
+      TARGET ${TEST_NAME}
+      PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}"
+      APPEND_ENV AMENT_PREFIX_PATH=${ament_index_build_path}
+      PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}
+      TIMEOUT 120
+    )
+  endforeach()
 endif()
 
 #TODO Enable tests
