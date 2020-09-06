@@ -213,7 +213,7 @@ def main():
     except Exception as e:
         print('ThrusterAllocatorNode::Exception ' + str(e))
     finally:
-        if rclpy.ok()
+        if rclpy.ok():
             rclpy.shutdown()
     print('Leaving ThrusterAllocatorNode')
 
