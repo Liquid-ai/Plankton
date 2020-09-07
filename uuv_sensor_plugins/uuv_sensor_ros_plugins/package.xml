@@ -31,9 +31,8 @@
   <depend>image_transport</depend>
   <depend>laser_geometry</depend>
 
-  <!--<test_depend>rosunit</test_depend>
-  <test_depend>rostest</test_depend>-->
-  <test_depend>xacro</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>xacro</test_depend> 
 
   <export>
     <build_type>ament_cmake</build_type>
