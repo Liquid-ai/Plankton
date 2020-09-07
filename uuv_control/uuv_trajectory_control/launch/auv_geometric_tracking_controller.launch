@@ -16,7 +16,7 @@
   <arg name="dubins_max_pitch" default="0.09"/>
   <arg name="min_thrust" default="70"/>
   <arg name="max_thrust" default="200"/>
-  <arg name="thruster_topic" default="thrusters/0/input"/>
+  <arg name="thruster_topic" default="thrusters/id_0/input"/>
   <arg name="thrust_p_gain" default="1"/>
   <arg name="thrust_d_gain" default="1"/>
   <arg name="gain_roll" default="1"/>
