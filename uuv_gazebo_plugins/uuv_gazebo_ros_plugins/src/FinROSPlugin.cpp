@@ -115,7 +115,7 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
 
   myRosNode = gazebo_ros::Node::CreateWithArgs(_sdf->Get<std::string>("name"));// gazebo_ros::Node::Get(_sdf);
   //Change the buildtopicprefix function ("/") if creating a namespaced node here
-  RCLCPP_DEBUG(myRosNode->get_logger(), "[FinROSPlugin] Namespace: " + std::string(myRosNode->get_namespace()));
+  RCLCPP_INFO(myRosNode->get_logger(), "[FinROSPlugin] Namespace: " + std::string(myRosNode->get_namespace()));
   //this->rosNode.reset(new ros::NodeHandle(""));
 
   mySubReference = myRosNode->create_subscription<
@@ -131,7 +131,7 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
   if (_sdf->HasElement("wrench_topic"))
     wrenchTopic = _sdf->Get<std::string>("wrench_topic");
   else
-    wrenchTopic = myTopicPrefix + "wrench_topic";
+    wrenchTopic = myTopicPrefix + "/wrench_topic";
 
   myPubFinForce =
     myRosNode->create_publisher<geometry_msgs::msg::WrenchStamped>(wrenchTopic, 10);

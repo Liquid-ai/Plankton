@@ -72,12 +72,12 @@ void FinPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   if (_sdf->HasElement("input_topic"))
     std::string inputTopic = _sdf->Get<std::string>("input_topic");
   else
-    inputTopic = myTopicPrefix + "input";
+    inputTopic = myTopicPrefix + "/input";
 
   if (_sdf->HasElement("output_topic"))
     outputTopic = _sdf->Get<std::string>("output_topic");
   else
-    outputTopic = myTopicPrefix + "output";
+    outputTopic = myTopicPrefix + "/output";
 
   GZ_ASSERT(_sdf->HasElement("link_name"), "Could not find link_name.");
   std::string link_name = _sdf->Get<std::string>("link_name");
@@ -211,7 +211,7 @@ std::string FinPlugin::BuildTopicPrefix(const std::string& rosNamespace, int id)
 {
   // Root string for topics
   std::stringstream strs;
-  strs << "/" << rosNamespace << "/fins/id_" << id << "/";
+  strs << "/" << rosNamespace << "/fins/id_" << id;
   return strs.str();
 }
 
