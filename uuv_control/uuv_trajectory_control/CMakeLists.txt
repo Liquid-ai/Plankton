@@ -7,7 +7,6 @@ project(uuv_trajectory_control)
 # endif()
 
 find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_pytest REQUIRED)
 
 # set(INCLUDE_DIRS ${ament_cmake_INCLUDE_DIRS})
 # include_directories(${INCLUDE_DIRS})
@@ -42,6 +41,7 @@ install(DIRECTORY launch config
   PATTERN "*~" EXCLUDE)
 
 if(BUILD_TESTING)
+  find_package(ament_cmake_pytest REQUIRED)
   #find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
   # uncomment the line when a copyright and license is not present in all source files
