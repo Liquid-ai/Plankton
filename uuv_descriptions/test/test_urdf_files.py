@@ -13,15 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
-import rospy
+
 import unittest
 import subprocess
 import os
-
-PKG = 'uuv_descriptions'
-NAME = 'test_urdf_files'
-
 
 
 def call_xacro(xml_file):
@@ -29,6 +24,7 @@ def call_xacro(xml_file):
     return subprocess.check_output(['xacro', '--inorder', xml_file])
 
 
+# =============================================================================
 class TestRexROVURDFFiles(unittest.TestCase):
     def test_xacro(self):
         # Retrieve the root folder for the tests
@@ -41,18 +37,19 @@ class TestRexROVURDFFiles(unittest.TestCase):
             if not os.path.isfile(os.path.join(robots_dir, item)):
                 continue
             output = call_xacro(os.path.join(robots_dir, item))
-            self.assertNotIn(
-                output, 
-                'XML parsing error',
-                'Parsing error found for file {}'.format(item))
-            self.assertNotIn(
-                output, 
-                'No such file or directory', 
-                'Some file not found in {}'.format(item))
 
-if __name__ == '__main__':
-    import rosunit
-    rosunit.unitrun(PKG, NAME, TestRexROVURDFFiles)
+            self.assertNotIn(
+                'XML parsing error',
+                output.decode('utf-8'), 
+                'Parsing error found for file {}'.format('hey'))
+            self.assertNotIn(
+                'No such file or directory', 
+                output.decode('utf-8'), 
+                'Some file not found in {}'.format('hey'))
+
+# if __name__ == '__main__':
+#     import rosunit
+#     rosunit.unitrun(PKG, NAME, TestRexROVURDFFiles)
 
 
 
