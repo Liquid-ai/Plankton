@@ -22,13 +22,15 @@ import rclpy
 from sensor_msgs.msg import Joy
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 from uuv_thrusters.models import Thruster
-from rclpy.numpy_msg import numpy_msg
+
+from plankton_utils.param_helper import parse_nested_params_to_dict
+
 from rclpy.node import Node
 
 
 class FinnedUUVControllerNode(Node):
     def __init__(self):
-        super.__init__('finned_uuv_teleop',
+        super().__init__('finned_uuv_teleop',
                       allow_undeclared_parameters=True, 
                       automatically_declare_parameters_from_overrides=True)
 
@@ -42,13 +44,14 @@ class FinnedUUVControllerNode(Node):
 
         # Test if any of the needed parameters are missing
         param_labels = ['n_fins', 'gain_roll', 'gain_pitch', 'gain_yaw',
-                        'thruster_model', 'fin_topic_prefix',
+                        'thruster_model.max_thrust', 'thruster_model.name',
+                        'fin_topic_prefix',
                         'fin_topic_suffix', 'thruster_topic',
                         'axis_thruster', 'axis_roll', 'axis_pitch', 'axis_yaw']
 
         for label in param_labels:
             if not self.has_parameter('%s' % label):
-                raise rospy.ROSException('Parameter missing, label=%s' % label)
+                raise Exception('Parameter missing, label=%s' % label)
 
         # Number of fins
         self._n_fins = self.get_parameter('n_fins').get_parameter_value().integer_value
@@ -60,13 +63,13 @@ class FinnedUUVControllerNode(Node):
 
         # Read the vector for contribution of each fin on the change on
         # orientation
-        gain_roll = self.get_parameter('gain_roll').get_parameter_value().double_array_value
-        gain_pitch = self.get_parameter('gain_pitch').get_parameter_value().double_array_value
-        gain_yaw = self.get_parameter('gain_yaw').get_parameter_value().double_array_value
+        gain_roll = self.get_parameter('gain_roll').value
+        gain_pitch = self.get_parameter('gain_pitch').value
+        gain_yaw = self.get_parameter('gain_yaw').value
 
         if len(gain_roll) != self._n_fins or len(gain_pitch) != self._n_fins \
             or len(gain_yaw) != self._n_fins:
-            raise rclpy.exceptions.InvalidParameterValueException('Input gain vectors must have length '
+            raise Exception('Input gain vectors must have length '
                                      'equal to the number of fins')
 
         # Create the command angle to fin angle mapping
@@ -78,33 +81,35 @@ class FinnedUUVControllerNode(Node):
                               axis_pitch=self.get_parameter('axis_pitch').get_parameter_value().integer_value,
                               axis_yaw=self.get_parameter('axis_yaw').get_parameter_value().integer_value)
 
-        #TODO Check if we must add id_ to topic
         # Subscribe to the fin angle topics
         self._pub_cmd = list()
         self._fin_topic_prefix = self.get_parameter('fin_topic_prefix').get_parameter_value().string_value
         self._fin_topic_suffix = self.get_parameter('fin_topic_suffix').get_parameter_value().string_value
         for i in range(self._n_fins):
-            topic = build_topic_name(self._fin_topic_prefix, i, self._fin_topic_suffix)
+            topic = self.build_topic_name(self._fin_topic_prefix, i, self._fin_topic_suffix)
             #topic = self._fin_topic_prefix + str(i) + self._fin_topic_suffix
             self._pub_cmd.append(self.create_publisher(FloatStamped, topic, 10))
 
-        #TODO 
         # Create the thruster model object
         try:
             self._thruster_topic = self.get_parameter('thruster_topic').get_parameter_value().string_value
             self._thruster_params = self.get_parameters_by_prefix('thruster_model')
-            #self._thruster_params['params'] = {key: val.value for key, val in params.items()}
+            self._thruster_params = parse_nested_params_to_dict(self._thruster_params, '.')
+            
+            if 'params' not in self._thruster_params:
+                raise Exception('No thruster params given')
+            #Should not happen
             if 'max_thrust' not in self._thruster_params:
-                raise rclpy.exceptions.ParameterException('No limit to thruster output was given')
+                raise Exception('No limit to thruster output was given')
             self._thruster_model = Thruster.create_thruster(
-                        self._thruster_params['name'].value, 0,
+                        self, self._thruster_params['name'].value, 0,
                         self._thruster_topic, None, None,
                         **{key: val.value for key, val in self._thruster_params['params'].items()})
-        except:
-            raise RuntimeError('Thruster model could not be initialized')
+        except Exception as e:
+            raise RuntimeError('Thruster model could not be initialized: ' + str(e))
         
         # Subscribe to the joystick topic
-        self.sub_joy = self.create_subscription(numpy_msg(Joy), 'joy', self.joy_callback)
+        self.sub_joy = self.create_subscription(Joy, 'joy', self.joy_callback, 10)
 
         self._ready = True
 
@@ -117,7 +122,7 @@ class FinnedUUVControllerNode(Node):
 
         try:
             thrust = max(0, msg.axes[self._joy_axis['axis_thruster']]) * \
-                self._thruster_params['max_thrust'] * \
+                self._thruster_params['max_thrust'].value * \
                 self._thruster_joy_gain
 
             cmd_roll = msg.axes[self._joy_axis['axis_roll']]
@@ -150,8 +155,8 @@ class FinnedUUVControllerNode(Node):
                   'being used. message={}'.format(e))
 
     # =========================================================================
-    def build_topic_name(_fin_topic_prefix, id, _fin_topic_prefix):
-        return _fin_topic_prefix + 'id_' + str(id) + _fin_topic_prefix
+    def build_topic_name(self, _fin_topic_prefix, id, _fin_topic_suffix):
+        return _fin_topic_prefix + 'id_' + str(id) + _fin_topic_suffix
 
 
 # ==============================================================================
@@ -163,7 +168,7 @@ def main(args=None):
     try:
         node = FinnedUUVControllerNode()
         rclpy.spin(node)
-    except rospy.ROSInterruptException as excep:
+    except rclpy.exceptions.ROSInterruptException as excep:
         print('Caught ROSInterruptException exception: ' + str(excep))
     except Exception as e:
         print('Caught exception: ' + str(e))
