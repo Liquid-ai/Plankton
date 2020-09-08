@@ -26,11 +26,11 @@ def generate_launch_description():
         file_out.write(doc)
     
     args = ('-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0 -entity vehicle -file ' + output).split()
-    #args = '-entity vehicle'.split(sep=' ')
+    # args='-gazebo_namespace /gazebo -x 0 -y 0 -z 0 -R 0 -P 0 -Y 0 -entity $(var namespace) -file ' + output
 
     # Urdf spawner
     urdf_spawner = Node(
-        node_name = 'urdf_spawner',
+        node_name = 'urdf_spawner_thrusters',
         node_namespace = 'vehicle',
         package='gazebo_ros',
         node_executable='spawn_entity.py',

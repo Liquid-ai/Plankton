@@ -27,6 +27,22 @@
           <sor>0.5</sor>
         </solver>
       </ode>
-    </physics>    
+    </physics>  
+
+    <plugin name="gazebo_state" filename="libgazebo_ros_state.so">
+      <!-- NB: omitting <ros> element, the namespace is still correctly read,
+       but is it an intended behaviour ?-->
+      <!-- <ros>
+        <namespace>/vehicle</namespace>
+      </ros> -->
+    </plugin>  
+
+    <plugin name="gazebo_properties" filename="libgazebo_ros_properties.so">
+      <!-- NB: omitting <ros> element, the namespace is still correctly read,
+       but is it an intended behaviour ?-->
+      <!-- <ros>
+        <namespace>/vehicle</namespace>
+      </ros> -->
+    </plugin>  
   </world>
 </sdf>

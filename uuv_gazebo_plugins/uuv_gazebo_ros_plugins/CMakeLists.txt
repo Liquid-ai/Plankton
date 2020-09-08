@@ -107,18 +107,36 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 install(DIRECTORY urdf
   DESTINATION share/${PROJECT_NAME}
-  PATTERN "*~"
-  EXCLUDE)
+  PATTERN "*~" EXCLUDE)
 
-#TODO re-enable xacro...
+
 if(BUILD_TESTING)
-  find_package(ament_cmake_gtest REQUIRED)
-  #find_package(rostest REQUIRED)
-  #find_package(xacro REQUIRED)
-  #find_package(rosunit REQUIRED)
-  ament_add_gtest(test1 test/test_default_fossen_vehicle.test)
-  ament_add_gtest(test2 test/test_sphere_vehicle.test)
-  ament_add_gtest(test3 test/test_thrusters.test)
+  find_package(ament_cmake_pytest REQUIRED)
+  find_package(launch_testing_ament_cmake REQUIRED)
+  find_package(xacro REQUIRED)
+
+  # ament_add_gtest(test1 test/test_default_fossen_vehicle.test)
+  # ament_add_gtest(test2 test/test_sphere_vehicle.test)
+  # ament_add_gtest(test3 test/test_thrusters.test)
+
+  set(GAZEBO_ROS_PLUGINS_PYTHON_TESTS
+    test/test_default_fossen_vehicle.test.py
+    test/test_sphere_vehicle.test.py
+    test/test_thrusters.test.py
+  )
+
+  foreach(T ${GAZEBO_ROS_PLUGINS_PYTHON_TESTS})
+    get_filename_component(_test_name ${T} NAME_WE)
+    add_launch_test(
+      ${T}
+      TARGET ${TEST_NAME}
+      PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}"
+      APPEND_ENV AMENT_PREFIX_PATH=${ament_index_build_path}
+      PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}
+      TIMEOUT 120
+    )
+  endforeach()
+
   # foreach(T 
   #   test/test_default_fossen_vehicle.test 
   #   test/test_sphere_vehicle.test

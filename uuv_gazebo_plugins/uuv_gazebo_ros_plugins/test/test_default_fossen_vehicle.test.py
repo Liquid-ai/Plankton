@@ -35,6 +35,8 @@ import pathlib
 import pytest
 import xacro
 
+import array
+
 
 from launch_ros.actions import Node
 
@@ -91,79 +93,83 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         return future.result()
 
     # =========================================================================
-    # def test_get_model_parameters(self):
-    #     srv_name = '/vehicle/get_model_properties'
-    #     s = self.node.create_client(GetModelProperties, srv_name)
+    def test_get_model_parameters(self):
+        srv_name = '/vehicle/get_model_properties'
+        s_get = self.create_service(GetModelProperties, srv_name)
+        # srv_name = '/vehicle/get_model_properties'
+        # s = self.node.create_client(GetModelProperties, srv_name)
 
-    #     if not s.wait_for_service(timeout_sec=10):
-    #         self.fail('service %s not available...' % srv_name)
+        # if not s.wait_for_service(timeout_sec=10):
+        #     self.fail('service %s not available...' % srv_name)
 
-    #     req = GetModelProperties.Request()
-    #     future = s.call_async(req)
+        # req = GetModelProperties.Request()
+        # future = s.call_async(req)
 
-    #     rclpy.spin_until_future_complete(self.node, future)
+        # rclpy.spin_until_future_complete(self.node, future)
 
-    #     models = future.result()
+        # models = future.result()
 
-    #     self.assertEqual(len(models.link_names), 1)
-    #     self.assertEqual(len(models.models), 1)
+        models = self.service_request(s_get)
 
-    #     # Test the name of the link
-    #     self.assertEqual(
-    #         models.link_names[0], 'vehicle/base_link',
-    #         'Link name is invalid, name=' + str(models.link_names[0]))
+        self.assertEqual(len(models.link_names), 1)
+        self.assertEqual(len(models.models), 1)
 
-    #     # Test message types
-    #     self.assertIsInstance(models.models[0].added_mass, tuple)
-    #     self.assertIsInstance(models.models[0].linear_damping, tuple)
-    #     self.assertIsInstance(models.models[0].linear_damping_forward_speed, tuple)
-    #     self.assertIsInstance(models.models[0].quadratic_damping, tuple)
-    #     self.assertIsInstance(models.models[0].volume, float)
-    #     self.assertIsInstance(models.models[0].bbox_length, float)
-    #     self.assertIsInstance(models.models[0].bbox_width, float)
-    #     self.assertIsInstance(models.models[0].bbox_height, float)
-    #     self.assertIsInstance(models.models[0].fluid_density, float)
-    #     self.assertIsInstance(models.models[0].neutrally_buoyant, bool)
-    #     self.assertIsInstance(models.models[0].cob, Vector3)
-    #     self.assertIsInstance(models.models[0].inertia, Inertia)
+        # Test the name of the link
+        self.assertEqual(
+            models.link_names[0], 'vehicle/base_link',
+            'Link name is invalid, name=' + str(models.link_names[0]))
 
-    #     # Test size of the parameter lists
-    #     # Generate index numbers for the diagonal elements of the matrices
-    #     d_idxs = [i*6 + j for i, j in zip(range(6), range(6))]
-    #     self.assertEqual(len(models.models[0].added_mass), 36)
-    #     for i in range(len(models.models[0].added_mass)):
-    #         if i in d_idxs:
-    #             self.assertEqual(models.models[0].added_mass[i], 1.0)
-    #         else:
-    #             self.assertEqual(models.models[0].added_mass[i], 0.0)
+        # Test message types
+        self.assertIsInstance(models.models[0].added_mass, array.array)
+        self.assertIsInstance(models.models[0].linear_damping, array.array)
+        self.assertIsInstance(models.models[0].linear_damping_forward_speed, array.array)
+        self.assertIsInstance(models.models[0].quadratic_damping, array.array)
+        self.assertIsInstance(models.models[0].volume, float)
+        self.assertIsInstance(models.models[0].bbox_length, float)
+        self.assertIsInstance(models.models[0].bbox_width, float)
+        self.assertIsInstance(models.models[0].bbox_height, float)
+        self.assertIsInstance(models.models[0].fluid_density, float)
+        self.assertIsInstance(models.models[0].neutrally_buoyant, bool)
+        self.assertIsInstance(models.models[0].cob, Vector3)
+        self.assertIsInstance(models.models[0].inertia, Inertia)
 
-    #     self.assertEqual(len(models.models[0].linear_damping), 36)
-    #     for i in range(len(models.models[0].linear_damping)):
-    #         if i in d_idxs:
-    #             self.assertEqual(models.models[0].linear_damping[i], 1.0)
-    #         else:
-    #             self.assertEqual(models.models[0].linear_damping[i], 0.0)
+        # Test size of the parameter lists
+        # Generate index numbers for the diagonal elements of the matrices
+        d_idxs = [i*6 + j for i, j in zip(range(6), range(6))]
+        self.assertEqual(len(models.models[0].added_mass), 36)
+        for i in range(len(models.models[0].added_mass)):
+            if i in d_idxs:
+                self.assertEqual(models.models[0].added_mass[i], 1.0)
+            else:
+                self.assertEqual(models.models[0].added_mass[i], 0.0)
 
-    #     self.assertEqual(len(models.models[0].linear_damping_forward_speed), 36)
-    #     for i in range(len(models.models[0].linear_damping_forward_speed)):
-    #         if i in d_idxs:
-    #             self.assertEqual(models.models[0].linear_damping_forward_speed[i], 1.0)
-    #         else:
-    #             self.assertEqual(models.models[0].linear_damping_forward_speed[i], 0.0)
+        self.assertEqual(len(models.models[0].linear_damping), 36)
+        for i in range(len(models.models[0].linear_damping)):
+            if i in d_idxs:
+                self.assertEqual(models.models[0].linear_damping[i], 1.0)
+            else:
+                self.assertEqual(models.models[0].linear_damping[i], 0.0)
 
-    #     self.assertEqual(len(models.models[0].quadratic_damping), 36)
-    #     for i in range(len(models.models[0].quadratic_damping)):
-    #         if i in d_idxs:
-    #             self.assertEqual(models.models[0].quadratic_damping[i], 1.0)
-    #         else:
-    #             self.assertEqual(models.models[0].quadratic_damping[i], 0.0)
+        self.assertEqual(len(models.models[0].linear_damping_forward_speed), 36)
+        for i in range(len(models.models[0].linear_damping_forward_speed)):
+            if i in d_idxs:
+                self.assertEqual(models.models[0].linear_damping_forward_speed[i], 1.0)
+            else:
+                self.assertEqual(models.models[0].linear_damping_forward_speed[i], 0.0)
 
-    #     # Tests if some of the parameters match to the ones given in the URDF
-    #     self.assertEqual(models.models[0].fluid_density, 1028.0)
-    #     self.assertEqual(models.models[0].volume, 1.0)
-    #     self.assertEqual(models.models[0].bbox_height, 1.0)
-    #     self.assertEqual(models.models[0].bbox_length, 1.0)
-    #     self.assertEqual(models.models[0].bbox_width, 1.0)
+        self.assertEqual(len(models.models[0].quadratic_damping), 36)
+        for i in range(len(models.models[0].quadratic_damping)):
+            if i in d_idxs:
+                self.assertEqual(models.models[0].quadratic_damping[i], 1.0)
+            else:
+                self.assertEqual(models.models[0].quadratic_damping[i], 0.0)
+
+        # Tests if some of the parameters match to the ones given in the URDF
+        self.assertEqual(models.models[0].fluid_density, 1028.0)
+        self.assertEqual(models.models[0].volume, 1.0)
+        self.assertEqual(models.models[0].bbox_height, 1.0)
+        self.assertEqual(models.models[0].bbox_length, 1.0)
+        self.assertEqual(models.models[0].bbox_width, 1.0)
 
     # =========================================================================
     def test_set_fluid_density(self):
@@ -311,71 +317,115 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         set_func = self.service_request(s_set, 1.0)
         self.assertTrue(set_func.success)
 
-    # # =========================================================================
-    # def test_volume_scaling(self):
-    #     rospy.wait_for_service('/vehicle/set_volume_scaling')
-    #     set_func = rospy.ServiceProxy('/vehicle/set_volume_scaling', SetFloat)
+    # =========================================================================
+    def test_volume_scaling(self):
+        # rospy.wait_for_service('/vehicle/set_volume_scaling')
+        # set_func = rospy.ServiceProxy('/vehicle/set_volume_scaling', SetFloat)
+        s_set = self.create_service(SetFloat, '/vehicle/set_volume_scaling')
 
-    #     rospy.wait_for_service('/vehicle/get_volume_scaling')
-    #     get_func = rospy.ServiceProxy('/vehicle/get_volume_scaling', GetFloat)
+        # rospy.wait_for_service('/vehicle/get_volume_scaling')
+        # get_func = rospy.ServiceProxy('/vehicle/get_volume_scaling', GetFloat)
+        s_get = self.create_service(GetFloat, '/vehicle/get_volume_scaling')
 
-    #     self.assertEqual(get_func().data, 1.0)
-    #     self.assertTrue(set_func(0.8).success)
-    #     self.assertEqual(get_func().data, 0.8)
-    #     self.assertTrue(set_func(1.0).success)
+        get_func = self.service_request(s_get)
+        self.assertEqual(get_func.data, 1.0)
 
-    # # =========================================================================
-    # def test_added_mass_offset(self):
-    #     rospy.wait_for_service('/vehicle/set_added_mass_offset')
-    #     set_func = rospy.ServiceProxy('/vehicle/set_added_mass_offset', SetFloat)
+        set_func = self.service_request(s_set, 0.8)
+        self.assertTrue(set_func.success)
 
-    #     rospy.wait_for_service('/vehicle/get_added_mass_offset')
-    #     get_func = rospy.ServiceProxy('/vehicle/get_added_mass_offset', GetFloat)
+        get_func = self.service_request(s_get)
+        self.assertEqual(get_func.data, 0.8)
 
-    #     self.assertEqual(get_func().data, 0.0)
+        set_func = self.service_request(s_set, 1.0)
+        self.assertTrue(set_func.success)
 
-    #     self.assertTrue(set_func(1.0).success)
-    #     self.assertEqual(get_func().data, 1.0)
-    #     self.assertTrue(set_func(0.0).success)
+    # =========================================================================
+    def test_added_mass_offset(self):
+        # rospy.wait_for_service('/vehicle/set_added_mass_offset')
+        # set_func = rospy.ServiceProxy('/vehicle/set_added_mass_offset', SetFloat)
+        s_set = self.create_service(SetFloat, '/vehicle/set_added_mass_offset')
 
-    # # =========================================================================
-    # def test_linear_damping_offset(self):
-    #     rospy.wait_for_service('/vehicle/set_linear_damping_offset')
-    #     set_func = rospy.ServiceProxy('/vehicle/set_linear_damping_offset', SetFloat)
+        # rospy.wait_for_service('/vehicle/get_added_mass_offset')
+        # get_func = rospy.ServiceProxy('/vehicle/get_added_mass_offset', GetFloat)
+        s_get = self.create_service(GetFloat, '/vehicle/get_added_mass_offset')
 
-    #     rospy.wait_for_service('/vehicle/get_linear_damping_offset')
-    #     get_func = rospy.ServiceProxy('/vehicle/get_linear_damping_offset', GetFloat)
+        get_func = self.service_request(s_get)
+        self.assertEqual(get_func.data, 0.0)
 
-    #     self.assertEqual(get_func().data, 0.0)
-    #     self.assertTrue(set_func(1.0).success)
-    #     self.assertEqual(get_func().data, 1.0)
-    #     self.assertTrue(set_func(0.0).success)
+        set_func = self.service_request(s_set, 1.0)
+        self.assertTrue(set_func.success)
 
-    # # =========================================================================
-    # def test_linear_forward_speed_damping_offset(self):
-    #     rospy.wait_for_service('/vehicle/set_linear_forward_speed_damping_offset')
-    #     set_func = rospy.ServiceProxy('/vehicle/set_linear_forward_speed_damping_offset', SetFloat)
+        get_func = self.service_request(s_get)
+        self.assertEqual(get_func.data, 1.0)
 
-    #     rospy.wait_for_service('/vehicle/get_linear_forward_speed_damping_offset')
-    #     get_func = rospy.ServiceProxy('/vehicle/get_linear_forward_speed_damping_offset', GetFloat)
+        set_func = self.service_request(s_set, 0.0)
+        self.assertTrue(set_func.success)
 
-    #     self.assertEqual(get_func().data, 0.0)
-    #     self.assertTrue(set_func(1.0).success)
-    #     self.assertEqual(get_func().data, 1.0)
-    #     self.assertTrue(set_func(0.0).success)
+    # =========================================================================
+    def test_linear_damping_offset(self):
+        # rospy.wait_for_service('/vehicle/set_linear_damping_offset')
+        # set_func = rospy.ServiceProxy('/vehicle/set_linear_damping_offset', SetFloat)
+        s_set = self.create_service(SetFloat, '/vehicle/set_linear_damping_offset')
 
-    # # =========================================================================
-    # def test_linear_forward_speed_damping_offset(self):
-    #     rospy.wait_for_service('/vehicle/set_nonlinear_damping_offset')
-    #     set_func = rospy.ServiceProxy('/vehicle/set_nonlinear_damping_offset', SetFloat)
+        # rospy.wait_for_service('/vehicle/get_linear_damping_offset')
+        # get_func = rospy.ServiceProxy('/vehicle/get_linear_damping_offset', GetFloat)
+        s_get = self.create_service(GetFloat, '/vehicle/get_linear_damping_offset')
 
-    #     rospy.wait_for_service('/vehicle/get_nonlinear_damping_offset')
-    #     get_func = rospy.ServiceProxy('/vehicle/get_nonlinear_damping_offset', GetFloat)
+        get_func = self.service_request(s_get)
+        self.assertEqual(get_func.data, 0.0)
 
-    #     self.assertEqual(get_func().data, 0.0)
-    #     self.assertTrue(set_func(1.0).success)
-    #     self.assertEqual(get_func().data, 1.0)
-    #     self.assertTrue(set_func(0.0).success)
+        set_func = self.service_request(s_set, 1.0)
+        self.assertTrue(set_func.success)
+
+        get_func = self.service_request(s_get)
+        self.assertEqual(get_func.data, 1.0)
+
+        set_func = self.service_request(s_set, 0.0)
+        self.assertTrue(set_func.success)
+
+    # =========================================================================
+    def test_linear_forward_speed_damping_offset(self):
+        # rospy.wait_for_service('/vehicle/set_linear_forward_speed_damping_offset')
+        # set_func = rospy.ServiceProxy('/vehicle/set_linear_forward_speed_damping_offset', SetFloat)
+        s_set = self.create_service(SetFloat, '/vehicle/set_linear_forward_speed_damping_offset')
+
+        # rospy.wait_for_service('/vehicle/get_linear_forward_speed_damping_offset')
+        # get_func = rospy.ServiceProxy('/vehicle/get_linear_forward_speed_damping_offset', GetFloat)
+        s_get = self.create_service(GetFloat, '/vehicle/get_linear_forward_speed_damping_offset')
+
+        get_func = self.service_request(s_get)
+        self.assertEqual(get_func.data, 0.0)
+
+        set_func = self.service_request(s_set, 1.0)
+        self.assertTrue(set_func.success)
+
+        get_func = self.service_request(s_get)
+        self.assertEqual(get_func.data, 1.0)
+
+        set_func = self.service_request(s_set, 0.0)
+        self.assertTrue(set_func.success)
+
+    # =========================================================================
+    def test_linear_forward_speed_damping_offset(self):
+        # rospy.wait_for_service('/vehicle/set_nonlinear_damping_offset')
+        # set_func = rospy.ServiceProxy('/vehicle/set_nonlinear_damping_offset', SetFloat)
+        s_set = self.create_service(SetFloat, '/vehicle/set_nonlinear_damping_offset')
+
+        # rospy.wait_for_service('/vehicle/get_nonlinear_damping_offset')
+        # get_func = rospy.ServiceProxy('/vehicle/get_nonlinear_damping_offset', GetFloat)
+        s_get = self.create_service(GetFloat, '/vehicle/get_nonlinear_damping_offset')
+
+        get_func = self.service_request(s_get)
+        self.assertEqual(get_func.data, 0.0)
+
+        set_func = self.service_request(s_set, 1.0)
+        self.assertTrue(set_func.success)
+
+        get_func = self.service_request(s_get)
+        self.assertEqual(get_func.data, 1.0)
+
+        set_func = self.service_request(s_set, 0.0)
+        self.assertTrue(set_func.success)
 
 
 # if __name__ == '__main__':
@@ -397,6 +447,9 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
 @pytest.mark.rostest
 def generate_test_description():
+    # Set env
+    os.environ['GAZEBO_MASTER_URI'] ='http://localhost:3000'
+
     file_path = pathlib.Path(__file__)
     # Here, parent first removes the file name
     parent_file_path = pathlib.Path(__file__).parent 
