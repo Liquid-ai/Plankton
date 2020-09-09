@@ -15,6 +15,8 @@
 
 #include <uuv_sensor_ros_plugins/DVLROSPlugin.h>
 
+#include <tf2_ros/create_timer_ros.h>
+
 namespace gazebo
 {
 /////////////////////////////////////////////////
@@ -37,9 +39,17 @@ void DVLROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   ROSBaseModelPlugin::Load(_model, _sdf);
 
-  std::shared_ptr<rclcpp::Clock> clock = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
-  myBuffer.reset(new tf2_ros::Buffer(clock));
+  //std::shared_ptr<rclcpp::Clock> clock = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
+  myBuffer.reset(new tf2_ros::Buffer(myRosNode->get_clock()));
   myTransformListener.reset(new tf2_ros::TransformListener(*myBuffer, myRosNode, false));
+  //TODO Totally unsure. New in Eloquent 
+  auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
+    myRosNode->get_node_base_interface(),
+    myRosNode->get_node_timers_interface()
+  );
+  myBuffer->setCreateTimerInterface(timer_interface);
+  //myBuffer->setUsingDedicatedThread(true);
+  //
 
   // Load the link names for all the beams
   std::string beamLinkName;
