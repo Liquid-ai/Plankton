@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016-2019 The UUV Simulator Authors.
 # All rights reserved.
 #
@@ -104,7 +104,7 @@ class TestThrusterAllocator(unittest.TestCase):
         srv_name = '/{}/thruster_manager/get_config'.format(NS)
         cli = self.node.create_client(GetThrusterManagerConfig, srv_name)
         
-        if not cli.wait_for_service(timeout_sec=100):
+        if not cli.wait_for_service(timeout_sec=10):
             self.fail('service %s not available...' % srv_name)
         
         # srv = rospy.ServiceProxy('/{}/thruster_manager/get_config'.format(NS), GetThrusterManagerConfig)
@@ -227,6 +227,13 @@ def generate_test_description():
     thruster_manager_launch_desc = IncludeLaunchDescription(
             AnyLaunchDescriptionSource(thruster_manager_launch), launch_arguments=launch_args)
     
+    # thruster_manager_launch_desc = launch_ros.actions.Node(
+    #     node_namespace = "test_vehicle",
+    #     package="uuv_thruster_manager",
+    #     node_executable="thruster_allocator.py",
+    #     node_name="joint_state_publisher",
+    #     parameters=[{'axis': 'x', 'model_name': 'test_vehicle', 'output_dir': '/tmp', 'config_file': thruster_manager_yaml, 'reset_tam': 'false'}]
+    # )
     
     # config = os.path.join(
     #     get_package_share_directory('uuv_thruster_manager'),
