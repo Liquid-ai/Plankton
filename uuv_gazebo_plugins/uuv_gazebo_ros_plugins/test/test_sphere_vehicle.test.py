@@ -56,6 +56,7 @@ class TestSphereVehicle(unittest.TestCase):
     def tearDownClass(cls):
         # Shutdown the ROS context
         rclpy.shutdown()
+        os.system('killall -9 gzserver')
 
     # =========================================================================
     def setUp(self):

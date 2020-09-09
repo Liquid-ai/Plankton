@@ -57,6 +57,7 @@ class TestThrusters(unittest.TestCase):
     def tearDownClass(cls):
         # Shutdown the ROS context
         rclpy.shutdown()
+        os.system('killall -9 gzserver')
 
     # =========================================================================
     def setUp(self):
@@ -90,10 +91,14 @@ class TestThrusters(unittest.TestCase):
         return s
 
     # =========================================================================
-    def service_request(self, service, data=None):
+    def service_request(self, service, data=None, bool_val=None, efficiency=None):
         req = service.srv_type.Request()
         if data is not None:
             req.data = data
+        if bool_val is not None:
+            req.on = bool_val
+        if efficiency is not None:
+            req.efficiency = efficiency
         future = service.call_async(req)
 
         rclpy.spin_until_future_complete(self.node, future)
@@ -214,71 +219,128 @@ class TestThrusters(unittest.TestCase):
                              list(fcn.fcn.lookup_table_output))
 
     # =========================================================================
-    # def test_change_thruster_state(self):
-    #     for i in range(3):
-    #         rospy.wait_for_service(
-    #             '/vehicle/thrusters/%d/set_thruster_state' % i)
-    #         set_state = rospy.ServiceProxy(
-    #             '/vehicle/thrusters/%d/set_thruster_state' % i,
-    #             SetThrusterState)
-    #         self.assertTrue(set_state(False).success)
+    def test_change_thruster_state(self):
+        
+        for i in range(3):
+            # rospy.wait_for_service(
+            #     '/vehicle/thrusters/%d/set_thruster_state' % i)
+            # set_state = rospy.ServiceProxy(
+            #     '/vehicle/thrusters/%d/set_thruster_state' % i,
+            #     SetThrusterState)
 
-    #         # Test that thruster is off
-    #         rospy.wait_for_service(
-    #             '/vehicle/thrusters/%d/get_thruster_state' % i)
-    #         get_state = rospy.ServiceProxy(
-    #             '/vehicle/thrusters/%d/get_thruster_state' % i,
-    #             GetThrusterState)
+            s_set = self.create_service(
+                SetThrusterState, 
+                self.build_topic_name(
+                    '/vehicle/thrusters', i, 'set_thruster_state')
+            )
+            set_state = self.service_request(s_set, bool_val=False)
+            self.assertTrue(set_state.success)
 
-    #         self.assertFalse(get_state().is_on)
+            # Test that thruster is off
+            # rospy.wait_for_service(
+            #     '/vehicle/thrusters/%d/get_thruster_state' % i)
+            # get_state = rospy.ServiceProxy(
+            #     '/vehicle/thrusters/%d/get_thruster_state' % i,
+            #     GetThrusterState)
 
-    #         # Turn thruster on again
-    #         self.assertTrue(set_state(True).success)
-    #         self.assertTrue(get_state().is_on)
+            s_get = self.create_service(
+                GetThrusterState, 
+                self.build_topic_name(
+                    '/vehicle/thrusters', i, 'get_thruster_state')
+            )
 
-    # def test_change_thrust_efficiency(self):
-    #     for i in range(3):
-    #         rospy.wait_for_service(
-    #             '/vehicle/thrusters/%d/set_thrust_force_efficiency' % i)
-    #         set_efficiency = rospy.ServiceProxy(
-    #             '/vehicle/thrusters/%d/set_thrust_force_efficiency' % i,
-    #             SetThrusterEfficiency)
-    #         self.assertTrue(set_efficiency(0.5).success)
+            get_state = self.service_request(s_get)
+            self.assertFalse(get_state.is_on)
 
-    #         # Test that thruster is off
-    #         rospy.wait_for_service(
-    #             '/vehicle/thrusters/%d/get_thrust_force_efficiency' % i)
-    #         get_efficiency = rospy.ServiceProxy(
-    #             '/vehicle/thrusters/%d/get_thrust_force_efficiency' % i,
-    #             GetThrusterEfficiency)
+            # Turn thruster on again
+            set_state = self.service_request(s_set, bool_val=True)
+            self.assertTrue(set_state.success)
 
-    #         self.assertEqual(get_efficiency().efficiency, 0.5)
+            get_state = self.service_request(s_get)
+            self.assertTrue(get_state.is_on)
 
-    #         # Turn thruster on again
-    #         self.assertTrue(set_efficiency(1.0).success)
-    #         self.assertEqual(get_efficiency().efficiency, 1.0)
+    # =========================================================================
+    def test_change_thrust_efficiency(self):
+        for i in range(3):
+            # rospy.wait_for_service(
+            #     '/vehicle/thrusters/%d/set_thrust_force_efficiency' % i)
+            # set_efficiency = rospy.ServiceProxy(
+            #     '/vehicle/thrusters/%d/set_thrust_force_efficiency' % i,
+            #     SetThrusterEfficiency)
 
-    # def test_change_dyn_state_efficiency(self):
-    #     for i in range(3):
-    #         rospy.wait_for_service(
-    #             '/vehicle/thrusters/%d/set_dynamic_state_efficiency' % i)
-    #         set_efficiency = rospy.ServiceProxy(
-    #             '/vehicle/thrusters/%d/set_dynamic_state_efficiency' % i,
-    #             SetThrusterEfficiency)
-    #         self.assertTrue(set_efficiency(0.5).success)
+            s_set = self.create_service(
+                SetThrusterEfficiency, 
+                self.build_topic_name(
+                    '/vehicle/thrusters', i, 'set_thrust_force_efficiency')
+            )
 
-    #         # Test that thruster is off
-    #         rospy.wait_for_service(
-    #             '/vehicle/thrusters/%d/get_dynamic_state_efficiency' % i)
-    #         get_efficiency = rospy.ServiceProxy(
-    #             '/vehicle/thrusters/%d/get_dynamic_state_efficiency' % i,
-    #             GetThrusterEfficiency)
+            set_efficiency = self.service_request(s_set, efficiency=0.5)
+            self.assertTrue(set_efficiency.success)
 
-    #         self.assertEqual(get_efficiency().efficiency, 0.5)
+            # Test that thruster is off
+            
+            # rospy.wait_for_service(
+            #     '/vehicle/thrusters/%d/get_thrust_force_efficiency' % i)
+            # get_efficiency = rospy.ServiceProxy(
+            #     '/vehicle/thrusters/%d/get_thrust_force_efficiency' % i,
+            #     GetThrusterEfficiency)
 
-    #         # Turn thruster on again
-    #         self.assertTrue(set_efficiency(1.0).success)
-    #         self.assertEqual(get_efficiency().efficiency, 1.0)
+            s_get = self.create_service(
+                GetThrusterEfficiency, 
+                self.build_topic_name(
+                    '/vehicle/thrusters', i, 'get_thrust_force_efficiency')
+            )
+
+            get_efficiency = self.service_request(s_get)
+            self.assertEqual(get_efficiency.efficiency, 0.5)
+
+            # Turn thruster on again
+            set_efficiency = self.service_request(s_set, efficiency=1.0)
+            self.assertTrue(set_efficiency.success)
+
+            get_efficiency = self.service_request(s_get)
+            self.assertEqual(get_efficiency.efficiency, 1.0)
+
+    # =========================================================================
+    def test_change_dyn_state_efficiency(self):
+        for i in range(3):
+            # rospy.wait_for_service(
+            #     '/vehicle/thrusters/%d/set_dynamic_state_efficiency' % i)
+            # set_efficiency = rospy.ServiceProxy(
+            #     '/vehicle/thrusters/%d/set_dynamic_state_efficiency' % i,
+            #     SetThrusterEfficiency)
+            
+            s_set = self.create_service(
+                SetThrusterEfficiency, 
+                self.build_topic_name(
+                    '/vehicle/thrusters', i, 'set_dynamic_state_efficiency')
+            )
+
+            set_efficiency = self.service_request(s_set, efficiency=0.5)
+            self.assertTrue(set_efficiency.success)
+
+            # Test that thruster is off
+            # rospy.wait_for_service(
+            #     '/vehicle/thrusters/%d/get_dynamic_state_efficiency' % i)
+            # get_efficiency = rospy.ServiceProxy(
+            #     '/vehicle/thrusters/%d/get_dynamic_state_efficiency' % i,
+            #     GetThrusterEfficiency)
+
+            s_get = self.create_service(
+                GetThrusterEfficiency, 
+                self.build_topic_name(
+                    '/vehicle/thrusters', i, 'get_dynamic_state_efficiency')
+            )
+
+            get_efficiency = self.service_request(s_get)
+            self.assertEqual(get_efficiency.efficiency, 0.5)
+
+            # Turn thruster on again
+            set_efficiency = self.service_request(s_set, efficiency=1.0)
+            self.assertTrue(set_efficiency.success)
+
+            get_efficiency = self.service_request(s_get)
+            self.assertEqual(get_efficiency.efficiency, 1.0)
 
 
 # if __name__ == '__main__':

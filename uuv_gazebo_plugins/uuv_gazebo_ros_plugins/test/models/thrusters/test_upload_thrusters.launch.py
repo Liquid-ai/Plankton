@@ -31,7 +31,7 @@ def generate_launch_description():
     # Urdf spawner
     urdf_spawner = Node(
         node_name = 'urdf_spawner_thrusters',
-        node_namespace = 'vehicle',
+        # node_namespace = 'vehicle',
         package='gazebo_ros',
         node_executable='spawn_entity.py',
         # To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]

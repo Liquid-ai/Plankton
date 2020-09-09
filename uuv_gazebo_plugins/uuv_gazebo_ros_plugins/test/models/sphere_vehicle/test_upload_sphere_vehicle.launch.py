@@ -28,7 +28,8 @@ def generate_launch_description():
     args = ('-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0 -entity vehicle -file ' + output).split()
     #args='-gazebo_namespace /gazebo -x 0 -y 0 -z 0 -R 0 -P 0 -Y 0 -entity $(var namespace) -file ' + output
 
-    # Urdf spawner
+    # Urdf spawner. NB: node namespace does not prefix the topic, 
+    # as using a leading /
     urdf_spawner = Node(
         node_name = 'urdf_spawner_sphere',
         node_namespace = 'vehicle',
