@@ -11,6 +11,7 @@
   <arg name="mode" default="default"/>
   <arg name="namespace" default="rexrov"/>
   <arg name="use_ned_frame" default="false"/>
+  <arg name="use_sim_time" default="true"/>
 
   <include file="$(find-pkg-share uuv_descriptions)/launch/upload_rexrov_$(var mode).launch">
     <arg name="debug" value="$(var debug)"/>
@@ -22,6 +23,7 @@
     <arg name="yaw" value="$(var yaw)"/>
     <arg name="use_ned_frame" value="$(var use_ned_frame)"/>
     <arg name="namespace" value="$(var namespace)"/>
+    <arg name="use_sim_time" value="$(var use_sim_time)"/>
   </include>
 
 </launch>

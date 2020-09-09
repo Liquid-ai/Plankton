@@ -13,35 +13,47 @@
   <arg name="pose_noise" default="0.02"/>
   <arg name="world_frame" default="world"/> <!-- This should actually be "/world". See https://github.com/ros-simulation/gazebo_ros_pkgs/pull/324 -->
 
+  <arg name="generated_urdf" default="$(find-pkg-share uuv_descriptions)/robots/generated/$(var namespace)/robot_description"/>
+  
+  <arg name="cmd" default="xacro '$(find-pkg-share uuv_descriptions)/robots/rexrov_default_noisy_pose.xacro.xacro' 
+          > $(find-pkg-share uuv_descriptions)/robots/generated/$(var namespace)/robot_description
+          debug:=$(var debug)
+          namespace:=$(var namespace)
+          noise_amp:=$(var pose_noise)
+          inertial_reference_frame:=$(var world_frame)"/>
+
   <group>
-    <push-ros-namespace namespace= "$(arg namespace)"/>
-    <param name="robot_description"
-      command="$(find xacro)/xacro '$(find uuv_descriptions)/robots/rexrov_default_noisy_pose.xacro' --inorder
-        debug:=$(arg debug)
-        namespace:=$(arg namespace)
-        noise_amp:=$(arg pose_noise)
-        inertial_reference_frame:=$(arg world_frame)" />
+    <push-ros-namespace namespace= "$(var namespace)"/>
+    <executable 
+          cmd="$(var cmd)" 
+          cwd="$(find-pkg-prefix xacro)"
+          name="robot_description" 
+          output="screen" 
+          shell="true">
+      </executable>
 
     <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
-    <node name="urdf_spawner" pkg="uuv_descriptions" exec="spawn_model" respawn="false" output="screen"
-          args="-urdf -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg roll) -P $(arg pitch) -Y $(arg yaw) -model $(arg namespace) -param /$(arg namespace)/robot_description"/>
-
+   <node node-name="urdf_spawner" pkg="gazebo_ros" exec="spawn_entity.py" respawn="false" output="screen"
+          args="-gazebo_namespace /gazebo -x $(var x) -y $(var y) -z $(var z) -R $(var roll) -P $(var pitch) 
+              -Y $(var yaw) -entity $(var namespace) -file $(var generated_urdf)"/>
+    
     <!-- A joint state publisher plugin already is started with the model, no need to use the default joint state publisher -->
 
     <!-- Publish robot model for ROS -->
-    <node name="robot_state_publisher" pkg="robot_state_publisher" exec="robot_state_publisher" respawn="true" output="screen">
-      <param name="robot_description" value="/$(arg namespace)/robot_description" />
-      <param name="publish_frequency" value="5" />
+    <node node-name="robot_state_publisher" pkg="robot_state_publisher" exec="robot_state_publisher" respawn="true" output="screen"
+      args="$(var generated_urdf)">
+      <!-- <param name="robot_description" value="/$(var namespace)/robot_description" />
+      <param name="publish_frequency" value="5" /> -->
     </node>
   </group>
 
-  <include file="$(find uuv_assistants)/launch/publish_body_sname.launch">
-    <arg name="uuv_name" value="$(arg namespace)"/>
+  <include file="$(find-pkg-share uuv_assistants)/launch/publish_body_sname.launch">
+    <arg name="uuv_name" value="$(var namespace)"/>
   </include>
 
-  <include file="$(find uuv_assistants)/launch/message_to_tf.launch">
-    <arg name="namespace" value="$(arg namespace)"/>
-    <arg name="world_frame" value="$(arg world_frame)"/>
+  <include file="$(find-pkg-share uuv_assistants)/launch/message_to_tf.launch">
+    <arg name="namespace" value="$(var namespace)"/>
+    <arg name="world_frame" value="$(var world_frame)"/>
   </include>
 
 </launch>
