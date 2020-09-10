@@ -15,7 +15,21 @@ import os
 import pathlib
 import xacro
 
+def to_bool(value: str):
+    if isinstance(value, bool):
+        return value
+    if not isinstance(value, str):
+        ValueError('String to bool, invalid type ' + str(value))
 
+    valid = {'true':True, '1':True,
+             'false':False, '0':False}
+    
+    if value.lower() in valid:
+        return valid[value]
+    
+    raise ValueError('String to bool, invalid value: %s' % value)
+
+# =============================================================================
 def launch_setup(context, *args, **kwargs): 
     # Perform substitutions
     debug = Lc('debug').perform(context)
@@ -27,6 +41,7 @@ def launch_setup(context, *args, **kwargs):
     pitch = Lc('pitch').perform(context)
     yaw = Lc('yaw').perform(context)
     use_sim_time = Lc('use_sim_time').perform(context)
+    use_world_ned = Lc('use_ned_frame').perform(context)
 
     # Xacro
     #xacro_file = PathJoinSubstitution(get_package_share_directory('uuv_descriptions'),'robots','rexrov_')
@@ -40,6 +55,7 @@ def launch_setup(context, *args, **kwargs):
         get_package_share_directory('uuv_descriptions'),
         'robots',
         'generated',
+        namespace,
         'robot_description'
     )
 
@@ -48,7 +64,7 @@ def launch_setup(context, *args, **kwargs):
         raise Exception(exc)
     
     mapping = {}
-    if bool(Lc('use_ned_frame')):
+    if to_bool(use_world_ned):
         mappings={'debug': debug, 'namespace': namespace, 'inertial_reference_frame':'world_ned'}
     else:
         mappings={'debug': debug, 'namespace': namespace, 'inertial_reference_frame':'world'}
