@@ -82,10 +82,16 @@ class TestSphereVehicle(unittest.TestCase):
 
     # =========================================================================
     # @pytest.mark.skip()
-    def service_request(self, service, data=None):
+    def service_request(self, service, **kwargs):#data=None):
         req = service.srv_type.Request()
-        if data is not None:
-            req.data = data
+        for key, value in kwargs.items():
+            try:
+                getattr(req, key)
+                setattr(req, key, value)
+            except:
+                print('Non existing attribute %s' % key)
+                pass
+
         future = service.call_async(req)
 
         rclpy.spin_until_future_complete(self.node, future)

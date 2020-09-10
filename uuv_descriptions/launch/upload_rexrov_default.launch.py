@@ -19,7 +19,7 @@ def to_bool(value: str):
     if isinstance(value, bool):
         return value
     if not isinstance(value, str):
-        ValueError('String to bool, invalid type ' + str(value))
+        raise ValueError('String to bool, invalid type ' + str(value))
 
     valid = {'true':True, '1':True,
              'false':False, '0':False}
@@ -148,3 +148,4 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         OpaqueFunction(function = launch_setup)
     ])
+    

@@ -91,20 +91,23 @@ class TestThrusters(unittest.TestCase):
         return s
 
     # =========================================================================
-    def service_request(self, service, data=None, bool_val=None, efficiency=None):
+    def service_request(self, service, **kwargs):
         req = service.srv_type.Request()
-        if data is not None:
-            req.data = data
-        if bool_val is not None:
-            req.on = bool_val
-        if efficiency is not None:
-            req.efficiency = efficiency
+        for key, value in kwargs.items():
+            try:
+                getattr(req, key)
+                setattr(req, key, value)
+            except:
+                print('Non existing attribute %s' % key)
+                pass
+
         future = service.call_async(req)
 
         rclpy.spin_until_future_complete(self.node, future)
 
         return future.result()
 
+    # TODO Migrate the test 
     # =========================================================================
     # def test_input_output_topics_exist(self):
     #     pub = self.node.create_publisher(
@@ -233,7 +236,7 @@ class TestThrusters(unittest.TestCase):
                 self.build_topic_name(
                     '/vehicle/thrusters', i, 'set_thruster_state')
             )
-            set_state = self.service_request(s_set, bool_val=False)
+            set_state = self.service_request(s_set, on=False)
             self.assertTrue(set_state.success)
 
             # Test that thruster is off
@@ -253,7 +256,7 @@ class TestThrusters(unittest.TestCase):
             self.assertFalse(get_state.is_on)
 
             # Turn thruster on again
-            set_state = self.service_request(s_set, bool_val=True)
+            set_state = self.service_request(s_set, on=True)
             self.assertTrue(set_state.success)
 
             get_state = self.service_request(s_get)

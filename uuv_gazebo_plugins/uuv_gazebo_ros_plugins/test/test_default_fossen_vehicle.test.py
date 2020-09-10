@@ -27,7 +27,7 @@ from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import AnyLaunchDescriptionSource
 
 import launch_testing.actions
-import launch_ros
+
 
 from ament_index_python.packages import get_package_share_directory
 import os
@@ -38,7 +38,7 @@ import xacro
 import array
 
 
-from launch_ros.actions import Node
+
 
 
 class TestDefaultFossenVehicle(unittest.TestCase):
@@ -83,10 +83,16 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     # @pytest.mark.skip()
-    def service_request(self, service, data=None):
+    def service_request(self, service, **kwargs):
         req = service.srv_type.Request()
-        if data is not None:
-            req.data = data
+        for key, value in kwargs.items():
+            try:
+                getattr(req, key)
+                setattr(req, key, value)
+            except:
+                print('Non existing attribute %s' % key)
+                pass
+
         future = service.call_async(req)
 
         rclpy.spin_until_future_complete(self.node, future)
@@ -208,7 +214,7 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
         # set_func = future.result()
 
-        set_func = self.service_request(s_set, 1025.0)
+        set_func = self.service_request(s_set, data=1025.0)
         # set_func = self.create_service_and_request(SetFloat, srv_name)
         self.assertTrue(set_func.success)
 
@@ -231,7 +237,7 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
         # set_func = future.result()
 
-        set_func = self.service_request(s_set)
+        set_func = self.service_request(s_set, data=1028.0)
         # set_func = self.create_service_and_request(SetFloat, srv_name)
         self.assertTrue(set_func.success)
 
@@ -260,7 +266,7 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 0.0)
 
-        set_func = self.service_request(s_set, 1.0)
+        set_func = self.service_request(s_set, data=1.0)
         self.assertTrue(set_func.success)
 
         get_func = self.service_request(s_get)
@@ -271,7 +277,7 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         get_model_func = self.service_request(get_model)
         self.assertEqual(get_model_func.models[0].volume, 1.0)
 
-        set_func = self.service_request(s_set, 0.0)
+        set_func = self.service_request(s_set, data=0.0)
         self.assertTrue(set_func.success)
 
     # =========================================================================
@@ -287,13 +293,13 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 1.0)
 
-        set_func = self.service_request(s_set, 0.8)
+        set_func = self.service_request(s_set, data=0.8)
         self.assertTrue(set_func.success)
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 0.8)
 
-        set_func = self.service_request(s_set, 1.0)
+        set_func = self.service_request(s_set, data=1.0)
         self.assertTrue(set_func.success)
 
     # =========================================================================
@@ -309,13 +315,13 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 1.0)
 
-        set_func = self.service_request(s_set, 0.8)
+        set_func = self.service_request(s_set, data=0.8)
         self.assertTrue(set_func.success)
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 0.8)
 
-        set_func = self.service_request(s_set, 1.0)
+        set_func = self.service_request(s_set, data=1.0)
         self.assertTrue(set_func.success)
 
     # =========================================================================
@@ -331,13 +337,13 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 1.0)
 
-        set_func = self.service_request(s_set, 0.8)
+        set_func = self.service_request(s_set, data=0.8)
         self.assertTrue(set_func.success)
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 0.8)
 
-        set_func = self.service_request(s_set, 1.0)
+        set_func = self.service_request(s_set, data=1.0)
         self.assertTrue(set_func.success)
 
     # =========================================================================
@@ -353,13 +359,13 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 0.0)
 
-        set_func = self.service_request(s_set, 1.0)
+        set_func = self.service_request(s_set, data=1.0)
         self.assertTrue(set_func.success)
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 1.0)
 
-        set_func = self.service_request(s_set, 0.0)
+        set_func = self.service_request(s_set, data=0.0)
         self.assertTrue(set_func.success)
 
     # =========================================================================
@@ -375,13 +381,13 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 0.0)
 
-        set_func = self.service_request(s_set, 1.0)
+        set_func = self.service_request(s_set, data=1.0)
         self.assertTrue(set_func.success)
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 1.0)
 
-        set_func = self.service_request(s_set, 0.0)
+        set_func = self.service_request(s_set, data=0.0)
         self.assertTrue(set_func.success)
 
     # =========================================================================
@@ -397,13 +403,13 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 0.0)
 
-        set_func = self.service_request(s_set, 1.0)
+        set_func = self.service_request(s_set, data=1.0)
         self.assertTrue(set_func.success)
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 1.0)
 
-        set_func = self.service_request(s_set, 0.0)
+        set_func = self.service_request(s_set, data=0.0)
         self.assertTrue(set_func.success)
 
     # =========================================================================
@@ -419,13 +425,13 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 0.0)
 
-        set_func = self.service_request(s_set, 1.0)
+        set_func = self.service_request(s_set, data=1.0)
         self.assertTrue(set_func.success)
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 1.0)
 
-        set_func = self.service_request(s_set, 0.0)
+        set_func = self.service_request(s_set, data=0.0)
         self.assertTrue(set_func.success)
 
 
@@ -433,19 +439,7 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 #     import rosunit
 #     rosunit.unitrun(PKG, NAME, TestDefaultFossenVehicle)
 
-
-
-# <env name="GAZEBO_MASTER_URI" value="http://localhost:3000"/>
-#   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-#     <arg name="world" value="$(find uuv_gazebo_ros_plugins)/test/worlds/test_empty.world"/>
-#     <arg name="paused" value="false"/>
-#     <arg name="gui" value="false"/>
-#   </include>
-
-#   <include file="$(find uuv_gazebo_ros_plugins)/test/models/default_fossen_vehicle/test_upload_default_fossen_vehicle.launch"/>
-
-#   <test test-name="test_default_fossen_vehicle" pkg="uuv_gazebo_ros_plugins" type="test_default_fossen_vehicle.py" />
-
+# =============================================================================
 @pytest.mark.rostest
 def generate_test_description():
     # Set env
