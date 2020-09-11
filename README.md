@@ -53,15 +53,15 @@ sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `ls
 
 You can write `gazebo` in a terminal to make sure that gazebo runs correctly. Write `gazebo --version` to ensure that the version number is 9.X.
 
-For more information about the installation of Gazebo, refer to the official installation documentation (beware that the default installation command will not install the version 9): 
->http://gazebosim.org/tutorials?tut=install_ubuntu&cat=install>
+>For more information about the installation of Gazebo, refer to the official installation documentation (beware that the default installation command will not install the version 9): 
+><http://gazebosim.org/tutorials?tut=install_ubuntu&cat=install>
 
 ### 3. Install the ros packages for gazebo
 
 Write in a terminal:  
 `sudo apt install ros-eloquent-gazebo-ros-pkgs`
 
-See <http://gazebosim.org/tutorials?tut=ros2_installing&cat=connect_ros> for more detailed information about gazebo and ROS 2 connection.
+>See <http://gazebosim.org/tutorials?tut=ros2_installing&cat=connect_ros> for more detailed information about gazebo and ROS 2 connection.
 
 ### 4. Build the Plankton plugin
 
