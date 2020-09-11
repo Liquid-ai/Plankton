@@ -273,17 +273,21 @@ int main(int argc, char** argv) {
 
   g_transform_broadcaster = new tf2_ros::TransformBroadcaster(node); // TODO Check
 
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub1;
+  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr sub2;
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub3;
+
   int subscribers = 0;
   if (!g_odometry_topic.empty()) {
-      auto sub1 = node->create_subscription<nav_msgs::msg::Odometry>(g_odometry_topic, 10, &odomCallback);
+      sub1 = node->create_subscription<nav_msgs::msg::Odometry>(g_odometry_topic, 10, &odomCallback);
       subscribers++;
   }
   if (!g_pose_topic.empty()) {
-      auto sub2 = node->create_subscription<geometry_msgs::msg::PoseStamped>(g_pose_topic, 10, &poseCallback);
+      sub2 = node->create_subscription<geometry_msgs::msg::PoseStamped>(g_pose_topic, 10, &poseCallback);
       subscribers++;
   }
   if (!g_imu_topic.empty()) {
-      auto sub3 = node->create_subscription<sensor_msgs::msg::Imu>(g_imu_topic, 10, &imuCallback);
+      sub3 = node->create_subscription<sensor_msgs::msg::Imu>(g_imu_topic, 10, &imuCallback);
       subscribers++;
   }
   if (!g_topic.empty()) {
@@ -330,7 +334,6 @@ int main(int argc, char** argv) {
   rclcpp::spin(node);
   delete g_transform_broadcaster;
 
-  //TODO Check...not sure if necessary
   rclcpp::shutdown();
   return 0;
 }
