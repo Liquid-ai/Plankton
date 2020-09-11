@@ -13,9 +13,7 @@ def time_in_float_sec(time: rclpy.time.Time):
 
 # =============================================================================
 def time_in_float_sec_from_msg(time_msg, clock_type=ClockType.ROS_TIME):
-    """
-    From a Time message, returns the associated time in float seconds.
-    """
+    """From a Time message, returns the associated time in float seconds."""
     time_object = rclpy.time.Time.from_msg(time_msg, clock_type)
     return time_in_float_sec(time_object)
 
