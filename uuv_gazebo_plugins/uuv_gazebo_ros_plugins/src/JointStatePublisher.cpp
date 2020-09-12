@@ -114,7 +114,7 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
   // Advertise the joint states topic
   myJointStatePub =
     myRosNode->create_publisher<sensor_msgs::msg::JointState>(
-      /*myRobotNamespace +*/ "/joint_states", 1);
+      /*myRobotNamespace +*/ "joint_states", 1);
 #if GAZEBO_MAJOR_VERSION >= 8
   this->lastUpdate = this->world->SimTime();
 #else
