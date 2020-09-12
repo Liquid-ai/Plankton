@@ -51,11 +51,23 @@ def launch_setup(context, *args, **kwargs):
         'rexrov_' + (Lc('mode')).perform(context) + '.xacro'
     )
 
-    output = os.path.join(
+    # Build the directories, check for existence
+    path = os.path.join(
         get_package_share_directory('uuv_descriptions'),
         'robots',
         'generated',
         namespace,
+    )
+
+    if not pathlib.Path(path).exists():
+        try:
+            # Create directory if required and sub-directory
+            os.makedirs(path)
+        except OSError:
+            print ("Creation of the directory %s failed" % path)
+    
+    output = os.path.join(
+        path,
         'robot_description'
     )
 
@@ -124,10 +136,10 @@ def launch_setup(context, *args, **kwargs):
         PushRosNamespace(namespace), 
         urdf_spawner, 
         robot_state_publisher,
-        message_to_tf_launch
     ])
+    
 
-    return [group]
+    return [group, message_to_tf_launch]
 
 # =============================================================================
 def generate_launch_description():
