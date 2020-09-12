@@ -62,7 +62,7 @@ void PoseGTROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
     myRosNode->get_node_timers_interface()
   );
   myTfBuffer->setCreateTimerInterface(timer_interface);
-  //myTfBuffer->setUsingDedicatedThread(true);
+  myTfBuffer->setUsingDedicatedThread(true);
   //
 
   ignition::math::Vector3d vec;

@@ -48,7 +48,7 @@ void DVLROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
     myRosNode->get_node_timers_interface()
   );
   myBuffer->setCreateTimerInterface(timer_interface);
-  //myBuffer->setUsingDedicatedThread(true);
+  myBuffer->setUsingDedicatedThread(true);
   //
 
   // Load the link names for all the beams
