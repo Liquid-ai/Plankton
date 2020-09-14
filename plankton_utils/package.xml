@@ -2,10 +2,17 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>plankton_utils</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="todo@todo.com">Liquid-ai</maintainer>
-  <license>TODO: License declaration</license>
+  
+    <version>0.5.0</version>
+    <description>Open source simulator for maritime robotics research</description>
+
+    <author email="loic@liquid-tech.ai">Loïc Mougeolle</author>
+    <author email="jean-philip@liquid-tech.ai">Jean-Philip Royer</author>
+
+    <maintainer email="loic@liquid-tech.ai">Loic Mougeolle</maintainer>
+    <maintainer email="jean-philip@liquid-tech.ai">Jean-Philip Royer</maintainer>
+
+    <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
