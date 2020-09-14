@@ -1,14 +1,16 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="3">
   <name>uuv_auv_control_allocator</name>
-  <version>0.6.13</version>
+  <version>0.5.0</version>
   <description>Optimal allocation of forces and torques to thruster and fins of AUVs</description>
 
-  <maintainer email="musa.marcusso@de.bosch.com">Musa Morena Marcusso Manhaes</maintainer>
+    <author email="loic@liquid-tech.ai">Loïc Mougeolle</author>
+    <author email="jean-philip@liquid-tech.ai">Jean-Philip Royer</author>
 
-  <license>Apache-2.0</license>
+    <maintainer email="loic@liquid-tech.ai">Loic Mougeolle</maintainer>
+    <maintainer email="jean-philip@liquid-tech.ai">Jean-Philip Royer</maintainer>
 
-  <author email="musa.marcusso@de.bosch.com">Musa Morena Marcusso Manhaes</author>
+    <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
