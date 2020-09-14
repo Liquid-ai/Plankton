@@ -146,7 +146,7 @@ class AUVControlAllocator(ActuatorManager):
             self.input_tau[0:3] = np.dot(self.base_link_ned_to_enu, self.input_tau[0:3])
             self.input_tau[4::] = np.dot(self.base_link_ned_to_enu, self.input_tau[4::])
         
-        self.last_update = rospy.Time.now()
+        self.last_update = self.get_clock().now() # rospy.Time.now()
 
       
 # =============================================================================
@@ -155,7 +155,7 @@ def main():
 
     try:
         node = AUVControlAllocator('auv_control_allocator')
-        rospy.spin(node)
+        #rospy.spin(node)
     except rclpy.ROSInterruptException:
         print('AUVControlAllocator::ROSInterruptException Exception')
     except Exception as e:
