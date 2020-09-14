@@ -11,9 +11,9 @@ We intend to build a sustainable and open source core simulator for maritime rob
 This project benefits from great open source advances in the simulation domain, mainly ROS, gazebo and its plugin UUV Simulator.
 
 # Roadmap #
-The first iteration of the projet is built from UUV Simulator and gazebo 9. We made UUV Simulator compatible with ROS2, and improved the performance (speed) of the simulator. After this first iteration, we will test different alternatives to gazebo 9, and choose the best simulation framework according to our users present and future needs.
+The first iteration of the projet is built from UUV Simulator and gazebo 9. We made UUV Simulator compatible with ROS2. In the following months, we intend to improve the performance (speed) of the simulator, and to test different alternatives to gazebo 9. We will choose the best simulation framework according to our users present and future needs.
 
-We plan to release a beta version of UUV Simulator for ROS 2 in August, and a v1 in October.
+We released a beta version of UUV Simulator for ROS 2 in September, and plan to release a v1 in October.
 
 # Contributing #
 You can contribute by reporting bugs, proposing new features, improving documentation, contributing to code.
