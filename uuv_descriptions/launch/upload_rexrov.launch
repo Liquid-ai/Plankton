@@ -13,7 +13,7 @@
   <arg name="use_ned_frame" default="false"/>
   <arg name="use_sim_time" default="true"/>
 
-  <include file="$(find-pkg-share uuv_descriptions)/launch/upload_rexrov_$(var mode).launch">
+  <include file="$(find-pkg-share uuv_descriptions)/launch/upload_rexrov_$(var mode).launch.py">
     <arg name="debug" value="$(var debug)"/>
     <arg name="x" value="$(var x)"/>
     <arg name="y" value="$(var y)"/>
