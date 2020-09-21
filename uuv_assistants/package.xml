@@ -4,11 +4,11 @@
   <version>0.5.0</version>
   <description>Tools and utilities to monitor and analyze the simulation</description>
 
-    <author email="loic@liquid-tech.ai">Loïc Mougeolle</author>
-    <author email="jean-philip@liquid-tech.ai">Jean-Philip Royer</author>
+    <author email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</author>
+    <author email="loic.mougeolle@naval-group.com">Loïc Mougeolle</author>
 
-    <maintainer email="loic@liquid-tech.ai">Loïc Mougeolle</maintainer>
-    <maintainer email="jean-philip@liquid-tech.ai">Jean-Philip Royer</maintainer>
+    <maintainer email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</maintainer>
+    <maintainer email="loic.mougeolle@naval-group.com">Loïc Mougeolle</maintainer>
 
     <license>Apache-2.0</license>
 
