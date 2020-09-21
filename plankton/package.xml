@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="3">
-    <name>Plankton</name>
+    <name>plankton</name>
     <version>0.5.0</version>
     <description>Open source simulator for maritime robotics research</description>
 
