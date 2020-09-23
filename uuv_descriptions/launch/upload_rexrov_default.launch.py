@@ -1,3 +1,12 @@
+# Copyright (c) 2020 The Plankton Authors.
+# All rights reserved.
+#
+# This source code is derived from UUV Simulator
+# (https://github.com/uuvsimulator/uuv_simulator)
+# Copyright (c) 2016-2019 The UUV Simulator Authors
+# licensed under the Apache license, Version 2.0
+# cf. 3rd-party-licenses.txt file in the root directory of this source tree.
+#
 from launch import LaunchDescription
 from launch.launch_description_sources import AnyLaunchDescriptionSource
 from launch_ros.actions import Node, PushRosNamespace
