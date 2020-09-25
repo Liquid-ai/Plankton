@@ -65,7 +65,6 @@ if(BUILD_TESTING)
   find_package(ament_cmake_pytest REQUIRED)
   find_package(launch_testing_ament_cmake REQUIRED)
 
-  
   # Unit tests
   set(THRUSTER_PYTHON_UNIT_TESTS
       test/test_thrusters.py
@@ -83,11 +82,10 @@ if(BUILD_TESTING)
 
   # ROS tests
   set(THRUSTER_PYTHON_ROS_TESTS
-  test/test_thruster_allocator.py
-    # test/test_thruster_allocator_x_axis.py
-    # test/test_thruster_allocator_y_axis.py
-    # test/test_thruster_allocator_z_axis.py
-    # test/test_thruster_manager_proportional_correct.py
+    test/test_thruster_allocator_x_axis.test.py
+    test/test_thruster_allocator_y_axis.test.py
+    test/test_thruster_allocator_z_axis.test.py
+    test/test_thruster_manager_proportional_correct.test.py
   )
 
   foreach(T ${THRUSTER_PYTHON_ROS_TESTS})
