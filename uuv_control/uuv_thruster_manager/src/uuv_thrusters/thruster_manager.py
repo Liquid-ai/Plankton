@@ -1,5 +1,11 @@
-# Copyright (c) 2016-2019 The UUV Simulator Authors.
+# Copyright (c) 2020 The Plankton Authors.
 # All rights reserved.
+#
+# This source code is derived from UUV Simulator
+# (https://github.com/uuvsimulator/uuv_simulator)
+# Copyright (c) 2016-2019 The UUV Simulator Authors
+# licensed under the Apache license, Version 2.0
+# cf. 3rd-party-licenses.txt file in the root directory of this source tree.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,6 +34,8 @@ from .models import Thruster
 from plankton_utils.param_helper import parse_nested_params_to_dict
 from tf_quaternion import transformations
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
+
+import threading
 
 class ThrusterManager(Node):
     """
@@ -79,12 +87,16 @@ class ThrusterManager(Node):
         # Load all parameters
         #self.config = self.get_parameter('thruster_manager').value
 
-        robot_description_param = self.namespace + 'robot_description'
+        #TODO To change in foxy
+        #robot_description_param = self.namespace + 'robot_description'
+        robot_description_param = 'urdf_file'
         self.use_robot_descr = False
         self.axes = {}
         if self.has_parameter(robot_description_param):
-            self.use_robot_descr = True
-            self.parse_urdf(self.get_parameter(robot_description_param).value)
+            urdf_file = self.get_parameter(robot_description_param).value
+            if urdf_file != "":                
+                self.use_robot_descr = True
+                self.parse_urdf(urdf_file)
 
         if self.config['update_rate'].value < 0:
             self.config['update_rate'].value = 50.0
@@ -93,6 +105,31 @@ class ThrusterManager(Node):
 
         self.tf_buffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.tf_buffer, self)
+
+        # Initialize some variables
+        self.output_dir = None
+        self.n_thrusters = 0 
+        # Thruster objects used to calculate the right angular velocity command
+        self.thrusters = list()
+        # Thrust forces vector
+        self.thrust = None
+        # Thruster allocation matrix: transform thruster inputs to force/torque
+        self.configuration_matrix = None
+        self.inverse_configuration_matrix = None
+
+        self.init_future = rclpy.Future()
+        self.init_thread = threading.Thread(target=self._init_async, daemon=True)
+        self.init_thread.start()
+
+    # =========================================================================
+    def _init_async(self):
+        try:
+            self._init_async_impl()
+        except Exception as e:
+            self.get_logger().warn('Caught exception: ' + repr(e))
+
+    # =========================================================================
+    def _init_async_impl(self):
         tf_trans_ned_to_enu = None
         
         try:
@@ -107,7 +144,7 @@ class ThrusterManager(Node):
             tf_trans_ned_to_enu = self.tf_buffer.lookup_transform(
                 target, source, rclpy.time.Time(), rclpy.time.Duration(seconds=1))
         except Exception as e:
-            self.get_logger().info('No transform found between base_link and base_link_ned'
+            self.get_logger().warn('No transform found between base_link and base_link_ned'
                   ' for vehicle {}, message={}'.format(self.namespace, e))
             self.base_link_ned_to_enu = None
     
@@ -126,8 +163,8 @@ class ThrusterManager(Node):
         # Set the tf_prefix parameter
         #TODO probably comment
         #self.set_parameters(['thruster_manager/tf_prefix'], [self.namespace])
-        param_tf_prefix = rclpy.parameter.Parameter('thruster_manager.tf_prefix', rclpy.Parameter.Type.STRING, self.namespace)
-        self.set_parameters([param_tf_prefix])
+        # param_tf_prefix = rclpy.parameter.Parameter('thruster_manager.tf_prefix', rclpy.Parameter.Type.STRING, self.namespace)
+        # self.set_parameters([param_tf_prefix])
 
         # Retrieve the output file path to store the TAM
         # matrix for future use
@@ -216,19 +253,23 @@ class ThrusterManager(Node):
         # else:
         #     self.get_logger().info('Invalid output directory for the TAM matrix, dir=' + str(self.output_dir))
 
-        self.ready = True
+        self._ready = True
+        self.init_future.set_result(True)
         self.get_logger().info('ThrusterManager: ready')
 
     #==============================================================================
-    def parse_urdf(self, urdf_str):
-        root = etree.fromstring(urdf_str)
+    # TODO Change in foxy
+    def parse_urdf(self, urdf_file):
+        root = etree.parse(urdf_file)
+        # root = etree.fromstring(urdf_str)
         for joint in root.findall('joint'):
             if joint.get('type') == 'fixed':
                 continue
             axis_str_list = joint.find('axis').get('xyz').split()
             child = joint.find('child').get('link')
-            if child[0]!='/':
-                child = '/'+child
+            #FIXME Just nb: removed for tf
+            # if child[0]!='/':
+            #     child = '/'+child
 
             self.axes[child] = numpy.array([float(axis_str_list[0]),
                                             float(axis_str_list[1]),
@@ -239,17 +280,18 @@ class ThrusterManager(Node):
     def update_tam(self, recalculate=False):
         """Calculate the thruster allocation matrix, if one is not given."""
         if self.configuration_matrix is not None and not recalculate:
-            self.ready = True
+            self._ready = True
             self.get_logger().info('TAM provided, skipping...')
             self.get_logger().info('ThrusterManager: ready')
             return True
 
-        self.ready = False
+        self._ready = False
         self.get_logger().info('ThrusterManager: updating thruster poses')
         # Small margin to make sure we get thruster frames via tf
         now = self.get_clock().now() + rclpy.time.Duration(nanoseconds=int(0.2 * 1e9))
 
         base = self.namespace + self.config['base_link'].value
+        base = base[1:]
 
         self.thrusters = list()
 
@@ -275,13 +317,22 @@ class ThrusterManager(Node):
         for i in range(self.MAX_THRUSTERS):
             frame = self.namespace + \
                 self.config['thruster_frame_base'].value + str(i)
+            frame = frame[1:]
             try:
                 # try to get thruster pose with respect to base frame via tf
                 self.get_logger().info('transform: ' + base + ' -> ' + frame)
                 now = self.get_clock().now() + rclpy.time.Duration(nanoseconds=int(0.2 * 1e9))
-                self.tf_buffer.can_transform(base, frame,
-                                               now, timeout=rclpy.time.Duration(seconds=1))
-                [pos, quat] = self.tf_buffer.lookup_transform(base, frame, now)
+                # self.tf_buffer.can_transform(base, frame,
+                #                                now, timeout=rclpy.time.Duration(seconds=1))
+
+                transformObject = self.tf_buffer.lookup_transform(base, frame, now, timeout=rclpy.duration.Duration(seconds=5))
+                pos = numpy.array([transformObject.transform.translation.x,
+                           transformObject.transform.translation.y,
+                           transformObject.transform.translation.z])
+                quat = numpy.array([transformObject.transform.rotation.x,
+                            transformObject.transform.rotation.y,
+                            transformObject.transform.rotation.z,
+                            transformObject.transform.rotation.w])
 
                 topic = self.config['thruster_topic_prefix'].value + 'id_' + str(i) + \
                     self.config['thruster_topic_suffix'].value
@@ -316,9 +367,10 @@ class ThrusterManager(Node):
                                        'function=%s'
                                        % self.config['conversion_fcn'].value)
                 self.thrusters.append(thruster)
-            except Exception:
-                self.get_logger().info('could not get transform from: ' + base)
-                self.get_logger().info('to: ' + frame)
+            except Exception as e:
+                self.get_logger().warn('could not get transform from: ' + base)
+                self.get_logger().warn('to: ' + frame)
+                self.get_logger().warn('Except: ' + repr(e))
                 break
 
         self.get_logger().info(str(self.thrusters))
@@ -341,7 +393,7 @@ class ThrusterManager(Node):
         self.configuration_matrix[numpy.abs(
             self.configuration_matrix) < 1e-3] = 0.0
 
-        self.get_logger().info('TAM= %s', str(self.configuration_matrix))
+        self.get_logger().info('TAM= %s' % str(self.configuration_matrix))
 
         # Once we know the configuration matrix we can compute its
         # (pseudo-)inverse:
@@ -361,8 +413,8 @@ class ThrusterManager(Node):
             self.get_logger().error('Invalid output directory for the TAM matrix, dir='.format(
                 self.output_dir))
 
-        self.ready = True
-        self.get_logger().info('ThrusterManager: ready')
+        self._ready = True
+        self.get_logger().info('TAM updated')
         return True
 
     #==============================================================================
@@ -376,7 +428,7 @@ class ThrusterManager(Node):
     #==============================================================================
     def publish_thrust_forces(self, control_forces, control_torques,
                               frame_id=None):
-        if not self.ready:
+        if not self._ready:
             return
 
         if frame_id is not None:
@@ -420,3 +472,8 @@ class ThrusterManager(Node):
             if abs(thrust[i]) > max_thrust[i]:
                 thrust[i] = numpy.sign(thrust[i]) * max_thrust[i]
         return thrust
+
+    # =========================================================================
+    @property
+    def ready(self):
+        return self._ready

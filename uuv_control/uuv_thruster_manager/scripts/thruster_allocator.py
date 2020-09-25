@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
-# Copyright (c) 2016-2019 The UUV Simulator Authors.
+# Copyright (c) 2020 The Plankton Authors.
 # All rights reserved.
+#
+# This source code is derived from UUV Simulator
+# (https://github.com/uuvsimulator/uuv_simulator)
+# Copyright (c) 2016-2019 The UUV Simulator Authors
+# licensed under the Apache license, Version 2.0
+# cf. 3rd-party-licenses.txt file in the root directory of this source tree.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +19,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
 import numpy
 import rclpy
-#import tf
-#import tf.transformations as trans
+
 from os.path import isdir, join
 from copy import deepcopy
 import yaml
@@ -38,12 +42,37 @@ class ThrusterAllocatorNode(ThrusterManager):
         ThrusterManager.__init__(self, node_name)
  
         self.last_update = time_in_float_sec(self.get_clock().now())
-   
+
+        self.input_sub = None
+        self.input_stamped_sub = None
+        self.thruster_info_service = None
+        self.curve_calc_service = None
+        self.set_thruster_manager_config_service = None
+        self.get_thruster_manager_config_service = None
+        self.timer_function = None
+
+        # Init the thruster allocator when the parent class has been initialized
+        # If the future is done, the callback is called immedialely
+        # NB: no need to lock
+        self.init_future.add_done_callback(self._init_class)
+
+    # =========================================================================
+    def _init_class(self, future):
+        """ 
+        Initializes the class. Called as a callback when the parent class 
+        is initialized
+        """
+        try:
+            self._init_class_impl()
+        except Exception as e:
+            self.get_logger().info('Caught exception: ' + repr(e))
+
+    # =========================================================================
+    def _init_class_impl(self):
         # Subscriber to the wrench to be applied on the UUV
         self.input_sub = self.create_subscription(Wrench, 'thruster_manager/input',
                                           self.input_callback, 10)
 
-    
         # To deliver the wrench input with an option to use another body frame
         # (options: base_link and base_link_ned), use the wrench stamped
         # message
@@ -66,6 +95,8 @@ class ThrusterAllocatorNode(ThrusterManager):
         #rate = self.create_rate(self.config['update_rate'].value)
         self.timer_function = self.create_timer(
             1.0 / self.config['update_rate'].value, self.spin_function)
+
+        self.get_logger().info('ThrusterAllocator: ready')
 
     # ==============================================================================
     def spin_function(self):
@@ -147,8 +178,8 @@ class ThrusterAllocatorNode(ThrusterManager):
         response.thruster_frame_base = self.config['thruster_frame_base'].value
         response.thruster_topic_prefix = self.config['thruster_topic_prefix'].value
         response.thruster_topic_suffix = self.config['thruster_topic_suffix'].value
-        response.timeout = self.config['timeout'].value
-        response.max_thrust = self.config['max_thrust'].value
+        response.timeout = float(self.config['timeout'].value)
+        response.max_thrust = float(self.config['max_thrust'].value)
         response.n_thrusters = self.n_thrusters
         response.allocation_matrix = self.configuration_matrix.flatten().tolist()
 

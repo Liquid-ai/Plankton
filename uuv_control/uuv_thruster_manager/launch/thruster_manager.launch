@@ -7,6 +7,7 @@
   <arg name="output_dir" default="$(find-pkg-share uuv_thruster_manager)/config/$(var model_name)"/>
   <arg name="config_file" default="$(find-pkg-share uuv_thruster_manager)/config/$(var model_name)/thruster_manager.yaml"/>
   <arg name="tam_file" default="$(find-pkg-share uuv_thruster_manager)/config/$(var model_name)/TAM.yaml"/>
+  <arg name="urdf_file" default=""/>
 
   <group>
     <push-ros-namespace namespace="$(var uuv_name)"/>
@@ -16,10 +17,12 @@
             exec="thruster_allocator.py"
             node-name="thruster_allocator"
             output="screen">
-
+        <!--FIXME Temp workaround for listener subscribing to relative topic -->
+        <remap from="tf" to="/tf"/>
         <param from="$(var config_file)"/>
         <!-- Output directory to store the thruster allocation matrix -->
-        <param name="output_dir" value="$(var output_dir)"/>    
+        <param name="output_dir" value="$(var output_dir)"/>
+        <param name="urdf_file" value="$(var urdf_file)"/>    
         <!--The following is not used and not called, remove it-->
         <!-- <param param="thruster_manager/timeout" value="$(arg timeout)"/> -->
         <!-- <param param="thruster_manager/tf_prefix" value="$(arg uuv_name)"/>-->
@@ -31,6 +34,8 @@
             exec="thruster_allocator.py"
             node-name="thruster_allocator"
             output="screen">
+        <!--FIXME Temp workaround for listener subscribing to relative topic -->
+        <remap from="tf" to="/tf"/>
         <param from="$(var config_file)"/>
         <!-- Load thruster allocation matrix -->
         <param from="$(var tam_file)"/> 
