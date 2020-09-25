@@ -1,16 +1,18 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="2">
   <name>uuv_simulator</name>
-  <version>0.6.13</version>
+  <version>0.5.0</version>
   <description>uuv_simulator contains Gazebo plugins and ROS packages for modeling and simulating unmanned underwater vehicles</description>
 
-  <author email="luizricardo.douat@de.bosch.com">Luiz Ricardo Douat</author>
+  <maintainer email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</maintainer>
+  <maintainer email="loic.mougeolle@naval-group.com">Loïc Mougeolle</maintainer>
+
+  <author email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</author>
+  <author email="loic.mougeolle@naval-group.com">Loïc Mougeolle</author>
+  
   <author email="musa.marcusso@de.bosch.com">Musa Morena Marcusso Manhaes</author>
   <author email="sebastian.scherer2@de.bosch.com">Sebastian Scherer</author>
-
-  <maintainer email="luizricardo.douat@de.bosch.com">Luiz Ricardo Douat</maintainer>
-  <maintainer email="musa.marcusso@de.bosch.com">Musa Morena Marcusso Manhaes</maintainer>
-  <maintainer email="sebastian.scherer2@de.bosch.com">Sebastian Scherer</maintainer>
+  <author email="luizricardo.douat@de.bosch.com">Luiz Ricardo Douat</author>
 
   <license>Apache-2.0</license>
 

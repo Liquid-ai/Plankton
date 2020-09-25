@@ -1,3 +1,6 @@
+# Copyright (c) 2020 The Plankton Authors.
+# All rights reserved.
+#
 import rclpy
 
 

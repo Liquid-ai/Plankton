@@ -4,15 +4,15 @@
     <version>0.5.0</version>
     <description>Open source simulator for maritime robotics research</description>
 
-    <author email="loic@liquid-tech.ai">Loïc Mougeolle</author>
-    <author email="jean-philip@liquid-tech.ai">Jean-Philip Royer</author>
+    <author email="loic.mougeolle@naval-group.com">Loïc Mougeolle</author>
+    <author email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</author>
 
-    <maintainer email="loic@liquid-tech.ai">Loic Mougeolle</maintainer>
-    <maintainer email="jean-philip@liquid-tech.ai">Jean-Philip Royer</maintainer>
+    <maintainer email="loic.mougeolle@naval-group.com">Loïc Mougeolle</maintainer>
+    <maintainer email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</maintainer>
 
     <license>Apache-2.0</license>
 
-    <url type="documentation">https://uuvsimulator.github.io/</url>
+    <url type="documentation">https://github.com/Liquid-ai/Plankton/</url>
 
     <buildtool_depend>ament_cmake</buildtool_depend>
 
