@@ -18,6 +18,21 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_pytest REQUIRED)
+find_package(rclcpp REQUIRED)
+
+add_executable(plankton_global_sim_time src/globalSimTime.cpp)
+
+ament_target_dependencies(
+  plankton_global_sim_time
+  ament_cmake 
+  rclcpp
+)
+
+# Needs to be installed in lib and not bin folder in order to be found by ament
+install(TARGETS plankton_global_sim_time 
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 
 ament_python_install_package(plankton_utils PACKAGE_DIR src/plankton_utils)
 
