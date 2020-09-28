@@ -40,10 +40,11 @@ from rclpy.parameter import Parameter
 from rclpy.node import Node
 
 from plankton_utils.time import time_in_float_sec_from_msg
+from plankton_utils.time import is_sim_time
 
 class PositionControllerNode(Node):
-    def __init__(self, node_name):
-        super().__init__(node_name)
+    def __init__(self, node_name, **kwargs):
+        super().__init__(node_name, **kwargs)
         self.get_logger().info('PositionControllerNode: initializing node')
 
         self.config = {}
@@ -178,7 +179,9 @@ def main():
     rclpy.init()
 
     try:
-        node = PositionControllerNode('position_control')
+        sim_time_param = is_sim_time()
+
+        node = PositionControllerNode('position_control', parameter_overrides=[sim_time_param])
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))

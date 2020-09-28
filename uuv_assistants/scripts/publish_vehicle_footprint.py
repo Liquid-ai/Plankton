@@ -29,20 +29,23 @@ from visualization_msgs.msg import Marker
 import numpy as np
 from rclpy.node import Node
 
+from plankton_utils.time import is_sim_time
+
 class VehicleFootprint(Node):
     MARKER = np.array([[0, 0.75], [-0.5, -0.25], [0.5, -0.25]])
     
     #==========================================================================
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         super().__init__(node_name,
                         allow_undeclared_parameters=True, 
-                        automatically_declare_parameters_from_overrides=True)
+                        automatically_declare_parameters_from_overrides=True,
+                        **kwargs)
 
         self.get_logger().info('Generate RViz footprint and markers for 2D visualization')
 
         #Default sim_time to True
-        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        self.set_parameters([sim_time])
+        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        # self.set_parameters([sim_time])
 
         self._namespace = self.get_namespace().replace('/', '')
 
@@ -98,6 +101,7 @@ class VehicleFootprint(Node):
         # Vehicle label marker (remap this topic in the launch file if necessary)
         self._label_pub = self.create_publisher(Marker, 'label', 1)
     
+    # =========================================================================
     @staticmethod
     def rot(alpha):
         return np.array([[np.cos(alpha), -np.sin(alpha)],
@@ -143,11 +147,16 @@ class VehicleFootprint(Node):
 
         self._label_pub.publish(self._label_marker)
 
+
+# =============================================================================
 def main():
     print('Generate RViz footprint and markers for 2D visualization')
     #rospy.init_node('generate_vehicle_footprint')
 
     try:
+        sim_time_param = is_sim_time()
+        
+        world_pub = WorldPublisher('publish_world_models', parameter_overrides=[sim_time_param])
         node = VehicleFootprint('generate_vehicle_footprint')
         rclpy.spin(node)
     except rclpy.exceptions.ROSInterruptException as e:

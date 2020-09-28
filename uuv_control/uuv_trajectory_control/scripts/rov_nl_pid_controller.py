@@ -21,9 +21,12 @@
 # limitations under the License.
 import rclpy
 import numpy as np
-from uuv_control_interfaces import DPPIDControllerBase
+
 from geometry_msgs.msg import Wrench, Vector3
+
+from uuv_control_interfaces import DPPIDControllerBase
 from tf_quaternion.transformations import quaternion_matrix
+from plankton_utils.time import is_sim_time
 
 
 class ROV_NLPIDController(DPPIDControllerBase):
@@ -39,8 +42,8 @@ class ROV_NLPIDController(DPPIDControllerBase):
 
     _LABEL = 'MIMO Nonlinear PID Controller with Acceleration Feedback'
 
-    def __init__(self, node_name):
-        DPPIDControllerBase.__init__(self, node_name, True)
+    def __init__(self, node_name, **kwargs):
+        DPPIDControllerBase.__init__(self, node_name, True, **kwargs)
         self._logger.info('Initializing: ' + self._LABEL)
         # Feedback acceleration gain
         self._Hm = np.eye(6)
@@ -88,7 +91,11 @@ def main():
     rclpy.init()
 
     try:
-        node = ROV_NLPIDController('rov_nl_pid_controller')
+        sim_time_param = is_sim_time()
+
+        node = ROV_NLPIDController(
+            'rov_nl_pid_controller', 
+            parameter_overrides=[sim_time_param])
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))

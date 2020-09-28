@@ -22,15 +22,15 @@
 import rclpy
 import numpy as np
 from uuv_control_interfaces import DPPIDControllerBase
-
+from plankton_utils.time import is_sim_time
 
 class ROV_PIDController(DPPIDControllerBase):
     """PID controller for the dynamic positioning of ROVs."""
 
     _LABEL = 'PID'
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         self._tau = np.zeros(6)
-        DPPIDControllerBase.__init__(self, node_name, False)
+        DPPIDControllerBase.__init__(self, node_name, False, **kwargs)
         self._is_init = True
 
     # =========================================================================
@@ -49,7 +49,12 @@ def main():
     rclpy.init()
 
     try:
-        node = ROV_PIDController('rov_pid_controller')
+        sim_time_param = is_sim_time()
+
+        node = ROV_PIDController(
+            'rov_pid_controller',
+            parameter_overrides=[sim_time_param])
+            
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))

@@ -30,17 +30,22 @@ from geometry_msgs.msg import Point, Wrench, Vector3
 from gazebo_msgs.srv import ApplyLinkWrench
 
 from plankton_utils.time import time_in_float_sec
+from plankton_utils.time import is_sim_time
 
 def main():
     rclpy.init()
+
+    sim_time_param = is_sim_time()
+
     node = rclpy.create_node('set_body_wrench',
                             allow_undeclared_parameters=True, 
-                            automatically_declare_parameters_from_overrides=True)
+                            automatically_declare_parameters_from_overrides=True, 
+                            parameter_overrides=[sim_time_param])
 
     node.get_logger().info('Apply programmed perturbation to vehicle ' + node.get_namespace())
 
-    sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-    node.set_parameters([sim_time])
+    # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+    # node.set_parameters([sim_time])
 
     starting_time = 0.0
     if node.has_parameter('starting_time'):
@@ -51,7 +56,6 @@ def main():
 
     duration = 0.0
     if node.has_parameter('duration'):
-        node.get_logger().info("HEHE " + str(node.get_parameter('duration').get_parameter_value().integer_value))
         duration = float(node.get_parameter('duration').value)
 
     #compare to eps ?

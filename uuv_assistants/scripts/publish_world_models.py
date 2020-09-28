@@ -27,18 +27,20 @@ from visualization_msgs.msg import Marker, MarkerArray
 from gazebo_msgs.srv import GetEntityState
 from rclpy.node import Node
 from plankton_utils.param_helper import parse_nested_params_to_dict
+from plankton_utils.time import is_sim_time
 
 
 class WorldPublisher(Node):
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         super().__init__(node_name,
                         allow_undeclared_parameters=True, 
-                        automatically_declare_parameters_from_overrides=True)
+                        automatically_declare_parameters_from_overrides=True,
+                        **kwargs)
 
         self.get_logger().info(node_name + ': start publishing vehicle footprints to RViz')
 
-        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        self.set_parameters([sim_time])
+        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        # self.set_parameters([sim_time])
 
         self._model_paths = dict()
 
@@ -72,6 +74,7 @@ class WorldPublisher(Node):
         #     self.publish_meshes()
         #     rate.sleep()
 
+    # =========================================================================
     def add_meshes(self, models):
         for model in models:
             if model in self._model_paths:
@@ -148,6 +151,7 @@ class WorldPublisher(Node):
                 '\n\t Scale: ' + str(self._model_paths[model]['scale'])
             )
 
+    # =========================================================================
     def publish_meshes(self):
         markers = MarkerArray()
         i = 0
@@ -188,91 +192,24 @@ class WorldPublisher(Node):
             i += 1
 
         self._mesh_topic.publish(markers)
-
-
-    # def merge_dicts(self, a, b):
-    #     """merges b into a and return merged result
-
-    #     NOTE: tuples and arbitrary objects are not handled as it is totally ambiguous what should happen"""
-    #     key = None
-    #     try:
-    #         if a is None or isinstance(a, str) or isinstance(a, int) or isinstance(a, float):
-    #             # border case for first run or if a is a primitive
-    #             a = b
-    #         elif isinstance(a, list):
-    #             # lists can be only appended
-    #             if isinstance(b, list):
-    #                 # merge lists
-    #                 a.extend(b)
-    #             else:
-    #                 # append to list
-    #                 a.append(b)
-    #         elif isinstance(a, dict):
-    #             # dicts must be merged
-    #             if isinstance(b, dict):
-    #                 for key in b:
-    #                     if key in a:
-    #                         a[key] = self.merge_dicts(a[key], b[key])
-    #                     else:
-    #                         a[key] = b[key]
-    #             else:
-    #                 raise RuntimeError('Cannot merge non-dict "%s" into dict "%s"' % (b, a))
-    #         else:
-    #             raise RuntimeError('NOT IMPLEMENTED "%s" into "%s"' % (b, a))
-    #     except TypeError as e:
-    #         raise Runtime('TypeError "%s" in key "%s" when merging "%s" into "%s"' % (e, key, b, a))
-    #     return a
-    
-            
-    # def parse_nested_params(self, this_list, separator: str = "."):
-    #     """
-    #     Dictionary from parameters
-    #     """
         
-    #     parameters_with_prefix = {}
-
-    #     for parameter_name, param_value in this_list.items():
-    #         dotFound = True
         
-    #         dict_ = {}
-    #         key_list = []
-    #         while dotFound:
-    #             dotFound = False
-    #             key = ""
-    #             index  = str(parameter_name).find(separator)
-    #             if index != -1:
-    #                 dotFound = True
-    #                 key = parameter_name[:index]
-    #                 key_list.insert(0, key)
-
-    #                 #dict_.update({key: {}})
-    #                 parameter_name = parameter_name[index + 1:]
-    #             else:
-    #                 key_list.insert(0, parameter_name)
-
-    #         for i, key in enumerate(key_list):
-    #             if i == 0:
-    #                 dict_.update({key: param_value})
-    #             else:
-    #                 dict_ = ({key: dict_})
-    #         if len(parameters_with_prefix.keys()) == 0:
-    #             parameters_with_prefix = dict_
-    #         else:
-    #             parameters_with_prefix = self.merge_dicts(parameters_with_prefix, dict_)
-    #     return parameters_with_prefix
-
-
+# =============================================================================
 def main():
     print('Start publishing vehicle footprints to RViz')
 
     rclpy.init()
 
     try:
-        world_pub = WorldPublisher('publish_world_models')
+        sim_time_param = is_sim_time()
+        #sim_time_param = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, sim_time)
+        world_pub = WorldPublisher('publish_world_models', parameter_overrides=[sim_time_param])
         rclpy.spin(world_pub)
     except Exception as e:
         print('Caught exception: ' + str(e))
     print('Exiting')
 
+
+# =============================================================================
 if __name__ == '__main__':
     main()

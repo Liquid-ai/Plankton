@@ -34,17 +34,19 @@ from rclpy.node import Node
 
 from plankton_utils.param_helper import parse_nested_params_to_dict
 from plankton_utils.time import time_in_float_sec, float_sec_to_int_sec_nano
+from plankton_utils.time import is_sim_time
 
-
+# TODO Probably rewrite
 class DisturbanceManager(Node):
 
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         super().__init__(node_name,
                         allow_undeclared_parameters=True, 
-                        automatically_declare_parameters_from_overrides=True)
+                        automatically_declare_parameters_from_overrides=True, 
+                        **kwargs)
 
-        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        self.set_parameters([sim_time])
+        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        # self.set_parameters([sim_time])
 
         self._logger = logging.getLogger('dp_local_planner')
         out_hdlr = logging.StreamHandler(sys.stdout)
@@ -410,7 +412,9 @@ def main():
     rclpy.init()
 
     try:
-        node = DisturbanceManager('disturbance_manager')
+        sim_time_param = is_sim_time()
+
+        node = DisturbanceManager('disturbance_manager', parameter_overrides=[sim_time_param])
         rclpy.spin(node)
     except rclpy.exceptions.ROSInterruptException as rosInter:
         print('Caught ROSInterruptException exception' + str(rosInter))
@@ -422,7 +426,7 @@ def main():
             # node.destroy_node()
             # node.thread.join()
             
-    print('exiting')
+    print('Exiting')
 
 
 # =============================================================================

@@ -32,6 +32,7 @@
   <exec_depend>rclpy</exec_depend>
   <!-- <exec_depend>ros2topic</exec_depend> -->
   <exec_depend>gazebo_msgs</exec_depend>
+  <exec_depend>plankton_utils</exec_depend>
   <exec_depend>visualization_msgs</exec_depend>
   <exec_depend>python-numpy</exec_depend> <!-- check -->
 

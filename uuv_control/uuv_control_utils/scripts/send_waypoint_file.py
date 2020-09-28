@@ -30,16 +30,21 @@ from std_msgs.msg import String, Time
 
 from plankton_utils import time_in_float_sec
 from plankton_utils import float_sec_to_int_sec_nano
+from plankton_utils.time import is_sim_time
 
 def main():
     rclpy.init()
+
+    sim_time_param = is_sim_time()
+
     node = rclpy.create_node('send_waypoint_file',
                             allow_undeclared_parameters=True, 
-                            automatically_declare_parameters_from_overrides=True)
+                            automatically_declare_parameters_from_overrides=True,
+                            parameter_overrides=[sim_time_param]))
 
 
-    sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-    self.set_parameters([sim_time])
+    # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+    # self.set_parameters([sim_time])
     node.get_logger().info('Send a waypoint file, namespace=%s', % node.get_namespace())
 
     # if rospy.is_shutdown():
@@ -51,7 +56,7 @@ def main():
     else:
         raise RuntimeError('No filename found')
 
-    #Important...ensure the clock has been updated when using sim time
+    # Important...ensure the clock has been updated when using sim time
     while node.get_clock().now() == rclpy.time.Time():
         rclpy.spin_once(node)
 

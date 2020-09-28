@@ -31,12 +31,17 @@ from uuv_auv_control_allocator.msg import AUVCommand
 from uuv_auv_actuator_interface import ActuatorManager
 
 from plankton_utils.time import time_in_float_sec
+from plankton_utils.time import is_sim_time
 
 
+# TODO Probably refactor
 class AUVControlAllocator(ActuatorManager):
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         #super(AUVControlAllocator, self).__init__()
-        ActuatorManager.__init__(node_name)
+        ActuatorManager.__init__(
+            node_name, 
+            **kwargs
+        )
         
         # Retrieve the output file path to store the CAM
         # matrix for future use
@@ -160,7 +165,9 @@ def main():
     rclpy.init()
 
     try:
-        node = AUVControlAllocator('auv_control_allocator')
+        sim_time_param = is_sim_time()
+
+        node = AUVControlAllocator('auv_control_allocator', parameter_overrides=[sim_time_param])
         #rospy.spin(node)
     except rclpy.ROSInterruptException:
         print('AUVControlAllocator::ROSInterruptException Exception')

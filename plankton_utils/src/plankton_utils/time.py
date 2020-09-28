@@ -3,6 +3,9 @@
 #
 import rclpy.time
 from rclpy.clock import ClockType
+from rcl_interfaces.srv import GetParameters
+
+import time
 
 
 def time_in_float_sec(time: rclpy.time.Time):
@@ -31,3 +34,58 @@ def float_sec_to_int_sec_nano(float_sec):
     nsecs = int((float_sec - secs) * 1e9)
 
     return (secs, nsecs)
+
+
+# =============================================================================
+def is_sim_time(timeout_sec=5, return_param=True, default_value=False):
+    """
+    Asks to the global sim time node the value of the use_sim_time parameters
+    and returns the value. If a 'no_global_sim_time' parameter was specified
+    to the node, the function returns the default value
+
+    :param timeout_sec: timeout in seconds before returning the default value
+    :param return_param: True to return a parameter, False to return the raw
+    boolean
+    :param default_value: default value to return
+
+    :return A boolean or a parameter, both indicating if Plankton is using
+    sim time
+    """
+    try:
+        def get_value(value):
+            if return_param:
+                return rclpy.parameter.Parameter(
+                    'use_sim_time', 
+                    rclpy.Parameter.Type.BOOL, 
+                    value
+                )
+            else:
+                return value
+        
+        node = rclpy.create_node('test_sim_time')
+
+        if node.has_parameter('no_global_sim_time'):
+            return get_value(default_value)
+
+        sim_time_srv = node.create_client(GetParameters, '/plankton_global_sim_time/get_parameters')
+        if not sim_time_srv.wait_for_service(timeout_sec=5):
+            node.get_logger().info('service %s not available' % sim_time_srv.srv_name)
+            return get_value(default_value)
+        
+        req = GetParameters.Request()
+        req.names = ['use_sim_time']
+        future = sim_time_srv.call_async(req)
+
+        start_time = time.time()
+        while not future.done():
+            rclpy.spin_once(node)
+            if time.time() - start_time > timeout_sec:
+                return get_value(default_value)
+
+        resp = future.result().values[0].bool_value
+
+        return get_value(resp)
+
+    finally:
+        node.destroy_node()
+        node = None

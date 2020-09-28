@@ -31,9 +31,12 @@ from tf_quaternion.transformations import euler_from_quaternion
 from gazebo_msgs.srv import GetWorldProperties, GetModelProperties
 from rclpy.node import Node
 
+from plankton_utils.time import is_sim_time
+
+# TODO Needs a rework
 class FootprintsPublisher(Node):
-    def __init__(self, node_name):
-        super().__init__(node_name)
+    def __init__(self, node_name, **kwargs):
+        super().__init__(node_name, **kwargs)
 
         self.vehicle_pub = dict()
         self.odom_sub = dict()
@@ -147,7 +150,9 @@ def main():
     rclpy.init()
 
     try:
-        node = FootprintsPublisher('publish_footprints')
+        sim_time_param = is_sim_time()
+        
+        node = FootprintsPublisher('publish_footprints', parameter_overrides=[sim_time_param])
         rclpy.spin(node)
     except rclpy.exceptions.ROSInterruptException:
         print('caught exception')

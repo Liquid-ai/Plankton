@@ -5,6 +5,13 @@
     <arg name="timeout" default="0.0"/>
     <arg name="use_sim_time" default="true"/>
 
+    <node node-name="plankton_global_sim_time"
+        pkg="plankton_utils"
+        exec="plankton_global_sim_time"
+        output="screen">
+        <param name="use_sim_time" value="$(var use_sim_time)"/>
+    </node>
+
     <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
     <include file="$(find-pkg-share gazebo_ros)/launch/gazebo.launch.py">
         <arg name="world" value="worlds/ocean_waves.world"/>
@@ -15,6 +22,7 @@
         <arg name="debug" value="false"/>
         <arg name="verbose" value="true"/>
         <!-- TODO Remove force_system in foxy, as it will be loaded by default -->
+        <!-- Also investigate why /gazebo ns has a strong bad perf impact-->
         <arg name="extra_gazebo_args" value="-s libgazebo_ros_force_system.so --ros-args -r gazebo:__ns:=/gazebo"/>
     </include>
 
@@ -25,7 +33,8 @@
         exec="publish_world_models.py"
         output="screen">
         <param from="$(find-pkg-share uuv_gazebo_worlds)/config/ocean_waves.yaml"/>
-        <param name="use_sim_time" value="$(var use_sim_time)"/>
+        <param name="hello" value="4"/>
+        <!-- <param name="use_sim_time" value="$(var use_sim_time)"/> -->
     </node>
 
     <group if="$(var set_timeout)">

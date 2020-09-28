@@ -29,18 +29,24 @@ from std_msgs.msg import Time
 
 from plankton_utils.time import time_in_float_sec
 from plankton_utils import float_sec_to_int_sec_nano
+from plankton_utils.time import is_sim_time
 
 def main():
     print('Starting the helical trajectory creator')
     rclpy.init()#changed node name
-    node = rclpy.create_node('start_helical_trajectory',
-                            allow_undeclared_parameters=True, 
-                            automatically_declare_parameters_from_overrides=True)
 
-    sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-    node.set_parameters([sim_time])
+    sim_time_param = is_sim_time()
 
-    #Important...ensure the clock has been updated when using sim time
+    node = rclpy.create_node(
+        'start_helical_trajectory',
+        allow_undeclared_parameters=True, 
+        automatically_declare_parameters_from_overrides=True,
+        parameter_overrides=[sim_time_param])
+
+    # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+    # node.set_parameters([sim_time])
+
+    # Important...ensure the clock has been updated when using sim time
     while node.get_clock().now() == rclpy.time.Time():
         rclpy.spin_once(node)
 

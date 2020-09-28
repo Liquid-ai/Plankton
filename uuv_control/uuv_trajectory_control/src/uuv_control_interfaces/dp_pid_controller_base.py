@@ -30,10 +30,10 @@ class DPPIDControllerBase(DPControllerBase):
     in other for a controller to work.
     """
 
-    def __init__(self, node_name, *args):
+    def __init__(self, node_name, *args, **kwargs):
         #super().__init__(node_name)
         # Start the super class
-        DPControllerBase.__init__(self, node_name, *args)
+        DPControllerBase.__init__(self, node_name, *args, **kwargs)
         self._logger.info('Initializing: PID controller')
         # Proportional gains
         self._Kp = np.zeros(shape=(6, 6))

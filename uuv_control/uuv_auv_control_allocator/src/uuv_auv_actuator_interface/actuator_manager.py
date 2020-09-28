@@ -40,14 +40,15 @@ from plankton_utils.params_helper import parse_nested_params_to_dict
 class ActuatorManager(Node):
     MAX_FINS = 4
 
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         super().__init__(node_name,
                         allow_undeclared_parameters=True, 
-                        automatically_declare_parameters_from_overrides=True)
+                        automatically_declare_parameters_from_overrides=True,
+                        **kwargs)
 
         #Default sim_time to True
-        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        self.set_parameters([sim_time])
+        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        # self.set_parameters([sim_time])
 
         # Acquiring the namespace of the vehicle
         self.namespace = self.get_namespace().replace('/', '')

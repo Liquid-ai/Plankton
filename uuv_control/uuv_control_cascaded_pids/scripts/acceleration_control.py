@@ -29,16 +29,20 @@ from geometry_msgs.msg import Wrench
 #from rospy.numpy_msg import numpy_msg
 from rclpy.node import Node
 
+from plankton_utils.time import is_sim_time
+
+
 class AccelerationControllerNode(Node):
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
 
         super().__init__(node_name,
                         allow_undeclared_parameters=True, 
-                        automatically_declare_parameters_from_overrides=True)
+                        automatically_declare_parameters_from_overrides=True,
+                        **kwargs)
 
-        #Default sim_time to True
-        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        self.set_parameters([sim_time])
+        # Default sim_time to True
+        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        # self.set_parameters([sim_time])
 
         self.get_logger().info('AccelerationControllerNode: initializing node')
 
@@ -139,7 +143,9 @@ def main():
   rclpy.init()
 
   try:
-      node = AccelerationControllerNode('acceleration_control')
+      sim_time_param = is_sim_time()
+
+      node = AccelerationControllerNode('acceleration_control', parameter_overrides=[sim_time_param])
       rclpy.spin(node)
   except Exception as e:
     print('Caught exception:' + str(e))

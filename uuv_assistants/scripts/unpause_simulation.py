@@ -25,17 +25,21 @@ from std_srvs.srv import Empty
 import time
 import sys
 
+from plankton_utils.time import is_sim_time
 
 def main():
     rclpy.init()
 
+    sim_time_param = is_sim_time()
+
     node = rclpy.create_node('unpause_simulation',
                             allow_undeclared_parameters=True, 
-                            automatically_declare_parameters_from_overrides=True)
+                            automatically_declare_parameters_from_overrides=True,
+                            parameter_overrides=[sim_time_param])
 
     #Default sim_time to True
-    sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-    node.set_parameters([sim_time])
+    # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+    # node.set_parameters([sim_time])
 
     # if not rclpy.ok():
     #     rospy.ROSException('ROS master is not running!')

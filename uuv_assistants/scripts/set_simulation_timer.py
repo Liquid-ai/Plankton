@@ -26,17 +26,21 @@ import time
 import threading
 
 from plankton_utils.time import time_in_float_sec
+from plankton_utils.time import is_sim_time
 
 #==============================================================================
 def main():
     rclpy.init()
 
+    sim_time_param = is_sim_time()
+
     node = rclpy.create_node('set_simulation_timer', 
                              allow_undeclared_parameters=True, 
-                             automatically_declare_parameters_from_overrides=True)
+                             automatically_declare_parameters_from_overrides=True,
+                             parameter_overrides=[sim_time_param])
 
-    sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-    node.set_parameters([sim_time])
+    # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+    # node.set_parameters([sim_time])
 
     timeout = 0.0
     if node.has_parameter('timeout'):
