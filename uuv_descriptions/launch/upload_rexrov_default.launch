@@ -24,7 +24,7 @@
           namespace:=$(var namespace)
           inertial_reference_frame:=world"/>
   
-  <arg name="use_sim_time" default="true"/>
+  <!-- <arg name="use_sim_time" default="true"/> -->
   
 
   <group>
@@ -70,7 +70,7 @@
     <arg name="namespace" value="$(var namespace)"/>
     <arg name="world_frame" value="world"/>
     <arg name="child_frame_id" value="/$(var namespace)/base_link"/>
-    <arg name="use_sim_time" value="$(var use_sim_time)"/>
+    <!-- <arg name="use_sim_time" value="$(var use_sim_time)"/> -->
   </include>
 
 </launch>
