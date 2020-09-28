@@ -33,7 +33,6 @@
         exec="publish_world_models.py"
         output="screen">
         <param from="$(find-pkg-share uuv_gazebo_worlds)/config/ocean_waves.yaml"/>
-        <param name="hello" value="4"/>
         <!-- <param name="use_sim_time" value="$(var use_sim_time)"/> -->
     </node>
 

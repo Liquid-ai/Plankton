@@ -1,3 +1,6 @@
+// Copyright (c) 2020 The Plankton Authors.
+// All rights reserved.
+//
 #include <rclcpp/rclcpp.hpp>
 
 /// Listens for nodes asking if the simulation is using sim_time and replies
