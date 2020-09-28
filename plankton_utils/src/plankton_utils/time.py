@@ -62,7 +62,16 @@ def is_sim_time(timeout_sec=5, return_param=True, default_value=False):
             else:
                 return value
         
-        node = rclpy.create_node('test_sim_time')
+        import random
+        import string
+
+        LENGTH = 5
+
+        letter_pool = string.ascii_letters
+        random_name = 'test_sim_time_' + ''.join(random.choice(letter_pool) for i in range(LENGTH))
+
+        node = rclpy.create_node(random_name)
+        node.get_logger().warn('name: ' + random_name)
 
         if node.has_parameter('no_global_sim_time'):
             return get_value(default_value)
@@ -86,6 +95,10 @@ def is_sim_time(timeout_sec=5, return_param=True, default_value=False):
 
         return get_value(resp)
 
+    except Exception as e:
+        print('Caught exception: ' + str(e))
+
     finally:
-        node.destroy_node()
-        node = None
+        if node:
+            node.destroy_node()
+            node = None
