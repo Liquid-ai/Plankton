@@ -172,7 +172,7 @@ class VelocityControllerNode(Node):
         return SetParametersResult(successful=True)
 
     #==============================================================================
-    def create_pids(config):
+    def create_pids(self, config):
         self.pid_linear = PIDRegulator(
             config['linear_p'], config['linear_i'], config['linear_d'], config['linear_sat'])
         self.pid_angular = PIDRegulator(
