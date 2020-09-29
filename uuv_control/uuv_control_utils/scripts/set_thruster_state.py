@@ -23,6 +23,7 @@
 import rclpy
 from uuv_gazebo_ros_plugins_msgs.srv import SetThrusterState
 from plankton_utils.time import time_in_float_sec
+from plankton_utils.time import is_sim_time
 
 
 def build_service_name(ns, thruster_id, service_name) -> str :
@@ -31,12 +32,17 @@ def build_service_name(ns, thruster_id, service_name) -> str :
 #==============================================================================
 def main():
     rclpy.init()
-    node = rclpy.create_node('set_thrusters_states',
-                            allow_undeclared_parameters=True, 
-                            automatically_declare_parameters_from_overrides=True)
 
-    sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-    node.set_parameters([sim_time])
+    sim_time_param = is_sim_time()
+
+    node = rclpy.create_node(
+        'set_thrusters_states',
+        allow_undeclared_parameters=True, 
+        automatically_declare_parameters_from_overrides=True,
+        parameter_overrides=[sim_time_param])
+
+    # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+    # node.set_parameters([sim_time])
 
     node.get_logger().info('Set the state of thrusters for vehicle, namespace=' + node.get_namespace())
 

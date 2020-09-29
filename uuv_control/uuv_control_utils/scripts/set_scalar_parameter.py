@@ -25,7 +25,10 @@ from uuv_gazebo_ros_plugins_msgs.srv import SetFloat
 
 def main():
     rclpy.init()
-    node = rclpy.create_node('set_thrusters_states')
+    node = rclpy.create_node(
+        'set_scalar_parameter',
+        allow_undeclared_parameters=True, 
+        automatically_declare_parameters_from_overrides=True)
 
     node.get_logger().info('Set scalar parameter, namespace=' + node.get_namespace())
 

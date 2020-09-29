@@ -37,12 +37,13 @@ from uuv_PID import PIDRegulator
 
 from rclpy.node import Node
 from plankton_utils.time import time_in_float_sec_from_msg
+from plankton_utils.time import is_sim_time
 
 
 class VelocityControllerNode(Node):
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         print('VelocityControllerNode: initializing node')
-        super().__init__(node_name)
+        super().__init__(node_name, **kwargs)
 
         self.config = {}
 
@@ -171,7 +172,7 @@ class VelocityControllerNode(Node):
         return SetParametersResult(successful=True)
 
     #==============================================================================
-    def create_pids(config):
+    def create_pids(self, config):
         self.pid_linear = PIDRegulator(
             config['linear_p'], config['linear_i'], config['linear_d'], config['linear_sat'])
         self.pid_angular = PIDRegulator(
@@ -189,7 +190,9 @@ def main():
     rclpy.init()
 
     try:
-        node = VelocityControllerNode('velocity_control')
+        sim_time_param = is_sim_time()
+
+        node = VelocityControllerNode('velocity_control', parameter_overrides=[sim_time_param])
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))

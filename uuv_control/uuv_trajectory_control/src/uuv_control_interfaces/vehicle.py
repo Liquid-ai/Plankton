@@ -42,7 +42,7 @@ def cross_product_operator(x):
                   [-x[1], x[0], 0]])
     return S
 
-
+# TODO Maybe rewrite for TF2
 class Vehicle(object):
     """Vehicle interface to be used by model-based controllers. It receives the
     parameters necessary to compute the vehicle's motion according to Fossen's.

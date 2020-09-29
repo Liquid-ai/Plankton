@@ -28,6 +28,8 @@
 
   <member_of_group>rosidl_interface_packages</member_of_group>
 
+  <exec_depend>plankton_utils</exec_depend>
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>

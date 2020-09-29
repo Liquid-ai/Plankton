@@ -20,10 +20,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import rclpy
 import os
 import yaml
 from datetime import datetime
+
 from std_msgs.msg import Bool
 from nav_msgs.msg import Path
 from visualization_msgs.msg import MarkerArray, Marker
@@ -31,16 +31,20 @@ from geometry_msgs.msg import PoseStamped, Point, Quaternion
 from uuv_control_msgs.msg import Trajectory, TrajectoryPoint, WaypointSet
 import uuv_trajectory_generator
 import uuv_waypoints
+import rclpy
 from rclpy.node import Node
 
+from plankton_utils.time import is_sim_time
+
 class TrajectoryMarkerPublisher(Node):
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         super().__init__(node_name,
                         allow_undeclared_parameters=True, 
-                        automatically_declare_parameters_from_overrides=True)
+                        automatically_declare_parameters_from_overrides=True,
+                        **kwargs)
 
-        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        node.set_parameters([sim_time])
+        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        # node.set_parameters([sim_time])
 
         self.get_logger().info('Starting trajectory and waypoint marker publisher')
 
@@ -187,13 +191,17 @@ if __name__ == '__main__':
     rclpy.init()
 
     try:
-        node = TrajectoryMarkerPublisher('trajectory_marker_publisher')
+        sim_time_param = is_sim_time()
+
+        node = TrajectoryMarkerPublisher(
+            'trajectory_marker_publisher', 
+            parameter_overrides=[sim_time_param])
         rclpy.spin(node)
     except Exception as e:
-        print('caught exception' + str(e))
+        print('Caught exception' + str(e))
     finally:
         if rclpy.ok():
             rclpy.shutdown()
-    print('exiting')
+    print('Exiting')
 
 

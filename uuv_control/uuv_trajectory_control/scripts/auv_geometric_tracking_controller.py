@@ -42,16 +42,17 @@ from tf_quaternion.transformations import quaternion_matrix
 
 from plankton_utils.param_helper import parse_nested_params_to_dict, \
                                         get_parameter_or_helper
-
+from plankton_utils.time import is_sim_time
 
 class AUVGeometricTrackingController(Node):
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         super().__init__(node_name,
                         allow_undeclared_parameters=True, 
-                        automatically_declare_parameters_from_overrides=True)
+                        automatically_declare_parameters_from_overrides=True,
+                        **kwargs)
 
-        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        self.set_parameters([sim_time])
+        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        # self.set_parameters([sim_time])
 
         self.namespace = self.get_namespace().replace('/', '')
         self.get_logger().info('Initialize control for vehicle <%s>' % self.namespace)
@@ -348,7 +349,11 @@ def main():
     rclpy.init()
 
     try:
-        node = AUVGeometricTrackingController('auv_geometric_tracking_controller')
+        sim_time_param = is_sim_time()
+
+        node = AUVGeometricTrackingController(
+            'auv_geometric_tracking_controller', 
+            parameter_overrides=[sim_time_param])
         rclpy.spin(node)
     except Exception as e:
         print('caught exception: ' + str(e)) 

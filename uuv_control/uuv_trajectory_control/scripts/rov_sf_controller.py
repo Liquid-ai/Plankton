@@ -21,10 +21,10 @@
 # limitations under the License.
 import rclpy
 import numpy as np
+
 from uuv_control_interfaces import DPControllerBase
-
 from plankton_utils.time import time_in_float_sec
-
+from plankton_utils.time import is_sim_time
 
 class ROV_SFController(DPControllerBase):
     """
@@ -42,8 +42,8 @@ class ROV_SFController(DPControllerBase):
 
     _LABEL = 'Singularity-free tracking controller'
 
-    def __init__(self, node_name):
-        DPControllerBase.__init__(self, node_name, True)
+    def __init__(self, node_name, **kwargs):
+        DPControllerBase.__init__(self, node_name, True, **kwargs)
         self._tau = np.zeros(6)
         self._logger.info('Initializing: ' + self._LABEL)
 
@@ -155,7 +155,12 @@ def main():
     rclpy.init()
 
     try:
-        node = ROV_SFController('rov_sf_controller')
+        sim_time_param = is_sim_time()
+
+        node = ROV_SFController(
+            'rov_sf_controller',
+            parameter_overrides=[sim_time_param])
+
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))

@@ -26,10 +26,11 @@ import sys
 import rclpy
 from rclpy.node import Node
 
+from builtin_interfaces.msg import Time
 from geometry_msgs.msg import WrenchStamped, PoseStamped, TwistStamped, \
     Vector3, Quaternion, Pose
-from builtin_interfaces.msg import Time
 from nav_msgs.msg import Odometry
+
 from uuv_control_interfaces.vehicle import Vehicle
 from tf_quaternion.transformations import euler_from_quaternion, \
     quaternion_multiply, quaternion_matrix, quaternion_conjugate, \
@@ -103,15 +104,16 @@ class DPControllerBase(Node):
     _LABEL = ''
 
     def __init__(self, node_name, is_model_based=False, list_odometry_callbacks=None,
-        planner_full_dof=False):
+        planner_full_dof=False, **kwargs):
 
         super().__init__(node_name,
                         allow_undeclared_parameters=True, 
-                        automatically_declare_parameters_from_overrides=True)
+                        automatically_declare_parameters_from_overrides=True,
+                        **kwargs)
 
         #Default sim_time to True
-        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        self.set_parameters([sim_time])
+        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        # self.set_parameters([sim_time])
 
         # Flag will be set to true when all parameters are initialized correctly
         self._is_init = False

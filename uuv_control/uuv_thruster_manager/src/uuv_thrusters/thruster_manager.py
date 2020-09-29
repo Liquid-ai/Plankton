@@ -52,15 +52,16 @@ class ThrusterManager(Node):
 
     MAX_THRUSTERS = 16
         
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         """Class constructor."""
         super().__init__(node_name,
                         allow_undeclared_parameters=True, 
-                        automatically_declare_parameters_from_overrides=True)
+                        automatically_declare_parameters_from_overrides=True,
+                        **kwargs)
 
         #Default sim_time to True
-        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        self.set_parameters([sim_time])
+        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
+        # self.set_parameters([sim_time])
 
         # This flag will be set to true once the thruster allocation matrix is
         # available

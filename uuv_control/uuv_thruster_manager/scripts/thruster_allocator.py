@@ -30,6 +30,7 @@ from uuv_thrusters import ThrusterManager
 from geometry_msgs.msg import Wrench, WrenchStamped
 from uuv_thruster_manager.srv import *
 from plankton_utils.time import time_in_float_sec
+from plankton_utils.time import is_sim_time
 
 
 class ThrusterAllocatorNode(ThrusterManager):
@@ -37,9 +38,9 @@ class ThrusterAllocatorNode(ThrusterManager):
     to command the thrusters.
     """
 
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         """Class constructor."""
-        ThrusterManager.__init__(self, node_name)
+        ThrusterManager.__init__(self, node_name, **kwargs)
  
         self.last_update = time_in_float_sec(self.get_clock().now())
 
@@ -238,7 +239,11 @@ def main():
     rclpy.init()
 
     try:
-        node = ThrusterAllocatorNode('thruster_allocator')
+        sim_time_param = is_sim_time()
+
+        node = ThrusterAllocatorNode(
+            'thruster_allocator', 
+            parameter_overrides=[sim_time_param])
         rclpy.spin(node)
 
     except Exception as e:

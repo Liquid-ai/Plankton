@@ -21,10 +21,11 @@
 # limitations under the License.
 import rclpy
 import numpy as np
+
 from uuv_control_interfaces import DPControllerBase
 from uuv_control_msgs.srv import *
-
 from plankton_utils.time import time_in_float_sec
+from plankton_utils.time import is_sim_time
 
 
 class ROV_NMB_SMController(DPControllerBase):
@@ -42,8 +43,8 @@ class ROV_NMB_SMController(DPControllerBase):
 
     _LABEL = 'Model-free Sliding Mode Controller'
 
-    def __init__(self, node_name):
-        DPControllerBase.__init__(self, node_name, is_model_based=False)
+    def __init__(self, node_name, **kwargs):
+        DPControllerBase.__init__(self, node_name, is_model_based=False, **kwargs)
         self._logger.info('Initializing: ' + self._LABEL)
         self._first_pass = True
         self._t_init = 0.0
@@ -249,7 +250,12 @@ def main():
     rclpy.init()
 
     try:
-        node = ROV_NMB_SMController('rov_nmb_sm_controller')
+        sim_time_param = is_sim_time()
+
+        node = ROV_NMB_SMController(
+            'rov_nmb_sm_controller',
+            parameter_overrides=[sim_time_param])
+            
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))

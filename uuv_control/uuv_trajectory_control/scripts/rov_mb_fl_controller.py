@@ -26,6 +26,7 @@ from uuv_control_interfaces import DPPIDControllerBase
 from uuv_control_msgs.srv import *
 
 from plankton_utils.time import time_in_float_sec
+from plankton_utils.time import is_sim_time
 
 class ROV_MBFLController(DPPIDControllerBase):
     """
@@ -36,8 +37,8 @@ class ROV_MBFLController(DPPIDControllerBase):
     """
     _LABEL = 'Model-based Feedback Linearization Controller'
 
-    def __init__(self, node_name):
-        DPPIDControllerBase.__init__(self, node_name, True)
+    def __init__(self, node_name, **kwargs):
+        DPPIDControllerBase.__init__(self, node_name, True, **kwargs)
         self._logger.info('Initializing: ' + self._LABEL)
 
         # Control forces and torques
@@ -99,10 +100,14 @@ def main():
     rclpy.init()
 
     try:
-        node = ROV_MBFLController('rov_mb_fl_controller')
+        sim_time_param = is_sim_time()
+
+        node = ROV_MBFLController(
+            'rov_mb_fl_controller', 
+            parameter_overrides=[sim_time_param])
         rclpy.spin(node)
     except rclpy.exceptions.ROSInterruptException as excep:
-        print('Caught ROSInterruptException exception: ' + str((excep)))
+        print('Caught ROSInterruptException exception: ' + str(excep))
     except Exception as e:
         print('Caught exception: ' + str(e))
     finally:

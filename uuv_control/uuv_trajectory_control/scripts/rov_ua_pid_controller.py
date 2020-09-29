@@ -23,7 +23,7 @@ import numpy as np
 import rclpy
 from uuv_control_msgs.srv import *
 from uuv_control_interfaces.dp_controller_base import DPControllerBase
-
+from plankton_utils.time import is_sim_time
 
 class ROVUnderActuatedPIDController(DPControllerBase):
     """
@@ -31,9 +31,9 @@ class ROVUnderActuatedPIDController(DPControllerBase):
     update_controller must be overridden in other for a controller to work.
     """
 
-    def __init__(self, node_name, *args):
+    def __init__(self, node_name, *args, **kwargs):
         # Start the super class
-        DPControllerBase.__init__(self, node_name, *args)
+        DPControllerBase.__init__(self, node_name, *args, **kwargs)
         self._logger.info('Initializing: Underactuated PID controller')
         # Proportional gains
         self._Kp = np.zeros(shape=(4, 4))
@@ -158,7 +158,12 @@ if __name__ == '__main__':
     rclpy.init()
 
     try:
-        node = ROVUnderActuatedPIDController('rov_ua_pid_controller')
+        sim_time_param = is_sim_time()
+
+        node = ROVUnderActuatedPIDController(
+            'rov_ua_pid_controller',
+            parameter_overrides=[sim_time_param])
+
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))

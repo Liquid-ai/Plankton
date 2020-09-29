@@ -22,7 +22,7 @@
 import rclpy
 import numpy as np
 from uuv_control_interfaces import DPControllerBase
-
+from plankton_utils.time import is_sim_time
 
 class ROV_PD_GComp_Controller(DPControllerBase):
     """
@@ -31,9 +31,9 @@ class ROV_PD_GComp_Controller(DPControllerBase):
     """
 
     _LABEL = 'PD controller with compensation of restoring forces'
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         # Start the super class
-        DPControllerBase.__init__(self, node_name, is_model_based=True)
+        DPControllerBase.__init__(self, node_name, is_model_based=True, **kwargs)
         self._logger.info('Initializing: ' + self._LABEL)
         # Proportional gains
         self._Kp = np.zeros(shape=(6, 6))
@@ -92,7 +92,12 @@ def main():
     rclpy.init()
 
     try:
-        node = ROV_PD_GComp_Controller('rov_pd_grav_compensation_controller')
+        sim_time_param = is_sim_time()
+
+        node = ROV_PD_GComp_Controller(
+            'rov_pd_grav_compensation_controller',
+            parameter_overrides=[sim_time_param])
+            
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + str(e))
