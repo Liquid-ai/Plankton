@@ -24,8 +24,10 @@ import os
 import pathlib
 import xacro
 
-import subprocess
-from subprocess import TimeoutExpired
+from plankton_utils.time import is_sim_time
+
+# import subprocess
+# from subprocess import TimeoutExpired
 
 def to_bool(value: str):
     if isinstance(value, bool):
@@ -43,31 +45,31 @@ def to_bool(value: str):
 
 
 # =============================================================================
-def is_sim_time(timeout_sec= 5, default_value=False, return_param=True):
-    res = default_value
-    try:
-        output = subprocess.check_output(
-            ['ros2', 'param', 'get', '/plankton_global_sim_time', 'use_sim_time'], 
-            timeout=timeout_sec
-        )
+# def is_sim_time(timeout_sec= 5, default_value=False, return_param=True):
+#     res = default_value
+#     try:
+#         output = subprocess.check_output(
+#             ['ros2', 'param', 'get', '/plankton_global_sim_time', 'use_sim_time'], 
+#             timeout=timeout_sec
+#         )
 
-        output = output.decode()
+#         output = output.decode()
 
-        res = True if 'True' in output else False
+#         res = True if 'True' in output else False
 
-    except TimeoutExpired:
-        print('Could not request for sim time. Defaulting to %b' % default_value)
-    except Exception as e:
-        print('Unexpected exception while requesting for sim time. Defaulting to %b' % default_value)
+#     except TimeoutExpired:
+#         print('Could not request for sim time. Defaulting to %s' % default_value)
+#     except Exception as e:
+#         print('Unexpected exception while requesting sim time. Defaulting to %s' % default_value)
 
-    if return_param:
-        return rclpy.parameter.Parameter(
-            'use_sim_time', 
-            rclpy.Parameter.Type.BOOL, 
-            res
-        )
-    else:
-        return res
+#     if return_param:
+#         return rclpy.parameter.Parameter(
+#             'use_sim_time', 
+#             rclpy.Parameter.Type.BOOL, 
+#             res
+#         )
+#     else:
+#         return res
 
 
 # =============================================================================
@@ -81,8 +83,11 @@ def launch_setup(context, *args, **kwargs):
     roll = Lc('roll').perform(context)
     pitch = Lc('pitch').perform(context)
     yaw = Lc('yaw').perform(context)
-    use_sim_time = Lc('use_sim_time').perform(context)
+    # use_sim_time = Lc('use_sim_time').perform(context)
     use_world_ned = Lc('use_ned_frame').perform(context)
+
+    # Request sim time value to the global node
+    res = is_sim_time(return_param=False, use_subprocess=True)
 
     # Xacro
     #xacro_file = PathJoinSubstitution(get_package_share_directory('uuv_descriptions'),'robots','rexrov_')
@@ -126,7 +131,7 @@ def launch_setup(context, *args, **kwargs):
          
     with open(output, 'w') as file_out:
         file_out.write(doc)
-
+    
     # URDF spawner
     args=('-gazebo_namespace /gazebo '
         '-x %s -y %s -z %s -R %s -P %s -Y %s -entity %s -file %s' 
@@ -139,13 +144,14 @@ def launch_setup(context, *args, **kwargs):
         package='gazebo_ros',
         node_executable='spawn_entity.py',
         output='screen',
+        parameters=[{'use_sim_time': res}],
         # To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
         arguments=args
     )
 
     # A joint state publisher plugin already is started with the model, no need to use the default joint state publisher
 
-    res = is_sim_time(return_param=False)
+    
     
     args = (output).split()
     robot_state_publisher = Node(
@@ -201,7 +207,7 @@ def generate_launch_description():
         DeclareLaunchArgument('namespace', default_value='rexrov'),
         DeclareLaunchArgument('use_ned_frame', default_value='false'),
 
-        DeclareLaunchArgument('use_sim_time', default_value='true'),
+        # DeclareLaunchArgument('use_sim_time', default_value='true'),
         OpaqueFunction(function = launch_setup)
     ])
     

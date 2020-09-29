@@ -34,14 +34,60 @@ def float_sec_to_int_sec_nano(float_sec):
     nsecs = int((float_sec - secs) * 1e9)
 
     return (secs, nsecs)
+    
+
+# =============================================================================
+def __is_sim_time_subprocess(timeout_sec= 5, default_value=False, return_param=True):
+    """
+    Asks the global sim time node the value of the use_sim_time parameter
+    and returns it. If a 'no_global_sim_time' parameter was specified
+    to the node, the function returns the default value.
+
+    :param timeout_sec: timeout in seconds before returning the default value
+    :param return_param: True to return a parameter, False to return the raw
+    boolean
+    :param default_value: default value to return
+
+    :return A boolean or a parameter, both indicating if Plankton is using
+    sim time
+    """
+    res = default_value
+    try:
+        import subprocess
+        from subprocess import TimeoutExpired
+
+        output = subprocess.check_output(
+            ['ros2', 'param', 'get', '/plankton_global_sim_time', 'use_sim_time'], 
+            timeout=timeout_sec
+        )
+
+        output = output.decode()
+
+        res = True if 'True' in output else False
+
+    except TimeoutExpired:
+        print('Could not request for sim time. Defaulting to %s' % default_value)
+        pass
+    except Exception as e:
+        print('Unexpected exception while requesting sim time. Defaulting to %s' % default_value)
+        pass
+
+    if return_param:
+        return rclpy.parameter.Parameter(
+            'use_sim_time', 
+            rclpy.Parameter.Type.BOOL, 
+            res
+        )
+    else:
+        return res
 
 
 # =============================================================================
-def is_sim_time(timeout_sec=5, return_param=True, default_value=False):
+def __is_sim_time_node(timeout_sec=5, return_param=True, default_value=False):
     """
-    Asks to the global sim time node the value of the use_sim_time parameters
-    and returns the value. If a 'no_global_sim_time' parameter was specified
-    to the node, the function returns the default value
+    Asks the global sim time node the value of the use_sim_time parameter
+    and returns it. If a 'no_global_sim_time' parameter was specified
+    to the node, the function returns the default value.
 
     :param timeout_sec: timeout in seconds before returning the default value
     :param return_param: True to return a parameter, False to return the raw
@@ -71,7 +117,6 @@ def is_sim_time(timeout_sec=5, return_param=True, default_value=False):
         random_name = 'test_sim_time_' + ''.join(random.choice(letter_pool) for i in range(LENGTH))
 
         node = rclpy.create_node(random_name)
-        node.get_logger().warn('name: ' + random_name)
 
         if node.has_parameter('no_global_sim_time'):
             return get_value(default_value)
@@ -102,3 +147,34 @@ def is_sim_time(timeout_sec=5, return_param=True, default_value=False):
         if node:
             node.destroy_node()
             node = None
+
+
+# =============================================================================
+def is_sim_time(
+    timeout_sec=5, 
+    return_param=True, 
+    default_value=False, 
+    use_subprocess=False
+):
+    """
+    Sends a request to the global sim time node and returns the value of the 
+    use_sim_time parameter. If not using subprocess to send the request and 
+    if a 'no_global_sim_time' parameter was specified to the node, the function
+    returns the default value.
+
+    :param timeout_sec: timeout in seconds before returning the default value
+    :param return_param: True to return a parameter, False to return the raw
+    boolean
+    :param default_value: default value to return
+    :param use_subprocess: True to run a command with ros2 param arguments,
+    False to create a node and use a service
+
+    :return A boolean or a parameter, both indicating if Plankton is using
+    sim time
+    """
+    if use_subprocess:
+        return __is_sim_time_subprocess(timeout_sec=timeout_sec, 
+                return_param=return_param, default_value=default_value)
+    else:
+        return __is_sim_time_node(timeout_sec=timeout_sec, 
+                return_param=return_param, default_value=default_value)
