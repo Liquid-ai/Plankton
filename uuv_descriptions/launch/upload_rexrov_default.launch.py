@@ -24,6 +24,9 @@ import os
 import pathlib
 import xacro
 
+import subprocess
+from subprocess import TimeoutExpired
+
 def to_bool(value: str):
     if isinstance(value, bool):
         return value
@@ -37,6 +40,35 @@ def to_bool(value: str):
         return valid[value]
     
     raise ValueError('String to bool, invalid value: %s' % value)
+
+
+# =============================================================================
+def is_sim_time(timeout_sec= 5, default_value=False, return_param=True):
+    res = default_value
+    try:
+        output = subprocess.check_output(
+            ['ros2', 'param', 'get', '/plankton_global_sim_time', 'use_sim_time'], 
+            timeout=timeout_sec
+        )
+
+        output = output.decode()
+
+        res = True if 'True' in output else False
+
+    except TimeoutExpired:
+        print('Could not request for sim time. Defaulting to %b' % default_value)
+    except Exception as e:
+        print('Unexpected exception while requesting for sim time. Defaulting to %b' % default_value)
+
+    if return_param:
+        return rclpy.parameter.Parameter(
+            'use_sim_time', 
+            rclpy.Parameter.Type.BOOL, 
+            res
+        )
+    else:
+        return res
+
 
 # =============================================================================
 def launch_setup(context, *args, **kwargs): 
@@ -112,6 +144,8 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # A joint state publisher plugin already is started with the model, no need to use the default joint state publisher
+
+    res = is_sim_time(return_param=False)
     
     args = (output).split()
     robot_state_publisher = Node(
@@ -121,7 +155,7 @@ def launch_setup(context, *args, **kwargs):
         # To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
         arguments=args,
         output = 'screen',
-        parameters=[{'use_sim_time':Lc('use_sim_time')}] # Use subst here
+        parameters=[{'use_sim_time': res}] # Use subst here
     )
 
     # Message to tf
@@ -136,7 +170,7 @@ def launch_setup(context, *args, **kwargs):
         raise Exception(exc)
 
     launch_args = [('namespace', namespace), ('world_frame', 'world'), 
-            ('child_frame_id', '/' + namespace + '/base_link'), ('use_sim_time', use_sim_time)]
+            ('child_frame_id', '/' + namespace + '/base_link')]
     message_to_tf_launch = IncludeLaunchDescription(
             AnyLaunchDescriptionSource(message_to_tf_launch), launch_arguments=launch_args)
 
@@ -152,6 +186,7 @@ def launch_setup(context, *args, **kwargs):
 
 # =============================================================================
 def generate_launch_description():
+    # TODO Try LaunchContext ?
     return LaunchDescription([
         DeclareLaunchArgument('debug', default_value='0'),
 
