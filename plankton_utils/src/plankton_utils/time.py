@@ -39,9 +39,9 @@ def float_sec_to_int_sec_nano(float_sec):
 # =============================================================================
 def __is_sim_time_subprocess(timeout_sec= 5, default_value=False, return_param=True):
     """
-    Asks the global sim time node the value of the use_sim_time parameter
-    and returns it. If a 'no_global_sim_time' parameter was specified
-    to the node, the function returns the default value.
+    Sends a request to the global sim time node and returns the value of the 
+    use_sim_time parameter. If a 'no_global_sim_time' parameter has been
+    specified to the node, the function returns the default value.
 
     :param timeout_sec: timeout in seconds before returning the default value
     :param return_param: True to return a parameter, False to return the raw
@@ -85,9 +85,9 @@ def __is_sim_time_subprocess(timeout_sec= 5, default_value=False, return_param=T
 # =============================================================================
 def __is_sim_time_node(timeout_sec=5, return_param=True, default_value=False):
     """
-    Asks the global sim time node the value of the use_sim_time parameter
-    and returns it. If a 'no_global_sim_time' parameter was specified
-    to the node, the function returns the default value.
+    Sends a request to the global sim time node and returns the value of the 
+    use_sim_time parameter. If a 'no_global_sim_time' parameter has been
+    specified to the node, the function returns the default value.
 
     :param timeout_sec: timeout in seconds before returning the default value
     :param return_param: True to return a parameter, False to return the raw
@@ -159,8 +159,8 @@ def is_sim_time(
     """
     Sends a request to the global sim time node and returns the value of the 
     use_sim_time parameter. If not using subprocess to send the request and 
-    if a 'no_global_sim_time' parameter was specified to the node, the function
-    returns the default value.
+    if a 'no_global_sim_time' parameter has been specified to the node, the 
+    function returns the default value.
 
     :param timeout_sec: timeout in seconds before returning the default value
     :param return_param: True to return a parameter, False to return the raw

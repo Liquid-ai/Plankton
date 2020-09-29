@@ -3,7 +3,6 @@
   <arg name="world_frame" default="world"/>
   <arg name="child_frame_id" default="/$(var namespace)/base_link"/>
   <arg name="odometry_topic" default="/$(var namespace)/pose_gt"/>
-  <arg name="use_sim_time" default="true"/>
 
   <group>
     <push-ros-namespace namespace="$(var namespace)"/>
@@ -14,7 +13,6 @@
       <param name="stabilized_frame_id" value="/$(var namespace)/base_stabilized" />
       <param name="footprint_frame_id" value="/$(var namespace)/base_footprint" />
       <param name="child_frame_id" value="$(var child_frame_id)" />
-      <param name="use_sim_time" value="$(var use_sim_time)"/>
     </node>
   </group>
 </launch>

@@ -3,6 +3,13 @@
   <arg name="gui" default="true"/>
   <arg name="use_sim_time" default="true"/>
 
+  <node node-name="plankton_global_sim_time"
+        pkg="plankton_utils"
+        exec="plankton_global_sim_time"
+        output="screen">
+        <param name="use_sim_time" value="$(var use_sim_time)"/>
+  </node>
+
   <include file="$(find-pkg-share gazebo_ros)/launch/gazebo.launch.py">
     <arg name="world" value="worlds/mangalia.world"/>
     <arg name="pause" value="false"/>
@@ -15,7 +22,9 @@
     <arg name="extra_gazebo_args" value="-s libgazebo_ros_force_system.so --ros-args -r gazebo:__ns:=/gazebo"/>
   </include>
 
-  <include file="$(find-pkg-share uuv_assistants)/launch/publish_world_ned_frame.launch"/>
+  <include file="$(find-pkg-share uuv_assistants)/launch/publish_world_ned_frame.launch">
+    <arg name="use_sim_time" value="$(var use_sim_time)"/>
+  </include>
   
   <node name="publish_world_models"
         pkg="uuv_assistants"

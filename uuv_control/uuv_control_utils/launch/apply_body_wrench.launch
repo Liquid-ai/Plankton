@@ -14,7 +14,7 @@
   <arg name="starting_time" default="0"/>
 
   <arg name="duration" default="1"/>
-  <arg name="use_sim_time" default="true"/>
+  <!-- <arg name="use_sim_time" default="true"/> -->
 
   <group>
     <push-ros-namespace namespace="$(var uuv_name)"/>
