@@ -98,7 +98,7 @@ Install Colcon, the build tool system:
 Build the Plankton repository:  
 `colcon build --packages-up-to plankton`
 
-Source the variable for your installation workspace (change the path accordingly)  
+Source the file for your installation workspace (change the path accordingly)  
 `source $HOME/ros2_ws/install/setup.bash`  
 
 Now, install the XML / YAML frontend for launch files, which are missing in Eloquent:  
