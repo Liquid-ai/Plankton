@@ -23,7 +23,7 @@
 
 <robot name="rexrov" xmlns:xacro="http://www.ros.org/wiki/xacro" >
   <xacro:include filename="$(find uuv_gazebo_ros_plugins)/urdf/thruster_snippets.xacro"/>
-  <xacro:property name="prop_mesh_file" value="file://$(find uuv_descriptions)/mesh/prop.dae"/>
+  <xacro:property name="prop_mesh_file" value="file://$(find uuv_descriptions)/meshes/prop.dae"/>
   
   <xacro:macro name="box_inertial" params="x y z mass *origin">
     <inertial>
