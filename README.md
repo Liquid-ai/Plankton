@@ -73,12 +73,9 @@ Make sure git is installed:
 Now, clone the Plankton repository:  
 `git clone https://www.github.com/Liquid-ai/Plankton.git`
 
-You need to source 3 different files described below to configure ROS 2 and Gazebo environment variables. Write the following each time you start a new terminal to deal with ROS 2 / Gazebo stuff, or prefer to add them at the end of your .bashrc file with `gedit ~/.bashrc`. For the latter, don’t forget to source your .bashrc to enforce the update after saving these changes, or open a fresh terminal.  
-
+At this point, you need to source 2 different files described below to configure ROS 2 and Gazebo environment variables: 
    - For ROS 2 variables  
 `source /opt/ros/eloquent/setup.bash`  
-   - For your installation workspace (change the path accordingly)  
-`source $HOME/ros2_ws/install/setup.bash`  
    - For Gazebo   
 `source /usr/share/gazebo/setup.sh`
 
@@ -101,6 +98,9 @@ Install Colcon, the build tool system:
 Build the Plankton repository:  
 `colcon build --packages-up-to plankton`
 
+Source the variable for your installation workspace (change the path accordingly)  
+`source $HOME/ros2_ws/install/setup.bash`  
+
 Now, install the XML / YAML frontend for launch files, which are missing in Eloquent:  
 ```
 sudo apt install ros-eloquent-launch-xml    
@@ -112,13 +112,23 @@ If everything went well, you should be able to run example cases.
 
 ### 5. Test the package
 
+Note: Every time you open a new terminal, you need to source 3 different files described below to configure ROS 2 and Gazebo environment variables. Write the following each time you start a new terminal to deal with ROS 2 / Gazebo stuff, or prefer to add them at the end of your .bashrc file with `gedit ~/.bashrc`. For the latter, don’t forget to source your .bashrc to enforce the update after saving these changes, or open a fresh terminal.  
+
+   - For ROS 2 variables  
+`source /opt/ros/eloquent/setup.bash`  
+   - For your installation workspace (change the path accordingly)  
+`source $HOME/ros2_ws/install/setup.bash`  
+   - For Gazebo   
+`source /usr/share/gazebo/setup.sh`
+
+Let's start testing Plankton. 
 Open a new terminal (don’t forget to source ROS 2 / Gazebo files if necessary) and write as below to open a gazebo world:  
 `ros2 launch uuv_gazebo_worlds ocean_waves.launch`
 
-Spawn the rexrov robot:  
+Open again a new terminal (don't forget to source ROS 2 / Gazebo files if necessary), and spawn the rexrov robot:  
 `ros2 launch uuv_descriptions upload_rexrov.launch mode:=default x:=0 y:=0 z:=-20 namespace:=rexrov`
 
-Add a joystick node to control it remotely:  
+Add a joystick node to control it remotely (new terminal needed) :  
 `ros2 launch uuv_control_cascaded_pid joy_velocity.launch uuv_name:=rexrov model_name:=rexrov joy_id:=0`
 
 Here, joy_id represents your joystick id, defined in your OS. You can determine what is your id by installing `sudo apt-get install jstest-gtk` and running it.
