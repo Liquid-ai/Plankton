@@ -1,1 +1,1 @@
-This directory contains the data about robotics users needs in terms of simulation. 
+This directory contains data we gathered about robotics users needs in terms of simulation. 
