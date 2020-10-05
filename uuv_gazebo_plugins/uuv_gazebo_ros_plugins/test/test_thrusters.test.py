@@ -360,7 +360,7 @@ class TestThrusters(unittest.TestCase):
 # =============================================================================
 @pytest.mark.rostest
 def generate_test_description():
-    # Set env
+    # Set env...not sure if the tests actually connect to the right Gazebo...
     os.environ['GAZEBO_MASTER_URI'] = 'http://localhost:3002'
 
     file_path = pathlib.Path(__file__)
@@ -384,7 +384,8 @@ def generate_test_description():
         exc = 'Launch file ' + gazebo_launch + ' or ' + gazebo_world + ' does not exist'
         raise Exception(exc)
         
-    launch_args = [('world', gazebo_world), ('paused', 'false'), ('gui', 'false'), ]
+    launch_args = [('world', gazebo_world), ('paused', 'false'), 
+                   ('gui', 'false'),        ('verbose', 'true'),]
     gazebo_launch_desc = IncludeLaunchDescription(
             AnyLaunchDescriptionSource(gazebo_launch), launch_arguments=launch_args)
 
