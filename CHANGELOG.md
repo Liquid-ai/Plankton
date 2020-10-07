@@ -46,7 +46,7 @@
 
 ### uuv_control_msgs
 
-- [**GetMBSMControllerParams**, **SetMBSMControllerParams**] Changed field lambda as it is a reserved keyword in Python
+- [**GetMBSMControllerParams**, **SetMBSMControllerParams**] Changed field `lambda` as it is a reserved keyword in Python
 - [**GetPIDParams**, **SetPIDParams**, **SetSMControllerParams**, **GetSMControllerParams**] Turned field names to lowercase names as it is now a required convention
 
 ### uuv_control_utils
