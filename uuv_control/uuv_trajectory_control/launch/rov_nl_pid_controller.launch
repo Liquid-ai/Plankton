@@ -80,10 +80,6 @@
 
         <param name="saturation" value="$(var saturation)"/>
         <param name="inertial_frame_id" value="world_ned"/>
-        <!-- <param subst_value="true">
-          saturation: $(arg saturation)
-          inertial_frame_id: world_ned
-        </rosparam> -->
       </node>
 
       <node pkg="uuv_trajectory_control"
@@ -105,10 +101,6 @@
 
         <param name="saturation" value="$(var saturation)"/>
         <param name="inertial_frame_id" value="world"/>
-        <!-- <rosparam subst_value="true">
-          saturation: $(arg saturation)
-          inertial_frame_id: world
-        </rosparam> -->
       </node>
     </group>
   </group>
@@ -139,14 +131,6 @@
         <param name="Ki" value="[$(var Ki)]"/>
         <param name="Hm" value="[$(var Hm)]"/>
         <param name="inertial_frame_id" value="world_ned"/>
-        <!-- <rosparam subst_value="true">
-          saturation: $(arg saturation)
-          Kp: [$(arg Kp)]
-          Kd: [$(arg Kd)]
-          Ki: [$(arg Ki)]
-          Hm: [$(arg Hm)]
-          inertial_frame_id: world_ned
-        </rosparam> -->
       </node>
 
       <!-- Start controller wrt world (ENU) frame -->
@@ -172,14 +156,6 @@
         <param name="Ki" value="[$(var Ki)]"/>
         <param name="Hm" value="[$(var Hm)]"/>
         <param name="inertial_frame_id" value="world"/>
-        <!-- <rosparam subst_value="true">
-          saturation: $(arg saturation)
-          Kp: [$(arg Kp)]
-          Kd: [$(arg Kd)]
-          Ki: [$(arg Ki)]
-          Hm: [$(arg Hm)]
-          inertial_frame_id: world
-        </rosparam> -->
       </node>
     </group>
   </group>

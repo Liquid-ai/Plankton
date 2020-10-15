@@ -158,6 +158,3 @@ class TestThrusters(unittest.TestCase):
             y = random.random() * 10000
             self.assertTrue(np.isclose(thruster.get_command_value(y), y / gain))
 
-# if __name__ == '__main__':
-#     import rosunit
-#     rosunit.unitrun(PKG, 'test_thrusters', TestThrusters)

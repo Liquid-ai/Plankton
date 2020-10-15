@@ -53,15 +53,12 @@ ROSBaseModelPlugin::ROSBaseModelPlugin()
   this->tfLocalNEDFrameMsg.transform.rotation.z = quat.z();
   this->tfLocalNEDFrameMsg.transform.rotation.w = quat.w();
 
-  // Initialize TF broadcaster (removed as the ros node is not initialized)
-  //this->tfBroadcaster.reset(new tf2_ros::TransformBroadcaster(myRosNode));
+  // NB: initialization of TF broadcaster removed as the ros node is not initialized)
 }
 
 /////////////////////////////////////////////////
 ROSBaseModelPlugin::~ROSBaseModelPlugin()
 {
-  // if (this->tfBroadcaster)
-  //   delete this->tfBroadcaster;
 }
 
 /////////////////////////////////////////////////
@@ -130,7 +127,7 @@ void ROSBaseModelPlugin::SendLocalNEDTransform()
   //builtin_interfaces::msg::Time msgTime;
   
   this->tfLocalNEDFrameMsg.header.stamp = time;    
-  tf2::TimePoint(std::chrono::nanoseconds(time.nanoseconds()));//ros::Time::now();
+  tf2::TimePoint(std::chrono::nanoseconds(time.nanoseconds()));
   //tf2::transformStampedTFToMsg(this->tfLocalNEDFrame, msg);
   this->tfBroadcaster->sendTransform(msg);  
 }

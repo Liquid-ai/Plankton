@@ -26,7 +26,6 @@ def generate_launch_description():
         file_out.write(doc)
     
     args = ('-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0 -entity vehicle -file ' + output).split()
-    #args = '-entity vehicle'.split(sep=' ')
 
     # Urdf spawner
     urdf_spawner = Node(

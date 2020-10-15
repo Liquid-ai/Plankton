@@ -74,8 +74,6 @@ class AUVControlAllocator(ActuatorManager):
       
         self.sub = self.create_subscription(AUVCommand, 'control_input', self.control_callback, 10)
 
-        #rate = self.create_rate(self.update_rate)
-
         # NB : no spin before, the sim time clock() is automatically 0
         self.last_update = time_in_float_sec(self.get_clock().now())
 
@@ -157,7 +155,7 @@ class AUVControlAllocator(ActuatorManager):
             self.input_tau[0:3] = np.dot(self.base_link_ned_to_enu, self.input_tau[0:3])
             self.input_tau[4::] = np.dot(self.base_link_ned_to_enu, self.input_tau[4::])
         
-        self.last_update = self.get_clock().now() # rospy.Time.now()
+        self.last_update = self.get_clock().now()
 
       
 # =============================================================================
@@ -168,7 +166,7 @@ def main():
         sim_time_param = is_sim_time()
 
         node = AUVControlAllocator('auv_control_allocator', parameter_overrides=[sim_time_param])
-        #rospy.spin(node)
+        
     except rclpy.ROSInterruptException:
         print('AUVControlAllocator::ROSInterruptException Exception')
     except Exception as e:

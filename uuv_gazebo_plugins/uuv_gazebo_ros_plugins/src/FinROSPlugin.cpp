@@ -48,8 +48,6 @@ FinROSPlugin::~FinROSPlugin()
   gazebo::event::Events::DisconnectWorldUpdateBegin(
         this->rosPublishConnection);
 #endif
-  //rclcpp::shutdown();
-  //this->rosNode->shutdown();
 }
 
 //=============================================================================

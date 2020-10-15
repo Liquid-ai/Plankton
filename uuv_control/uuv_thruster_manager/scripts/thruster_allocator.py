@@ -25,7 +25,7 @@ import rclpy
 from os.path import isdir, join
 from copy import deepcopy
 import yaml
-#import tf2_ros
+
 from uuv_thrusters import ThrusterManager
 from geometry_msgs.msg import Wrench, WrenchStamped
 from uuv_thruster_manager.srv import *
@@ -119,10 +119,6 @@ class ThrusterAllocatorNode(ThrusterManager):
         response.reference_frame = self.namespace + self.config['base_link'].value
 
         return response
-        # return ThrusterManagerInfoResponse(
-        #     self.n_thrusters,
-        #     self.configuration_matrix.flatten().tolist(),
-        #     self.namespace + self.config['base_link'].value)
 
     # ==============================================================================
     def get_thruster_curve(self, request, response):
@@ -141,14 +137,6 @@ class ThrusterAllocatorNode(ThrusterManager):
         response.thrust = thrust_values
 
         return response
-
-        # if self.n_thrusters == 0:
-        #     return GetThrusterCurveResponse([], [])
-        # # TODO Get thruster index, for the case the vehicle has different
-        # # models
-        # input_values, thrust_values = self.thrusters[0].get_curve(
-        #     request.min, request.max, request.n_points)
-        # return GetThrusterCurveResponse(input_values, thrust_values)
 
     # ==============================================================================
     def set_config(self, request, response):
@@ -170,8 +158,6 @@ class ThrusterAllocatorNode(ThrusterManager):
         response.success = True
         return response
 
-        # return SetThrusterManagerConfigResponse(True)
-
     # ==============================================================================
     def get_config(self, request, response):
         response.tf_prefix = self.namespace
@@ -185,16 +171,6 @@ class ThrusterAllocatorNode(ThrusterManager):
         response.allocation_matrix = self.configuration_matrix.flatten().tolist()
 
         return response
-        # return GetThrusterManagerConfigResponse(
-        #     self.namespace,
-        #     self.config['base_link'].value,
-        #     self.config['thruster_frame_base'].value,
-        #     self.config['thruster_topic_prefix'].value,
-        #     self.config['thruster_topic_suffix'].value,
-        #     self.config['timeout'].value,
-        #     self.config['max_thrust'].value,
-        #     self.n_thrusters,
-        #     self.configuration_matrix.flatten().tolist())
 
     # ==============================================================================
     def input_callback(self, msg):

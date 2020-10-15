@@ -1,5 +1,11 @@
-# Copyright (c) 2016-2019 The UUV Simulator Authors.
+# Copyright (c) 2020 The Plankton Authors.
 # All rights reserved.
+#
+# This source code is derived from UUV Simulator
+# (https://github.com/uuvsimulator/uuv_simulator)
+# Copyright (c) 2016-2019 The UUV Simulator Authors
+# licensed under the Apache license, Version 2.0
+# cf. 3rd-party-licenses.txt file in the root directory of this source tree.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -67,6 +73,7 @@ class PathGenerator(object):
         self._markers_msg = MarkerArray()
         self._marker_id = 0
 
+    # =========================================================================
     @staticmethod
     def get_generator(name, *args, **kwargs):
         """Factory method for all derived path generators.
@@ -91,6 +98,7 @@ class PathGenerator(object):
         self._logger.error(msg)
         raise ValueError(msg)
 
+    # =========================================================================
     @staticmethod
     def get_all_generators():
         """Get the name identifiers of all path generator classes.
@@ -104,36 +112,43 @@ class PathGenerator(object):
             generators.append(gen())
         return generators
 
+    # =========================================================================
     @property
     def waypoints(self):
         """`uuv_waypoints.WaypointSet`: Set of waypoints"""
         return self._waypoints
 
+    # =========================================================================
     @property
     def max_time(self):
         """`float`: Absolute final timestamp assigned to the path in seconds"""
         return self._duration + self._start_time
 
+    # =========================================================================
     @property
     def duration(self):
         """`float`: Duration in seconds for the whole path"""
         return self._duration
 
+    # =========================================================================
     @duration.setter
     def duration(self, t):
         assert t > 0, 'Duration must be a positive value'
         self._duration = t
 
+    # =========================================================================
     @property
     def start_time(self):
         """`float`: Start timestamp assigned to the first waypoint"""
         return self._start_time
 
+    # =========================================================================
     @start_time.setter
     def start_time(self, time):
         assert time >= 0, 'Invalid negative time'
         self._start_time = time
 
+    # =========================================================================
     @property
     def closest_waypoint(self):
         """`uuv_waypoints.Waypoint`: Return the closest waypoint 
@@ -141,6 +156,7 @@ class PathGenerator(object):
         """
         return self._waypoints.get_waypoint(self.closest_waypoint_idx)
 
+    # =========================================================================
     @property
     def closest_waypoint_idx(self):
         """Return the index of the closest waypoint to the current 
@@ -155,6 +171,7 @@ class PathGenerator(object):
         idx = np.argmin(v)
         return idx
 
+    # =========================================================================
     @property
     def s_step(self):
         """`float`: Value of the step size for the path's parametric 
@@ -162,16 +179,19 @@ class PathGenerator(object):
         """
         return self._s_step
 
+    # =========================================================================
     @s_step.setter
     def s_step(self, step):
         assert 0 < step < 1
         self._s_step = step
 
+    # =========================================================================
     @property
     def termination_by_time(self):
         """`data_type`: Property description"""
         return self._termination_by_time
 
+    # =========================================================================
     def reset(self):
         self._s = list()
         self._segment_to_wp_map = list()
@@ -181,6 +201,7 @@ class PathGenerator(object):
         self._start_time = None
         self._duration = None
 
+    # =========================================================================
     def get_segment_idx(self, s):
         if len(self._s) == 0:
             return 0
@@ -194,6 +215,7 @@ class PathGenerator(object):
             idx = (self._s - s >= 0).nonzero()[0][0]
         return idx
 
+    # =========================================================================
     def get_remaining_waypoints_idx(self, s):
         idx = self.get_segment_idx(s)
         try:
@@ -203,24 +225,31 @@ class PathGenerator(object):
             self._logger.error('Invalid segment index')
             return None
 
+    # =========================================================================
     def is_full_dof(self):
         return self._is_full_dof
 
+    # =========================================================================
     def set_full_dof(self, flag):
         self._is_full_dof = flag
 
+    # =========================================================================
     def get_label(self):
         return self.LABEL
 
+    # =========================================================================
     def init_interpolator(self):
         raise NotImplementedError()
 
+    # =========================================================================
     def get_samples(self, max_time, step=0.005):
         raise NotImplementedError()
 
+    # =========================================================================
     def get_visual_markers(self):
         return self._markers_msg
 
+    # =========================================================================
     def add_waypoint(self, waypoint, add_to_beginning=False):
         """Add waypoint to the existing waypoint set. If no waypoint set has
         been initialized, create new waypoint set structure and add the given
@@ -230,6 +259,7 @@ class PathGenerator(object):
         self._waypoints.add_waypoint(waypoint, add_to_beginning)
         return self.init_interpolator()
 
+    # =========================================================================
     def init_waypoints(self, waypoints=None, init_rot=np.array([0, 0, 0, 1])):
         if waypoints is not None:
             self._waypoints = deepcopy(waypoints)
@@ -242,33 +272,41 @@ class PathGenerator(object):
         self._logger.info('Setting initial rotation as={}'.format(init_rot))
         return True
 
+    # =========================================================================
     def interpolate(self, tag, s):
         return self._interp_fcns[tag](s)
 
+    # =========================================================================
     def is_finished(self, t):
         if self._termination_by_time:
             return t > self.max_time
         else:
             return True
 
+    # =========================================================================
     def has_started(self, t):
         if self._termination_by_time:
             return t - self.start_time > 0
         else:
             return True
 
+    # =========================================================================
     def generate_pnt(self, s):
         raise NotImplementedError()
 
+    # =========================================================================
     def generate_pos(self, s):
         raise NotImplementedError()
-
+    
+    # =========================================================================
     def generate_quat(self, s):
         raise NotImplementedError()
 
+    # =========================================================================
     def set_parameters(self, params):
         raise NotImplementedError()
 
+    # =========================================================================
     def _compute_rot_quat(self, dx, dy, dz):
         if np.isclose(dx, 0) and np.isclose(dy, 0):
             rotq = self._last_rot

@@ -2,6 +2,3 @@
     <node node-name="publish_footprints" pkg="uuv_assistants" exec="publish_footprints.py" output="screen"/>
 </launch>
 
-<!-- <launch>
-    <node name="publish_footprints" pkg="uuv_assistants" type="publish_footprints.py" output="screen"/>
-</launch> -->

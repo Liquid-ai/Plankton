@@ -39,9 +39,6 @@ class WorldPublisher(Node):
 
         self.get_logger().info(node_name + ': start publishing vehicle footprints to RViz')
 
-        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        # self.set_parameters([sim_time])
-
         self._model_paths = dict()
 
         try:
@@ -57,8 +54,6 @@ class WorldPublisher(Node):
      
         meshes = self.get_parameters_by_prefix('meshes')
         if meshes != None:
-        #if self.has_parameter('meshes'):
-            #meshes = self.get_parameter('meshes').value
             if type(meshes) != dict:
                 raise RuntimeError('A list of mesh filenames is required')
     
@@ -69,10 +64,6 @@ class WorldPublisher(Node):
         self._mesh_topic = self.create_publisher(MarkerArray, '/world_models', 1)
 
         self.timer = self.create_timer(10, self.publish_meshes)
-        # rate = self.create_rate(0.1)
-        # while rclpy.ok():
-        #     self.publish_meshes()
-        #     rate.sleep()
 
     # =========================================================================
     def add_meshes(self, models):
@@ -87,9 +78,8 @@ class WorldPublisher(Node):
             new_model['orientation'] = [0., 0., 0., 1.]
             new_model['scale'] = [1., 1., 1.]
 
-            #It would probably be cleaner not to consider maps of maps, but rather 
-            #to create a function to parse arg1.arg2.arg3
-            #meshes = self.get_parameters_by_prefix('meshes')
+            # It would probably be cleaner not to consider maps of maps, but rather 
+            # to create a function to parse arg1.arg2.arg3
             if 'pose' in models[model]:
                 if 'position' in models[model]['pose']:
                     val = models[model]['pose']['position'].value
@@ -172,7 +162,7 @@ class WorldPublisher(Node):
                 marker.scale.z = self._model_paths[model]['plane'][2]
 
             marker.header.frame_id = 'world'
-            marker.header.stamp = self.get_clock().now().to_msg()#rospy.get_rostime()
+            marker.header.stamp = self.get_clock().now().to_msg()
             marker.ns = ''
             marker.id = i
             marker.action = Marker.ADD
@@ -202,7 +192,7 @@ def main():
 
     try:
         sim_time_param = is_sim_time()
-        #sim_time_param = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, sim_time)
+
         world_pub = WorldPublisher('publish_world_models', parameter_overrides=[sim_time_param])
         rclpy.spin(world_pub)
     except Exception as e:

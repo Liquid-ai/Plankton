@@ -23,15 +23,13 @@
 import math
 import numpy
 import rclpy
-#import tf.transformations as trans
+
+from rcl_interfaces.msg import ParameterDescriptor
+
 from PID import PIDRegulator
 
-#from dynamic_reconfigure.server import Server
-#from uuv_control_cascaded_pid.cfg import PositionControlConfig
 import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
-
-#from rospy.numpy_msg import numpy_msg
 
 import tf_quaternion.transformations as transf
 
@@ -58,15 +56,15 @@ class PositionControllerNode(Node):
         self.pid_rot = PIDRegulator(1, 0, 0, 1)
         self.pid_pos = PIDRegulator(1, 0, 0, 1)
 
-        self._declare_and_fill_map("pos_p", 1., self.config)
-        self._declare_and_fill_map("pos_i", 0.0, self.config)
-        self._declare_and_fill_map("pos_d", 0.0, self.config)
-        self._declare_and_fill_map("pos_sat", 10.0, self.config)
+        self._declare_and_fill_map("pos_p", 1., "p component of pid for position", self.config)
+        self._declare_and_fill_map("pos_i", 0.0, "i component of pid for position.", self.config)
+        self._declare_and_fill_map("pos_d", 0.0, "d component of pid for position.", self.config)
+        self._declare_and_fill_map("pos_sat", 10.0, "saturation of pid for position.", self.config)
 
-        self._declare_and_fill_map("rot_p", 1., self.config)
-        self._declare_and_fill_map("rot_i", 0.0, self.config)
-        self._declare_and_fill_map("rot_d", 0.0, self.config)
-        self._declare_and_fill_map("rot_sat", 3.0, self.config)
+        self._declare_and_fill_map("rot_p", 1., "p component of pid for orientation.", self.config)
+        self._declare_and_fill_map("rot_i", 0.0, "i component of pid for orientation.", self.config)
+        self._declare_and_fill_map("rot_d", 0.0, "d component of pid for orientation.", self.config)
+        self._declare_and_fill_map("rot_sat", 3.0, "saturation of pid for orientation.", self.config)
 
         self.set_parameters_callback(self.callback_params)
 
@@ -75,11 +73,8 @@ class PositionControllerNode(Node):
         # ROS infrastructure
         self.sub_cmd_pose = self.create_subscription(geometry_msgs.PoseStamped, 'cmd_pose', self.cmd_pose_callback, 10)
         self.sub_odometry = self.create_subscription(Odometry, 'odom', self.odometry_callback, 10)
-        # self.sub_cmd_pose = self.create_subscription(numpy_msg(geometry_msgs.PoseStamped), 'cmd_pose', self.cmd_pose_callback, 10)
-        # self.sub_odometry = self.create_subscription(numpy_msg(Odometry), 'odom', self.odometry_callback, 10)
-        self.pub_cmd_vel = self.create_publisher(geometry_msgs.Twist, 'cmd_vel', 10)
-        #self.srv_reconfigure = Server(PositionControlConfig, self.config_callback)
         
+        self.pub_cmd_vel = self.create_publisher(geometry_msgs.Twist, 'cmd_vel', 10)        
 
     #==============================================================================
     def cmd_pose_callback(self, msg):
@@ -137,17 +132,6 @@ class PositionControllerNode(Node):
         self.pub_cmd_vel.publish(cmd_vel)
 
     #==============================================================================
-    # def config_callback(self, config, level):
-    #     """Handle updated configuration values."""
-    #     # Config has changed, reset PID controllers
-    #     self.pid_pos = PIDRegulator(config['pos_p'], config['pos_i'], config['pos_d'], config['pos_sat'])
-    #     self.pid_rot = PIDRegulator(config['rot_p'], config['rot_i'], config['rot_d'], config['rot_sat'])
-
-    #     self.config = config
-
-    #     return config
-
-    #==============================================================================
     def callback_params(self, data):
        """Handle updated configuration values."""
         for parameter in data:
@@ -157,8 +141,6 @@ class PositionControllerNode(Node):
 
         # Config has changed, reset PID controllers
         create_pids(self.config)
-        #self.pid_pos = PIDRegulator(config['pos_p'], config['pos_i'], config['pos_d'], config['pos_sat'])
-        #self.pid_rot = PIDRegulator(config['rot_p'], config['rot_i'], config['rot_d'], config['rot_sat'])
 
         self.get_logger().warn("Parameters dynamically changed...")
         return SetParametersResult(successful=True)
@@ -169,8 +151,8 @@ class PositionControllerNode(Node):
         self.pid_rot = PIDRegulator(config['rot_p'], config['rot_i'], config['rot_d'], config['rot_sat'])
 
     #==============================================================================
-    def _declare_and_fill_map(self, key, default_value, map):
-        param = self.declare_parameter(key, default_value)
+    def _declare_and_fill_map(self, key, default_value, description, map):
+        param = self.declare_parameter(key, default_value, ParameterDescriptor(description=description))
         map[key] = param.value
 
 #==============================================================================

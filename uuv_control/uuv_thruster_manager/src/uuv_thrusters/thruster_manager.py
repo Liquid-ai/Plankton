@@ -59,10 +59,6 @@ class ThrusterManager(Node):
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)
 
-        #Default sim_time to True
-        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        # self.set_parameters([sim_time])
-
         # This flag will be set to true once the thruster allocation matrix is
         # available
         self._ready = False
@@ -76,20 +72,18 @@ class ThrusterManager(Node):
             if self.namespace[0] != '/':
                 self.namespace = '/' + self.namespace
 
+        # Load all parameters
         self.config = self.get_parameters_by_prefix('thruster_manager')
         
         if len(self.config) == 0:
-        #if not self.has_parameter('thruster_manager'):
             raise RuntimeError('Thruster manager parameters not '
                                      'initialized for uuv_name=' +
                                      self.namespace)
 
         self.config = parse_nested_params_to_dict(self.config, '.')
-        # Load all parameters
-        #self.config = self.get_parameter('thruster_manager').value
-
+        
         #TODO To change in foxy
-        #robot_description_param = self.namespace + 'robot_description'
+        # robot_description_param = self.namespace + 'robot_description'
         robot_description_param = 'urdf_file'
         self.use_robot_descr = False
         self.axes = {}
@@ -162,7 +156,7 @@ class ThrusterManager(Node):
           'ThrusterManager::update_rate=' + str(self.config['update_rate'].value))
 
         # Set the tf_prefix parameter
-        #TODO probably comment
+        #TODO probably remove
         #self.set_parameters(['thruster_manager/tf_prefix'], [self.namespace])
         # param_tf_prefix = rclpy.parameter.Parameter('thruster_manager.tf_prefix', rclpy.Parameter.Type.STRING, self.namespace)
         # self.set_parameters([param_tf_prefix])
@@ -186,16 +180,13 @@ class ThrusterManager(Node):
         # Thrust forces vector
         self.thrust = None
 
-        #TODO Close check...transform to dict
         # Thruster allocation matrix: transform thruster inputs to force/torque
         self.configuration_matrix = None
-        # tam = self.get_parameter('tam')
-        # if len(tam) != 0:
-            #tam = parse_nested_params_to_dict(tam, '.')
+        
         if self.has_parameter('tam'):
             tam = self.get_parameter('tam').value
             tam = numpy.array(tam)
-            #reshape the array. #TODO Unsure
+            # Reshape the array. #TODO Unsure
             self.configuration_matrix = numpy.reshape(tam, (6, -1))
             # Set number of thrusters from the number of columns
             self.n_thrusters = self.configuration_matrix.shape[1]
@@ -208,18 +199,21 @@ class ThrusterManager(Node):
                                              'conversion_fcn_params must have '
                                              'the same number of items as of '
                                              'thrusters')
-            #TODO !!!!!!!!! Check if the topic name has to be corrected somewhere !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            
             for i in range(self.n_thrusters):
-                topic = self.config['thruster_topic_prefix'].value + 'id_' + str(i) + \
-                    self.config['thruster_topic_suffix'].value
+                # topic = self.config['thruster_topic_prefix'].value + 'id_' + str(i) + \
+                #     self.config['thruster_topic_suffix'].value
+                topic = self.build_topic_name(self.config['thruster_topic_prefix'].value, 
+                                         i, 
+                                         self.config['thruster_topic_suffix'].value)
                 if list not in [type(params), type(conv_fcn)]:
-                    #Unpack parameters to values
+                    # Unpack parameters to values
                     deduced_params = {key: val.value for key, val in params.items()}
                     thruster = Thruster.create_thruster(
                         self, conv_fcn, i, topic, None, None,
                         **deduced_params)
                 else:
-                    #Unpack parameters to values
+                    # Unpack parameters to values
                     deduced_params = {key: val.value for key, val in params[i].items()}
                     thruster = Thruster.create_thruster(
                         self, conv_fcn[i], i, topic, None, None,
@@ -251,8 +245,6 @@ class ThrusterManager(Node):
                 yaml_file.write(
                     yaml.safe_dump(
                         dict(tam=self.configuration_matrix.tolist())))
-        # else:
-        #     self.get_logger().info('Invalid output directory for the TAM matrix, dir=' + str(self.output_dir))
 
         self._ready = True
         self.init_future.set_result(True)
@@ -283,7 +275,7 @@ class ThrusterManager(Node):
         if self.configuration_matrix is not None and not recalculate:
             self._ready = True
             self.get_logger().info('TAM provided, skipping...')
-            self.get_logger().info('ThrusterManager: ready')
+            # self.get_logger().info('ThrusterManager: ready')
             return True
 
         self._ready = False
@@ -292,6 +284,7 @@ class ThrusterManager(Node):
         now = self.get_clock().now() + rclpy.time.Duration(nanoseconds=int(0.2 * 1e9))
 
         base = self.namespace + self.config['base_link'].value
+        # Strip /
         base = base[1:]
 
         self.thrusters = list()
@@ -310,14 +303,11 @@ class ThrusterManager(Node):
 
         self.get_logger().info('conversion_fcn=' + str(self.config['conversion_fcn'].value))
         self.get_logger().info('conversion_fcn_params=' + str(self.config['conversion_fcn_params']))
-
-        #listener = tf.TransformListener()
-        #sleep(0.1)
-
         
         for i in range(self.MAX_THRUSTERS):
             frame = self.namespace + \
                 self.config['thruster_frame_base'].value + str(i)
+            # Strip /
             frame = frame[1:]
             try:
                 # try to get thruster pose with respect to base frame via tf
@@ -335,8 +325,11 @@ class ThrusterManager(Node):
                             transformObject.transform.rotation.z,
                             transformObject.transform.rotation.w])
 
-                topic = self.config['thruster_topic_prefix'].value + 'id_' + str(i) + \
-                    self.config['thruster_topic_suffix'].value
+                # topic = self.config['thruster_topic_prefix'].value + 'id_' + str(i) + \
+                #     self.config['thruster_topic_suffix'].value
+                topic = self.build_topic_name(self.config['thruster_topic_prefix'].value,
+                                              i,
+                                              self.config['thruster_topic_suffix'].value)
 
                 # If not using robot_description, thrust_axis=None which will
                 # result in the thrust axis being the x-axis,i.e. (1,0,0)
@@ -344,7 +337,7 @@ class ThrusterManager(Node):
 
                 if equal_thrusters:
                     params = self.config['conversion_fcn_params']
-                    #Unpack parameters to values
+                    # Unpack parameters to values
                     params = {key: val.value for key, val in params.items()}
                     thruster = Thruster.create_thruster(
                         self, self.config['conversion_fcn'].value,
@@ -354,7 +347,7 @@ class ThrusterManager(Node):
                         raise RuntimeError('Number of thrusters found and '
                                                  'conversion_fcn are different')
                     params = self.config['conversion_fcn_params'][idx_thruster_model]
-                    #Unpack parameters to values
+                    # Unpack parameters to values
                     params = {key: val.value for key, val in params.items()}
                     conv_fcn = self.config['conversion_fcn'][idx_thruster_model].value
                     thruster = Thruster.create_thruster(
@@ -478,3 +471,8 @@ class ThrusterManager(Node):
     @property
     def ready(self):
         return self._ready
+
+    # =========================================================================
+    def build_topic_name(self, prefix, id, suffix):
+        return prefix + 'id_' + str(id) + suffix
+

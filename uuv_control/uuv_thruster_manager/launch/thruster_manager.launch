@@ -23,9 +23,6 @@
         <!-- Output directory to store the thruster allocation matrix -->
         <param name="output_dir" value="$(var output_dir)"/>
         <param name="urdf_file" value="$(var urdf_file)"/>    
-        <!--The following is not used and not called, remove it-->
-        <!-- <param param="thruster_manager/timeout" value="$(arg timeout)"/> -->
-        <!-- <param param="thruster_manager/tf_prefix" value="$(arg uuv_name)"/>-->
       </node>
     </group>
 

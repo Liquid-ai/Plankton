@@ -294,7 +294,6 @@ bool DVLROSPlugin::UpdateBeamTransforms()
   if (this->beamPoses.size() == 4)
     return true;
 
-  //tf2::Stamped<tf2::Transform> beamTransform;
   geometry_msgs::msg::TransformStamped beamTransform;
   std::string targetFrame, sourceFrame;
   bool success = true;
@@ -308,7 +307,6 @@ bool DVLROSPlugin::UpdateBeamTransforms()
       targetFrame = tfLocalNEDFrameMsg.child_frame_id;
     try
     {
-      //ros::Time now = ros::Time::now();
       beamTransform = myBuffer->lookupTransform(
         targetFrame, sourceFrame, rclcpp::Time(0));
     }
@@ -330,7 +328,7 @@ bool DVLROSPlugin::UpdateBeamTransforms()
       beamTransform.transform.rotation.z);
 
     this->dvlBeamMsgs[i].pose = geometry_msgs::msg::PoseStamped();
-    this->dvlBeamMsgs[i].pose.header.stamp = myRosNode->now();//ros::Time::now();
+    this->dvlBeamMsgs[i].pose.header.stamp = myRosNode->now();
     this->dvlBeamMsgs[i].pose.header.frame_id = sourceFrame;
 
     this->dvlBeamMsgs[i].pose.pose.position.x = beamTransform.transform.translation.x;

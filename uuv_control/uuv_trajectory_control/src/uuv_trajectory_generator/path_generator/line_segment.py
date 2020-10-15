@@ -1,5 +1,11 @@
-# Copyright (c) 2016-2019 The UUV Simulator Authors.
+# Copyright (c) 2020 The Plankton Authors.
 # All rights reserved.
+#
+# This source code is derived from UUV Simulator
+# (https://github.com/uuvsimulator/uuv_simulator)
+# Copyright (c) 2016-2019 The UUV Simulator Authors
+# licensed under the Apache license, Version 2.0
+# cf. 3rd-party-licenses.txt file in the root directory of this source tree.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,6 +50,7 @@ class LineSegment(object):
 
         assert not np.array_equal(self._p_init, self._p_target), 'Initial and final points are equal'
 
+    # =========================================================================
     def interpolate(self, u):
         """Interpolate the Bezier curve using the input parametric variable `u`.
         
@@ -59,6 +66,7 @@ class LineSegment(object):
         u = min(u, 1)
         return (1 - u) * self._p_init + u * self._p_target
 
+    # =========================================================================
     def get_derivative(self, *args):        
         """Compute the derivative of the line segment.
 
@@ -68,6 +76,7 @@ class LineSegment(object):
         """
         return self._p_target - self._p_init
 
+    # =========================================================================
     def get_length(self):
         """Get length of the Bezier curve segment.
 
@@ -77,6 +86,7 @@ class LineSegment(object):
         """
         return np.linalg.norm(self._p_target - self._p_init)
 
+    # =========================================================================
     def get_tangent(self):
         """Compute tangent vector.
         

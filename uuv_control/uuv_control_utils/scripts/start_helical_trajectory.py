@@ -31,20 +31,19 @@ from plankton_utils.time import time_in_float_sec
 from plankton_utils import float_sec_to_int_sec_nano
 from plankton_utils.time import is_sim_time
 
-def main():
-    print('Starting the helical trajectory creator')
-    rclpy.init()#changed node name
+def main(): 
+    rclpy.init()
 
     sim_time_param = is_sim_time()
-
+    
+    # Compared to ROS 1 version, the node name was changed
     node = rclpy.create_node(
         'start_helical_trajectory',
         allow_undeclared_parameters=True, 
         automatically_declare_parameters_from_overrides=True,
         parameter_overrides=[sim_time_param])
-
-    # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-    # node.set_parameters([sim_time])
+        
+    node.get_logger().info('Starting the helical trajectory creator')
 
     # Important...ensure the clock has been updated when using sim time
     while node.get_clock().now() == rclpy.time.Time():
@@ -88,9 +87,9 @@ def main():
     if not traj_gen.wait_for_service(timeout_sec=20)
         raise RuntimeError('Service %s not available! Closing node...' %(traj_gen.srv_name))
 
-    print('Generating trajectory that starts at t={} s'.format(start_time))
+    node.get_logger().info('Generating trajectory that starts at t={} s'.format(start_time))
 
-    #Convert the time value
+    # Convert the time value
     (sec, nsec) = float_sec_to_int_sec_nano(start_time)
 
     req = InitHelicalTrajectory.Request()
@@ -115,13 +114,6 @@ def main():
         node.get_logger().error('Service call ' + srv_name + ' failed, error=' + str(e)):
     else:
         node.get_logger().info('Trajectory successfully generated!')
-
-    # success = traj_gen.call(req)
-
-    # if success:
-    #     print('Trajectory successfully generated!')
-    # else:
-    #     print('Failed')
 
 #==============================================================================
 if __name__ == '__main__':

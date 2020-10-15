@@ -111,10 +111,6 @@ class DPControllerBase(Node):
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)
 
-        #Default sim_time to True
-        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        # self.set_parameters([sim_time])
-
         # Flag will be set to true when all parameters are initialized correctly
         self._is_init = False
         self._logger = get_logger()
@@ -194,7 +190,7 @@ class DPControllerBase(Node):
 
         # Time step
         self._dt = 0
-        self._prev_time = time_in_float_sec(self.get_clock().now())#rospy.get_time()
+        self._prev_time = time_in_float_sec(self.get_clock().now())
 
         self._services = dict()
         self._services['reset'] = self.create_service(ResetController,
@@ -405,8 +401,6 @@ class DPControllerBase(Node):
 
         response.success = True
         return response
-        
-        #return ResetControllerResponse(True)
 
     # =========================================================================
     def update_controller(self):

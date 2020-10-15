@@ -2,6 +2,8 @@ from setuptools import setup
 import os
 from glob import glob
 
+# File not used. Change the build tool in package.xml to change the behaviour
+
 package_name = 'uuv_teleop'
 
 setup(

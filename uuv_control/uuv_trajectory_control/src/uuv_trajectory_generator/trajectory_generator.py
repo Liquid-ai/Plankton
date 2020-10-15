@@ -15,7 +15,6 @@
 from copy import deepcopy
 import numpy as np
 
-#import rclpy
 import rclpy.time
 from rclpy.node import Node
 from geometry_msgs.msg import Vector3, PoseStamped, Quaternion

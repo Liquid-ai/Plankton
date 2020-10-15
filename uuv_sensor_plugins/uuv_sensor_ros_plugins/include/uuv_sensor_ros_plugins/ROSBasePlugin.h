@@ -34,9 +34,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <tf2_msgs/msg/tf_message.hpp>
-//#include <tf2/
-//#include <tf/tfMessage.h>
-//#include <tf/tf.h>
 
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>

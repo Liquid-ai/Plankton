@@ -53,8 +53,8 @@ class VehicleTeleop(Node):
                                rollfast=2, pitchfast=2, yawfast=2)
 
         mapping = self.get_parameters_by_prefix('mapping')
+        
         if len(mapping) != 0:       
-        #if self.has_parameter('mapping'):
             mapping = parse_nested_params_to_dict(mapping, '.')
             for tag in self._axes:
                 if tag not in mapping:
@@ -100,7 +100,7 @@ class VehicleTeleop(Node):
                             'Exclusion buttons must be an integer index to '
                             'the joystick button')
 
-                #Ensure we only get int value
+                # Ensure we only get int values
                 self._exclusion_buttons = [int(n) for n in self._exclusion_buttons]
         else:
             self._exclusion_buttons = list()
@@ -126,11 +126,6 @@ class VehicleTeleop(Node):
 
         # Joystick topic subscriber
         self._joy_sub = self.create_subscription(Joy, 'joy', self._joy_callback, 10)
-
-        # ??
-        # rate = rospy.Rate(50)
-        # while not rospy.is_shutdown():
-        #     rate.sleep()
 
     #==============================================================================
     def _parse_joy(self, joy=None):
@@ -219,8 +214,6 @@ def main(args=None):
     # Start the node
     node_name = os.path.splitext(os.path.basename(__file__))[0]
     rclpy.init()
-
-    #rospy.init_node(node_name)
     
     teleop = VehicleTeleop(node_name)
     teleop.get_logger().info('Starting [%s] node' % node_name)

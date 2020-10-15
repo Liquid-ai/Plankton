@@ -46,12 +46,7 @@ RADIUS = 0.1
 CD = 0.5
 
 
-class TestSphereVehicle(unittest.TestCase):
-    # def tearDownClass(self):
-        # FIXME Temporary solution to avoid gzserver lingering after the
-        # simulation node is killed (Gazebo 9.1)
-        # os.system('killall -9 gzserver')
-    
+class TestSphereVehicle(unittest.TestCase):    
     @classmethod
     def setUpClass(cls):
         # Initialize the ROS context for the test node
@@ -106,15 +101,9 @@ class TestSphereVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_get_model_parameters(self):
-        # rospy.wait_for_service('/vehicle/get_model_properties')
-
-        # get_models = rospy.ServiceProxy('/vehicle/get_model_properties',
-        #                                 GetModelProperties)
-
         s_models = self.create_service(GetModelProperties, '/vehicle/get_model_properties')
 
         models = self.service_request(s_models)
-        # models = get_models()
 
         self.assertEqual(len(models.link_names), 1)
         self.assertEqual(len(models.models), 1)
@@ -153,16 +142,9 @@ class TestSphereVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_added_mass_coefs(self):
-        # rospy.wait_for_service('/vehicle/get_model_properties')
-
-        # get_models = rospy.ServiceProxy('/vehicle/get_model_properties',
-        #                                 GetModelProperties)
-
         s_models = self.create_service(GetModelProperties, '/vehicle/get_model_properties')
 
         models = self.service_request(s_models)
-
-        # models = get_models()
 
         d_idxs = [i*6 + j for i, j in zip(range(3), range(3))]
         sphere_ma = 2.0 / 3.0 * models.models[0].fluid_density * np.pi * \
@@ -175,16 +157,9 @@ class TestSphereVehicle(unittest.TestCase):
 
     # ==============================================================
     def test_nonlinear_damping_coefs(self):
-        # rospy.wait_for_service('/vehicle/get_model_properties')
-
-        # get_models = rospy.ServiceProxy('/vehicle/get_model_properties',
-        #                                 GetModelProperties)
-
         s_models = self.create_service(GetModelProperties, '/vehicle/get_model_properties')
 
         models = self.service_request(s_models)
-
-        # models = get_models()
 
         area_section = np.pi * RADIUS**2
         dq = -0.5 * models.models[0].fluid_density * CD * area_section
@@ -196,10 +171,6 @@ class TestSphereVehicle(unittest.TestCase):
             else:
                 self.assertEqual(models.models[0].quadratic_damping[i], 0.0)
 
-
-# if __name__ == '__main__':
-#     import rosunit
-#     rosunit.unitrun(PKG, NAME, TestSphereVehicle)
 
 # =============================================================================
 @pytest.mark.rostest

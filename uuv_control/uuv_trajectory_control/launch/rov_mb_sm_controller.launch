@@ -107,10 +107,6 @@
 
           <param name="saturation" value="$(var saturation)"/>
           <param name="inertial_frame_id" value="world"/>
-          <!-- <rosparam subst_value="true">
-            saturation: $(arg saturation)
-            inertial_frame_id: world
-          </rosparam> -->
       </node>
     </group>
   </group>
@@ -143,18 +139,6 @@
           <param name="rho_0" value="[$(var rho_0)]"/>
           <param name="drift_prevent" value="$(var drift_prevent)"/>
           <param name="inertial_frame_id" value="world_ned"/>
-
-          <!-- <rosparam subst_value="true">
-            saturation: $(arg saturation)
-            lambda: [$(arg lambda)]
-            rho_constant: [$(arg rho_constant)]
-            k: [$(arg k)]
-            c: [$(arg c)]
-            adapt_slope: [$(arg adapt_slope)]
-            rho_0: [$(arg rho_0)]
-            drift_prevent: $(arg drift_prevent)
-            inertial_frame_id: world_ned
-          </rosparam> -->
       </node>
 
       <node pkg="uuv_trajectory_control"
@@ -182,18 +166,6 @@
           <param name="rho_0" value="[$(var rho_0)]"/>
           <param name="drift_prevent" value="$(var drift_prevent)"/>
           <param name="inertial_frame_id" value="world"/>
-
-          <!-- <rosparam subst_value="true">
-            saturation: $(arg saturation)
-            lambda: [$(arg lambda)]
-            rho_constant: [$(arg rho_constant)]
-            k: [$(arg k)]
-            c: [$(arg c)]
-            adapt_slope: [$(arg adapt_slope)]
-            rho_0: [$(arg rho_0)]
-            drift_prevent: $(arg drift_prevent)
-            inertial_frame_id: world
-          </rosparam> -->
       </node>
     </group>
   </group>

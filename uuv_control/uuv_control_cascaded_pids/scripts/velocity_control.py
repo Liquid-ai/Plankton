@@ -22,20 +22,14 @@
 
 import numpy
 import rclpy
-#from dynamic_reconfigure.server import Server
-
+from rclpy.node import Node
+from rcl_interfaces.msg import ParameterDescriptor
 import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
-import tf_quaternion.transformations as transf
-#import tf.transformations as trans
-
-#from rospy.numpy_msg import numpy_msg
 
 # Modules included in this package
 from uuv_PID import PIDRegulator
-#from uuv_control_cascaded_pid.cfg import VelocityControlConfig
-
-from rclpy.node import Node
+import tf_quaternion.transformations as transf
 from plankton_utils.time import time_in_float_sec_from_msg
 from plankton_utils.time import is_sim_time
 
@@ -55,50 +49,27 @@ class VelocityControllerNode(Node):
         self.pid_linear = PIDRegulator(1, 0, 0, 1)
 
         #Declared parameters are overriden with yaml values
-        self._declare_and_fill_map("linear_p", 1., self.config)
-        self._declare_and_fill_map("linear_i", 0.0, self.config)
-        self._declare_and_fill_map("linear_d", 0., self.config)
-        self._declare_and_fill_map("linear_sat", 1., self.config)
+        self._declare_and_fill_map("linear_p", 1., "p component of pid for linear vel.", self.config)
+        self._declare_and_fill_map("linear_i", 0.0, "i component of pid for linear vel.", self.config)
+        self._declare_and_fill_map("linear_d", 0., "d component of pid for linear vel.", self.config)
+        self._declare_and_fill_map("linear_sat", 1., "saturation of pid for linear vel.", self.config)
 
-        self._declare_and_fill_map("angular_p", 1., self.config)
-        self._declare_and_fill_map("angular_i", 0.0, self.config)
-        self._declare_and_fill_map("angular_d", 0.0, self.config)
-        self._declare_and_fill_map("angular_sat", 3.0, self.config)
+        self._declare_and_fill_map("angular_p", 1., "p component of pid for angular vel.", self.config)
+        self._declare_and_fill_map("angular_i", 0.0, "i component of pid for angular vel.", self.config)
+        self._declare_and_fill_map("angular_d", 0.0, "d component of pid for angular vel.", self.config)
+        self._declare_and_fill_map("angular_sat", 3.0, "saturation of pid for angular vel.", self.config)
         
-        self._declare_and_fill_map("odom_vel_in_world", True, self.config)
+        self._declare_and_fill_map(
+            "odom_vel_in_world", True, "Is odometry velocity supplied in world frame? (gazebo)", self.config)
         
         self.set_parameters_callback(self.callback_params)
         
         self.create_pids(self.config)
 
-        # self.pid_linear = PIDRegulator(
-        #     self.config['linear_p'], self.config['linear_i'], self.config['linear_d'], self.config['linear_sat'])
-        # self.pid_angular = PIDRegulator(
-        #     self.config['angular_p'], self.config['angular_i'], self.config['angular_d'], self.config['angular_sat'])
-
-        # self.declare_parameter("linear_p", 1.)
-        # self.declare_parameter("linear_i", 0.0)
-        # self.declare_parameter("linear_d", 0.0)
-        # self.declare_parameter("linear_sat", 10.0)
-
-        # self.declare_parameter("angular_p", 1.)
-        # self.declare_parameter("angular_i", 0.0)
-        # self.declare_parameter("angular_d", 0.0)
-        # self.declare_parameter("angular_sat", 3.0)
-
-        # self.declare_parameter("odom_vel_in_world", True)
-
         # ROS infrastructure
         self.sub_cmd_vel = self.create_subscription(geometry_msgs.Twist, 'cmd_vel', self.cmd_vel_callback, 10)
         self.sub_odometry = self.create_subscription(Odometry, 'odom', self.odometry_callback, 10)
         self.pub_cmd_accel = self.create_publisher( geometry_msgs.Accel, 'cmd_accel', 10)
-        # self.sub_cmd_vel = self.create_subscription(numpy_msg(geometry_msgs.Twist), 'cmd_vel', self.cmd_vel_callback, 10)
-        # self.sub_odometry = self.create_subscription(numpy_msg(Odometry), 'odom', self.odometry_callback, 10)
-        #self.pub_cmd_accel = self.create_publisher( geometry_msgs.Accel, 'cmd_accel', 10)
-        #self.srv_reconfigure = Server(VelocityControlConfig, self.config_callback)
-        
-
-
 
     #==============================================================================
     def cmd_vel_callback(self, msg):
@@ -146,16 +117,6 @@ class VelocityControllerNode(Node):
         cmd_accel.angular = geometry_msgs.Vector3(x=a_angular[0], y=a_angular[1], z=a_angular[2])
         self.pub_cmd_accel.publish(cmd_accel)
 
-    # def config_callback(self, config, level):
-    #     """Handle updated configuration values."""
-    #     # config has changed, reset PID controllers
-    #     self.pid_linear = PIDRegulator(config['linear_p'], config['linear_i'], config['linear_d'], config['linear_sat'])
-    #     self.pid_angular = PIDRegulator(config['angular_p'], config['angular_i'], config['angular_d'], config['angular_sat'])
-
-    #     self.config = config
-
-    #     return config
-
     #==============================================================================
     def callback_params(self, data):
         for parameter in data:
@@ -163,10 +124,6 @@ class VelocityControllerNode(Node):
         
         # config has changed, reset PID controllers
         self.create_pids(self.config)
-        # self.pid_linear = PIDRegulator(
-        #     self.config['linear_p'], self.config['linear_i'], self.config['linear_d'], self.config['linear_sat'])
-        # self.pid_angular = PIDRegulator(
-        #     self.config['angular_p'], self.config['angular_i'], self.config['angular_d'], self.config['angular_sat'])
 
         self.get_logger().warn("Parameters dynamically changed...")
         return SetParametersResult(successful=True)
@@ -179,8 +136,8 @@ class VelocityControllerNode(Node):
             config['angular_p'], config['angular_i'], config['angular_d'], config['angular_sat'])
 
     #==============================================================================
-    def _declare_and_fill_map(self, key, default_value, map):
-        param = self.declare_parameter(key, default_value)
+    def _declare_and_fill_map(self, key, default_value, description, map):
+        param = self.declare_parameter(key, default_value, ParameterDescriptor(description=description))
         map[key] = param.value
 
 

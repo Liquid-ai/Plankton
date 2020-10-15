@@ -19,14 +19,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
 import numpy
 import rclpy
 
-#from dynamic_reconfigure.server import Server
 from geometry_msgs.msg import Accel
 from geometry_msgs.msg import Wrench
-#from rospy.numpy_msg import numpy_msg
 from rclpy.node import Node
 
 from plankton_utils.time import is_sim_time
@@ -40,10 +37,6 @@ class AccelerationControllerNode(Node):
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)
 
-        # Default sim_time to True
-        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        # self.set_parameters([sim_time])
-
         self.get_logger().info('AccelerationControllerNode: initializing node')
 
         self.ready = False
@@ -54,19 +47,13 @@ class AccelerationControllerNode(Node):
         # ROS infrastructure
         self.sub_accel = self.create_subscription(Accel, 'cmd_accel', self.accel_callback, 10)
         self.sub_force = self.create_subscription(Accel, 'cmd_force', self.force_callback, 10)
-        # self.sub_accel = self.create_subscription(
-        #   numpy_msg(Accel), 'cmd_accel', self.accel_callback, 10)
-        # self.sub_force = self.create_subscription(
-        #   numpy_msg(Accel), 'cmd_force', self.force_callback, 10)
+        
         self.pub_gen_force = self.create_publisher(Wrench, 'thruster_manager/input', 1)
 
         self.get_logger().info(str(self.get_parameters(['/'])))
 
         if not self.has_parameter("pid.mass"):
             raise RuntimeError("UUV's mass was not provided")
-
-        # if not self.has_parameter("pid.inertial"):
-        #     raise RuntimeError("UUV's inertial was not provided")
 
         self.mass = self.get_parameter("pid.mass").value
         self.inertial = self.get_parameters_by_prefix("pid.inertial")
@@ -76,7 +63,7 @@ class AccelerationControllerNode(Node):
 
         #self.get_logger().info(str(inertial))
 
-        # update mass, moments of inertia
+        # update mass, moments of inertia (inertia tensor in [kg m^2])
         self.inertial_tensor = numpy.array(
           [[self.inertial['ixx'].value, self.inertial['ixy'].value, self.inertial['ixz'].value],
            [self.inertial['ixy'].value, self.inertial['iyy'].value, self.inertial['iyz'].value],
@@ -138,7 +125,6 @@ class AccelerationControllerNode(Node):
 #==============================================================================
 def main():
   print('starting acceleration_control.py')
-  #rospy.init_node('acceleration_control')
 
   rclpy.init()
 

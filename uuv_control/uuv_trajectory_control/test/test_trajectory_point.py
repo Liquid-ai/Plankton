@@ -15,8 +15,6 @@
 # limitations under the License.
 
 
-#PKG = 'uuv_trajectory_control'
-
 import numpy as np
 import sys
 import unittest
@@ -31,6 +29,7 @@ class TestTrajectoryPoint(unittest.TestCase):
         self.assertEqual(p.pos.size, 3, 'Position vector len() is incorrect')
         self.assertTrue(np.array_equal(p.pos, [0, 0, 0]), 'Position initialization failed')
 
+    # =========================================================================
     def test_set_pos_vector(self):
         p = TrajectoryPoint()
         p.pos = [1, 2, 3]
@@ -38,11 +37,13 @@ class TestTrajectoryPoint(unittest.TestCase):
         self.assertEqual(p.pos[1], 2, 'Y position was initialized wrong')
         self.assertEqual(p.pos[2], 3, 'Z position was initialized wrong')
 
+    # =========================================================================
     def test_init_quat_vector(self):
         p = TrajectoryPoint()
         self.assertEqual(p.rotq.size, 4, 'Quaternion vector len() is incorrect')
         self.assertTrue(np.array_equal(p.rotq, [0, 0, 0, 1]), 'Quaternion initialization failed')
 
+    # =========================================================================
     def test_to_message(self):
         p0 = TrajectoryPoint()
         p0.t = 1
@@ -56,6 +57,7 @@ class TestTrajectoryPoint(unittest.TestCase):
 
         self.assertEqual(p0, p1, 'Point to message conversion failed')
 
+    # =========================================================================
     def test_to_dict(self):
         p0 = TrajectoryPoint()
         p0.t = 1
@@ -69,6 +71,3 @@ class TestTrajectoryPoint(unittest.TestCase):
 
         self.assertEqual(p0, p1, 'Point to dict conversion failed')
 
-# if __name__ == '__main__':
-#     import rosunit
-#     rosunit.unitrun(PKG, 'test_trajectory_point', TestTrajectoryPoint)

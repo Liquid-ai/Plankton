@@ -82,11 +82,6 @@
           <param name="inertial_frame_id" value="world_ned"/>
           <param name="saturation" value="$(var saturation)"/>
           <param name="max_forward_speed" value="$(var max_forward_speed)"/>
-          <!-- <rosparam subst_value="true">
-            inertial_frame_id: world_ned
-            saturation: $(arg saturation)
-            max_forward_speed: $(arg max_forward_speed)
-          </rosparam> -->
       </node>
 
       <node pkg="uuv_trajectory_control"
@@ -108,11 +103,6 @@
           <param name="inertial_frame_id" value="world"/>
           <param name="saturation" value="$(var saturation)"/>
           <param name="max_forward_speed" value="$(var max_forward_speed)"/>
-          <!-- <rosparam subst_value="true">
-            inertial_frame_id: world
-            saturation: $(arg saturation)
-            max_forward_speed: $(arg max_forward_speed)
-          </rosparam> -->
       </node>
     </group>
   </group>
@@ -141,15 +131,6 @@
           <param name="slope" value="[$(var slope)]"/>
           <param name="inertial_frame_id" value="world_ned"/>
           <param name="max_forward_speed" value="$(var max_forward_speed)"/>
-          <!-- <rosparam subst_value="true">
-            saturation: $(arg saturation)
-            K: [$(arg K)]
-            Kd: [$(arg Kd)]
-            Ki: [$(arg Ki)]
-            slope: [$(arg slope)]
-            inertial_frame_id: world_ned            
-            max_forward_speed: $(arg max_forward_speed)
-          </rosparam> -->
       </node>
 
       <node pkg="uuv_trajectory_control"
@@ -173,16 +154,6 @@
           <param name="slope" value="[$(var slope)]"/>
           <param name="inertial_frame_id" value="world"/>
           <param name="max_forward_speed" value="$(var max_forward_speed)"/>
-
-          <!-- <rosparam subst_value="true">
-            saturation: $(arg saturation)
-            K: [$(arg K)]
-            Kd: [$(arg Kd)]
-            Ki: [$(arg Ki)]
-            slope: [$(arg slope)]
-            inertial_frame_id: world
-            max_forward_speed: $(arg max_forward_speed)
-          </rosparam> -->
       </node>
     </group>
   </group>

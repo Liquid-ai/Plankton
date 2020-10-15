@@ -49,9 +49,6 @@ class TestURDFFiles(unittest.TestCase):
                 'No such file or directory', 
                 'Some file not found in {}'.format(item))
 
-# if __name__ == '__main__':
-#     import rosunit
-#     rosunit.unitrun(PKG, NAME, TestURDFFiles)
 
 
 

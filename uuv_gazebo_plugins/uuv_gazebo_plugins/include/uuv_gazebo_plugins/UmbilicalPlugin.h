@@ -61,7 +61,6 @@ class UmbilicalSegment
     static sdf::SDFPtr sdfSegment;
 };
 
-typedef boost::shared_ptr<UmbilicalSegment> UmbilicalSegmentPtr;
 
 class UmbilicalPlugin : public ModelPlugin
 {

@@ -109,8 +109,7 @@ void CPCROSPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   this->salinityPub = myRosNode->create_publisher<uuv_sensor_ros_plugins_msgs::msg::Salinity>(salinityTopic, 1);
 
-  //this->lastUpdateTimestamp = ros::Time::now();
-  myLastUpdateTimeStamp = myRosNode->now();//myTimer.now();
+  myLastUpdateTimeStamp = myRosNode->now();
 
   gzmsg << "CPCROSPlugin[" << this->link->GetName()
     << "] initialized!" << std::endl

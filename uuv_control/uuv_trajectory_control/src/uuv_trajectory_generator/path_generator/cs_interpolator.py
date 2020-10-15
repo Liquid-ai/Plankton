@@ -1,5 +1,11 @@
-# Copyright (c) 2016-2019 The UUV Simulator Authors.
+# Copyright (c) 2020 The Plankton Authors.
 # All rights reserved.
+#
+# This source code is derived from UUV Simulator
+# (https://github.com/uuvsimulator/uuv_simulator)
+# Copyright (c) 2016-2019 The UUV Simulator Authors
+# licensed under the Apache license, Version 2.0
+# cf. 3rd-party-licenses.txt file in the root directory of this source tree.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,6 +56,7 @@ class CSInterpolator(PathGenerator):
                                  heading=None)
         self._heading_spline = None
 
+    # =========================================================================
     def init_interpolator(self):
         """Initialize the interpolator. To have the path segments generated,
         `init_waypoints()` must be called beforehand by providing a set of 
@@ -101,10 +108,12 @@ class CSInterpolator(PathGenerator):
 
         return True
 
+    # =========================================================================
     def set_parameters(self, params):
         """Not implemented for this interpolator."""
         return True
 
+    # =========================================================================
     def get_samples(self, max_time, step=0.001):
         """Sample the full path for position and quaternion vectors.
         `step` is represented in the path's parametric space.
@@ -131,6 +140,7 @@ class CSInterpolator(PathGenerator):
             pnts.append(pnt)
         return pnts
 
+    # =========================================================================
     def generate_pos(self, s):
         """Generate a position vector for the path sampled point
         interpolated on the position related to `s`, `s` being  
@@ -156,6 +166,7 @@ class CSInterpolator(PathGenerator):
             pos = self._interp_fcns['pos'][idx - 1].interpolate(u_k)
         return pos
 
+    # =========================================================================
     def generate_pnt(self, s, t, *args):
         """Compute a point that belongs to the path on the 
         interpolated space related to `s`, `s` being represented 
@@ -181,6 +192,7 @@ class CSInterpolator(PathGenerator):
         pnt.rotq = self.generate_quat(s)
         return pnt
 
+    # =========================================================================
     def generate_quat(self, s):
         """Compute the quaternion of the path reference for a interpolated
         point related to `s`, `s` being represented in the curve's parametric 

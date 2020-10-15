@@ -15,9 +15,6 @@
 # limitations under the License.
 
 
-
-# PKG = 'uuv_trajectory_control'
-
 import sys
 import unittest
 
@@ -30,29 +27,28 @@ class TestWaypoint(unittest.TestCase):
         wp1 = Waypoint(x=1, y=2, z=3)
         self.assertEqual(wp0, wp1, 'Waypoints equal operator failed')
 
+    # =========================================================================
     def test_unequal_waypoints(self):
         wp0 = Waypoint(x=1, y=2, z=3)
         wp1 = Waypoint(x=6, y=5, z=4)
         self.assertNotEqual(wp0, wp1, 'Waypoints unequal operator failed')
 
+    # =========================================================================
     def test_violate_constraint_flag(self):
         wp = Waypoint()
         wp.violates_constraint = True
         self.assertTrue(wp.violates_constraint, 'Constraint violation flag not correctly set')
 
+    # =========================================================================
     def test_distance_calculation(self):
         wp = Waypoint(x=0, y=2, z=0)
         self.assertEqual(wp.dist([0, 4, 0]), 2, 'Distance calculation is wrong')
         self.assertEqual(wp.dist([2, 2, 0]), 2, 'Distance calculation is wrong')
         self.assertEqual(wp.dist([0, 2, 2]), 2, 'Distance calculation is wrong')
 
+    # =========================================================================
     def test_to_message(self):
         wp0 = Waypoint(x=1, y=2, z=3)
         wp1 = Waypoint()
         wp1.from_message(wp0.to_message())
         self.assertEqual(wp0, wp1, "Waypoint to message conversion failed")
-
-
-# if __name__ == '__main__':
-#     import rosunit
-#     rosunit.unitrun(PKG, 'test_waypoint', TestWaypoint)

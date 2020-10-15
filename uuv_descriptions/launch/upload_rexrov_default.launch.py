@@ -26,8 +26,6 @@ import xacro
 
 from plankton_utils.time import is_sim_time
 
-# import subprocess
-# from subprocess import TimeoutExpired
 
 def to_bool(value: str):
     if isinstance(value, bool):
@@ -42,34 +40,6 @@ def to_bool(value: str):
         return valid[value]
     
     raise ValueError('String to bool, invalid value: %s' % value)
-
-
-# =============================================================================
-# def is_sim_time(timeout_sec= 5, default_value=False, return_param=True):
-#     res = default_value
-#     try:
-#         output = subprocess.check_output(
-#             ['ros2', 'param', 'get', '/plankton_global_sim_time', 'use_sim_time'], 
-#             timeout=timeout_sec
-#         )
-
-#         output = output.decode()
-
-#         res = True if 'True' in output else False
-
-#     except TimeoutExpired:
-#         print('Could not request for sim time. Defaulting to %s' % default_value)
-#     except Exception as e:
-#         print('Unexpected exception while requesting sim time. Defaulting to %s' % default_value)
-
-#     if return_param:
-#         return rclpy.parameter.Parameter(
-#             'use_sim_time', 
-#             rclpy.Parameter.Type.BOOL, 
-#             res
-#         )
-#     else:
-#         return res
 
 
 # =============================================================================
@@ -145,20 +115,18 @@ def launch_setup(context, *args, **kwargs):
         node_executable='spawn_entity.py',
         output='screen',
         parameters=[{'use_sim_time': res}],
-        # To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
+        # TODO To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
         arguments=args
     )
 
     # A joint state publisher plugin already is started with the model, no need to use the default joint state publisher
 
-    
-    
     args = (output).split()
     robot_state_publisher = Node(
         node_name = 'robot_state_publisher',
         package='robot_state_publisher',
         node_executable='robot_state_publisher',
-        # To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
+        # TODO To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
         arguments=args,
         output = 'screen',
         parameters=[{'use_sim_time': res}] # Use subst here

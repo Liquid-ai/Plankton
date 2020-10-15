@@ -42,14 +42,7 @@ def main():
                             automatically_declare_parameters_from_overrides=True,
                             parameter_overrides=[sim_time_param]))
 
-
-    # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-    # self.set_parameters([sim_time])
     node.get_logger().info('Send a waypoint file, namespace=%s', % node.get_namespace())
-
-    # if rospy.is_shutdown():
-    #     rospy.logerr('ROS master not running!')
-    #     sys.exit(-1)
 
     if node.has_parameter('filename'):
         filename = node.get_parameter('filename').get_parameter_value().string_value
@@ -102,13 +95,6 @@ def main():
         node.get_logger().info('Waypoints file successfully received, '
                       'filename=%s', filename)
 
-    # success = init_wp.call(req)
-
-    # if success:
-    #     node.get_logger().info('Waypoints file successfully received, '
-    #                   'filename=%s', filename)
-    # else:
-    #     node.get_logger().info('Failed to send waypoints')
 
 #==============================================================================
 if __name__ == '__main__':

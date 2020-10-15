@@ -48,6 +48,8 @@ std::shared_ptr<gazebo::Dynamics> DynamicsFromString(
   return dyn;
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 TEST(ThrusterDynamics, ZeroOrder)
 {
   std::string description =
@@ -65,6 +67,8 @@ TEST(ThrusterDynamics, ZeroOrder)
   EXPECT_EQ(20.0, dyn->update(20.0, 0.2));
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 TEST(ThrusterDynamics, FirstOrder)
 {
   std::string description =
@@ -82,6 +86,8 @@ TEST(ThrusterDynamics, FirstOrder)
   EXPECT_NEAR(1-0.36787944, dyn->update(1.0, 0.5), 1e-5);
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 TEST(ThrusterDynamics, Yoerger)
 {
   std::string description =
@@ -100,6 +106,8 @@ TEST(ThrusterDynamics, Yoerger)
   // TODO: Actually test dynamic behavior
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 TEST(ThrusterDynamics, Bessa)
 {
   std::string description =
@@ -121,7 +129,8 @@ TEST(ThrusterDynamics, Bessa)
   // TODO: Actually test dynamic behavior
 }
 
-
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);

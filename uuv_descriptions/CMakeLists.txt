@@ -1,21 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(uuv_descriptions)
 
-# Add support for C++14
-# if(NOT CMAKE_CXX_STANDARD)
-#   set(CMAKE_CXX_STANDARD 14)
-# endif()
-
 find_package(ament_cmake REQUIRED)
-
-# set(INCLUDE_DIRS ${ament_cmake_INCLUDE_DIRS})
-# include_directories(${INCLUDE_DIRS})
-
-# set(LIBRARY_DIRS ${ament_cmake_LIBRARY_DIRS})
-
-# link_directories(${LIBRARY_DIRS})
-
-# set(LIBS ${ament_cmake_LIBRARIES})
 
 # TODO Check it this wrapper is still useful
 # install(PROGRAMS scripts/spawn_model
@@ -50,18 +36,5 @@ if(BUILD_TESTING)
     )   
   endforeach()
 endif()
-
-#TODO re-enable testing
-# if(BUILD_TESTING)
-#   find_package(rostest REQUIRED)
-#   find_package(xacro REQUIRED)
-#   find_package(rosunit REQUIRED)
-#   foreach(T test/test_urdf_files.test)
-#     add_rostest(${T})
-#   endforeach()
-# endif()
-
-# ament_export_dependencies(ament_cmake)
-# ament_export_include_directories(${INCLUDE_DIRS})
 
 ament_package()

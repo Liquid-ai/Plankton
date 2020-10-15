@@ -9,9 +9,6 @@
 
   <group>
     <push-ros-namespace namespace="$(var uuv_name)"/>
-    
-    <!-- <rosparam file="$(find uuv_control_cascaded_pid)/config/$(var model_name)/vel_pid_control.yaml" command="load"/> -->
-    <!-- <rosparam file="$(find uuv_control_cascaded_pid)/config/$(var model_name)/pos_pid_control.yaml" command="load"/> -->
 
     <node pkg="uuv_control_cascaded_pid" exec="acceleration_control.py" node-name="acceleration_control"
           output="screen">

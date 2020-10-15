@@ -1,5 +1,11 @@
-# Copyright (c) 2016-2019 The UUV Simulator Authors.
+# Copyright (c) 2020 The Plankton Authors.
 # All rights reserved.
+#
+# This source code is derived from UUV Simulator
+# (https://github.com/uuvsimulator/uuv_simulator)
+# Copyright (c) 2016-2019 The UUV Simulator Authors
+# licensed under the Apache license, Version 2.0
+# cf. 3rd-party-licenses.txt file in the root directory of this source tree.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -63,6 +69,7 @@ class DubinsInterpolator(PathGenerator):
         self._interp_fcns = list()
         self._logger = get_logger()
 
+    # =========================================================================
     def init_interpolator(self):
         """Initialize the interpolator. To have the path segments generated,
         `init_waypoints()` must be called beforehand by providing a set of 
@@ -142,6 +149,7 @@ class DubinsInterpolator(PathGenerator):
 
         return True
 
+    # =========================================================================
     def _get_frame(self, heading):
         """Return the 2D rotation matrix for a desired heading. 
         
@@ -155,6 +163,7 @@ class DubinsInterpolator(PathGenerator):
         """
         return np.array([[np.cos(heading), -np.sin(heading)],[np.sin(heading), np.cos(heading)]])
 
+    # =========================================================================
     def _get_distance(self, pnt_1, pnt_2):
         """Compute the distance between two points.
         
@@ -169,6 +178,7 @@ class DubinsInterpolator(PathGenerator):
         """
         return np.sqrt(np.sum((pnt_1 - pnt_2)**2))
 
+    # =========================================================================
     def _get_circles_center_pos(self, waypoint, heading, radius=None):
         """Return the centers of the circles on the left and right of the 
         waypoint with respect to the direction described the desired heading.
@@ -200,9 +210,11 @@ class DubinsInterpolator(PathGenerator):
 
         return circles
 
+    # =========================================================================
     def _get_phi(self, u, delta, heading):
         return 2 * np.pi * u * delta + heading - delta * np.pi / 2
 
+    # =========================================================================
     def _compute_u(self, angle, delta, heading):
         """Compute the parametric input for the circle path.
         
@@ -223,6 +235,7 @@ class DubinsInterpolator(PathGenerator):
             u += 1
         return u
 
+    # =========================================================================
     def _get_tangent(self, u, delta, radius, heading):
         """Function description
         
@@ -239,6 +252,7 @@ class DubinsInterpolator(PathGenerator):
                                   delta * radius * np.sin(self._get_phi(u, delta, heading)),
                                   0]))[0:2]
 
+    # =========================================================================
     def _get_circle(self, u, center, radius, delta, heading):
         """Compute the 2D coordinates for a circle.
         
@@ -258,6 +272,7 @@ class DubinsInterpolator(PathGenerator):
         return center + radius * np.array([np.cos(self._get_phi(u, delta, heading)),
                                            np.sin(self._get_phi(u, delta, heading))])
 
+    # =========================================================================
     def _get_2d_dubins_path(self, center_1, radius_1, heading_1, delta_1, center_2, radius_2, heading_2, delta_2):
         """Compute the 2D Dubins path algorithm. It computes the shortest curve
         that connects two points. Given two circles which are tangent to the
@@ -512,12 +527,14 @@ class DubinsInterpolator(PathGenerator):
 
         return output, 0
 
+    # =========================================================================
     def _get_center(self, side, y_vec, wp):
         if side == 'R':
             return wp.pos - self._radius * y_vec
         else:
             return wp.pos + self._radius * y_vec
 
+    # =========================================================================
     def _get_circle_marker(self, center, radius, heading, delta, frame_id, 
         circle_color=[0, 1, 0]):
         #import rclpy.time
@@ -575,6 +592,7 @@ class DubinsInterpolator(PathGenerator):
         marker_pnt.pose.position.z = center[2]
         return [marker, marker_pnt]
 
+    # =========================================================================
     def _generate_path(self, wp_init, heading_init, wp_final, heading_final):
         pnts = list()
 
@@ -699,6 +717,7 @@ class DubinsInterpolator(PathGenerator):
 
         return pnts
 
+    # =========================================================================
     def set_parameters(self, params):
         """Set interpolator's parameters. All the options
         for the `params` input can be seen below:
@@ -728,6 +747,7 @@ class DubinsInterpolator(PathGenerator):
             self._max_pitch_angle = params['max_pitch']
         return True
 
+    # =========================================================================
     def get_samples(self, max_time, step=0.001):
         """Sample the full path for position and quaternion vectors.
         `step` is represented in the path's parametric space.
@@ -754,6 +774,7 @@ class DubinsInterpolator(PathGenerator):
             pnts.append(pnt)
         return pnts
 
+    # =========================================================================
     def generate_pos(self, s):
         """Generate a position vector for the path sampled point
         interpolated on the position related to `s`, `s` being  
@@ -779,6 +800,7 @@ class DubinsInterpolator(PathGenerator):
             pos = self._interp_fcns[idx - 1].interpolate(u_k)
         return pos
 
+    # =========================================================================
     def generate_pnt(self, s, t, *args):
         """Compute a point that belongs to the path on the 
         interpolated space related to `s`, `s` being represented 
@@ -804,6 +826,7 @@ class DubinsInterpolator(PathGenerator):
         pnt.rotq = self.generate_quat(s)
         return pnt
 
+    # =========================================================================
     def generate_quat(self, s):
         """Compute the quaternion of the path reference for a interpolated
         point related to `s`, `s` being represented in the curve's parametric 
