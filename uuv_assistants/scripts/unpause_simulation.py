@@ -19,7 +19,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
 import rclpy
 from std_srvs.srv import Empty
 import time
@@ -37,13 +36,6 @@ def main():
                             automatically_declare_parameters_from_overrides=True,
                             parameter_overrides=[sim_time_param])
 
-    #Default sim_time to True
-    # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-    # node.set_parameters([sim_time])
-
-    # if not rclpy.ok():
-    #     rospy.ROSException('ROS master is not running!')
-
     timeout = 0.0
     if node.has_parameter('timeout'):
         timeout = node.get_parameter('timeout').get_parameter_value().double_value
@@ -52,25 +44,18 @@ def main():
 
     print('Unpause simulation - Time = {} s'.format(timeout))
 
-    # start_time = time.time()
-    # while time.time() - start_time < timeout:
-    #     time.sleep(0.1)
     if(timeout > 0):
         time.sleep(timeout)
 
-    #start_time = time.time()
-    try:
-        # Handle for retrieving model properties
-        unpause = node.create_client(Empty, '/gazebo/unpause_physics')
-        unpause.wait_for_service(timeout_sec=100)
-        if(not ready):
-            raise rclpy.exceptions.InvalidServiceNameException('service is unavailable')
-    except rclpy.exceptions.InvalidServiceNameException:
-        print('/gazebo/unpause_physics service is unavailable')
+     # Handle for retrieving model properties
+    unpause = node.create_client(Empty, '/gazebo/unpause_physics')
+    unpause.wait_for_service(timeout_sec=100)
+    if(not ready):
+        raise Exception('Service %s is unavailable' % unpause.srv_name)
         sys.exit()
     
     node.get_logger().info(
-        'The Gazebo "unpause_physics" service was available {} s after the timeout'.format(timeout))#time.time() - start_time))
+        'The Gazebo "unpause_physics" service was available {} s after the timeout'.format(timeout))
 
     req = Empty.Request()
     future = unpause.call_async(req)

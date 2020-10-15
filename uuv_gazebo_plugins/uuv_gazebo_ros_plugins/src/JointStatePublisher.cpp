@@ -21,7 +21,6 @@
 
 #include <uuv_gazebo_ros_plugins/JointStatePublisher.h>
 
-#include <boost/bind.hpp>
 
 namespace uuv_simulator_ros
 {
@@ -60,8 +59,6 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
     return;
   }
 
-  //Creates a node including the robot namespace
-  //myRosNode =  gazebo_ros::Node::Get(_sdf);
   // this->node = boost::shared_ptr<ros::NodeHandle>(
   //   new ros::NodeHandle(this->robotNamespace));
   // Retrieve the namespace used to publish the joint states
@@ -151,7 +148,6 @@ void JointStatePublisher::OnUpdate(const gazebo::common::UpdateInfo & /*_info*/)
 ///////////////////////////////////////////////////////////////////////////////
 void JointStatePublisher::PublishJointStates()
 {
-  //ros::Time stamp = ros::Time::now();
   sensor_msgs::msg::JointState jointState;
 
   jointState.header.stamp = myRosNode->get_clock()->now();

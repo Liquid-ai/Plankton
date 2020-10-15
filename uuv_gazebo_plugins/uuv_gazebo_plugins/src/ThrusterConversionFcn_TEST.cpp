@@ -49,6 +49,8 @@ std::shared_ptr<gazebo::ConversionFunction> ConversionFromString(
   return func;
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 TEST(ThrusterConversionFcn, Basic)
 {
   std::string description =
@@ -68,6 +70,8 @@ TEST(ThrusterConversionFcn, Basic)
   EXPECT_EQ(func->convert(-50.), -50.0*50.0*0.0049);
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 TEST(ThrusterConversionFcn, Bessa)
 {
   double cl = 0.001;
@@ -104,6 +108,8 @@ TEST(ThrusterConversionFcn, Bessa)
   EXPECT_EQ(cr*(cmdr*std::abs(cmdr)-dr), func->convert(cmdr));
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 TEST(ThrusterConversionFcn, LinearInterp)
 {
   std::vector<double> input = {-5.0, 0, 2.0, 5.0};
@@ -148,6 +154,8 @@ TEST(ThrusterConversionFcn, LinearInterp)
   }
 }
 
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);

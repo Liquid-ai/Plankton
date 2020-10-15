@@ -92,12 +92,6 @@
         <param name="Kp" value="[$(var Kp)]"/>
         <param name="Kd" value="[$(var Kd)]"/>
         <param name="Ki" value="[$(var Ki)]"/>
-        <!-- <rosparam subst_value="true">
-          saturation: $(arg saturation)
-          Kp: [$(arg Kp)]
-          Kd: [$(arg Kd)]
-          Ki: [$(arg Ki)]
-        </rosparam> -->
       </node>
     </group>
   </group>

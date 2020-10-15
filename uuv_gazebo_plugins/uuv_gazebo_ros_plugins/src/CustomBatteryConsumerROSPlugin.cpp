@@ -32,8 +32,6 @@ CustomBatteryConsumerROSPlugin::CustomBatteryConsumerROSPlugin()
 /////////////////////////////////////////////////
 CustomBatteryConsumerROSPlugin::~CustomBatteryConsumerROSPlugin()
 {
-  //rclcpp::shutdown();
-  //this->rosNode->shutdown();
 }
 
 /////////////////////////////////////////////////

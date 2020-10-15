@@ -43,9 +43,6 @@ class TrajectoryMarkerPublisher(Node):
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)
 
-        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        # node.set_parameters([sim_time])
-
         self.get_logger().info('Starting trajectory and waypoint marker publisher')
 
         self._trajectory_sub = self.create_subscription(

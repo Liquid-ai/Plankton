@@ -19,11 +19,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
 import numpy
 import rclpy
-# import tf
-# import tf.transformations as trans
 
 from sensor_msgs.msg import Joy
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
@@ -93,7 +90,6 @@ class FinnedUUVControllerNode(Node):
         self._fin_topic_suffix = self.get_parameter('fin_topic_suffix').get_parameter_value().string_value
         for i in range(self._n_fins):
             topic = self.build_topic_name(self._fin_topic_prefix, i, self._fin_topic_suffix)
-            #topic = self._fin_topic_prefix + str(i) + self._fin_topic_suffix
             self._pub_cmd.append(self.create_publisher(FloatStamped, topic, 10))
 
         # Create the thruster model object
@@ -104,7 +100,7 @@ class FinnedUUVControllerNode(Node):
             
             if 'params' not in self._thruster_params:
                 raise Exception('No thruster params given')
-            #Should not happen
+            # Should not happen
             if 'max_thrust' not in self._thruster_params:
                 raise Exception('No limit to thruster output was given')
             self._thruster_model = Thruster.create_thruster(

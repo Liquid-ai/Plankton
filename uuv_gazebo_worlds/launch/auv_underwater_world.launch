@@ -38,13 +38,11 @@ Underwater environment with the ODE physics engine configured for vehicles using
         exec="publish_world_models.py"
         output="screen">
         <param from="$(find-pkg-share uuv_gazebo_worlds)/config/auv_underwater_world.yaml"/>
-        <!-- <param name="use_sim_time" value="$(var use_sim_time)"/> -->
     </node>
 
     <group if="$(var set_timeout)">
         <include file="$(find-pkg-share uuv_assistants)/launch/set_simulation_timer.launch">
             <arg name="timeout" value="$(var timeout)"/>
-            <!-- <arg name="use_sim_time" value="$(var use_sim_time)"/> -->
         </include>
     </group>
 </launch>

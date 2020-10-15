@@ -157,12 +157,6 @@ class ROV_NMB_SMController(DPControllerBase):
 
         return response
 
-        # return GetSMControllerParamsResponse(
-        #     self._K.tolist(),
-        #     self._Kd.tolist(),
-        #     self._Ki.tolist(),
-        #     self._slope.tolist())
-
     # =========================================================================
     def update_controller(self):
         if not self._is_init:

@@ -147,7 +147,7 @@ bool MagnetometerROSPlugin::OnUpdate(const common::UpdateInfo& _info)
     this->gazeboSensorOutputPub->Publish(gazeboMsg);
   }
 
-  this->rosMsg.header.stamp = myRosNode->now();//ros::Time::now();
+  this->rosMsg.header.stamp = myRosNode->now();
   this->rosMsg.magnetic_field.x = this->measMagneticField.X();
   this->rosMsg.magnetic_field.y = this->measMagneticField.Y();
   this->rosMsg.magnetic_field.z = this->measMagneticField.Z();

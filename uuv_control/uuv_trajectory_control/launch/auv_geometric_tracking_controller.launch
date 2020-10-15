@@ -105,45 +105,6 @@
             <param name="output" value="[$(var thruster_output)]"/>
           </param>
         </param>
-
-        <!-- <rosparam subst_value="true">
-          max_forward_speed: $(arg max_forward_speed)
-          base_link: base_link
-          is_underactuated: true
-          inertial_frame_id: world
-          min_thrust: $(arg min_thrust)
-          max_thrust: $(arg max_thrust)
-          thruster_topic: $(arg thruster_topic)
-          thrust_p_gain: $(arg thrust_p_gain)
-          thrust_d_gain: $(arg thrust_d_gain)
-          gain_roll: $(arg gain_roll)
-          gain_pitch: $(arg gain_pitch)
-          gain_yaw: $(arg gain_yaw)
-          n_fins: $(arg n_fins)
-          map_roll: [$(arg map_roll)]
-          map_pitch: [$(arg map_pitch)]
-          map_yaw: [$(arg map_yaw)]
-          fin_topic_prefix: $(arg fin_topic_prefix)
-          fin_topic_suffix: $(arg fin_topic_suffix)
-          max_fin_angle: $(arg max_fin_angle)
-          idle_radius: $(arg idle_radius)
-          look_ahead_delay: look_ahead_delay
-          desired_pitch_limit: $(arg desired_pitch_limit)
-          yaw_error_limit: $(arg yaw_error_limit)
-          dubins:
-              radius: $(arg dubins_radius)
-              max_pitch: $(arg dubins_max_pitch)
-          thruster_config:
-              topic_prefix: $(arg thruster_topic_prefix)
-              topic_suffix: $(arg thruster_topic_suffix)
-              frame_base: $(arg thruster_frame_base)
-              max_thrust: $(arg max_thrust)
-              conversion_fcn: $(arg thruster_conversion_fcn)
-              conversion_fcn_params:
-                  gain: $(arg thruster_gain)
-                  input: [$(arg thruster_input)]
-                  output: [$(arg thruster_output)]
-        </rosparam>-->
       </node>
 
       <node pkg="uuv_trajectory_control"
@@ -191,44 +152,6 @@
             <param name="output" value="[$(var thruster_output)]"/>
           </param>
         </param>
-
-        <!-- <rosparam subst_value="true">
-          max_forward_speed: $(arg max_forward_speed)
-          base_link: base_link_ned
-          is_underactuated: true
-          inertial_frame_id: world_ned
-          min_thrust: $(arg min_thrust)
-          max_thrust: $(arg max_thrust)
-          thruster_topic: $(arg thruster_topic)
-          thrust_gain: $(arg thrust_gain)
-          gain_roll: $(arg gain_roll)
-          gain_pitch: $(arg gain_pitch)
-          gain_yaw: $(arg gain_yaw)
-          n_fins: $(arg n_fins)
-          map_roll: [$(arg map_roll)]
-          map_pitch: [$(arg map_pitch)]
-          map_yaw: [$(arg map_yaw)]
-          fin_topic_prefix: $(arg fin_topic_prefix)
-          fin_topic_suffix: $(arg fin_topic_suffix)
-          max_fin_angle: $(arg max_fin_angle)
-          idle_radius: $(arg idle_radius)
-          look_ahead_delay: $(arg look_ahead_delay)
-          desired_pitch_limit: $(arg desired_pitch_limit)
-          yaw_error_limit: $(arg yaw_error_limit)
-          dubins:
-              radius: $(arg dubins_radius)
-              max_pitch: $(arg dubins_max_pitch)
-          thruster_config:
-              topic_prefix: $(arg thruster_topic_prefix)
-              topic_suffix: $(arg thruster_topic_suffix)
-              frame_base: $(arg thruster_frame_base)
-              max_thrust: $(arg max_thrust)
-              conversion_fcn: $(arg thruster_conversion_fcn)
-              conversion_fcn_params:
-                  gain: $(arg thruster_gain)
-                  input: [$(arg thruster_input)]
-                  output: [$(arg thruster_output)]
-        </rosparam>  -->
       </node>
     </group>
 

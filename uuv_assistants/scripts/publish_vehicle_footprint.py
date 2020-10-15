@@ -19,7 +19,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
 import rclpy
 from copy import deepcopy
 from tf_quaternion.transformations import euler_from_quaternion
@@ -134,7 +133,7 @@ class VehicleFootprint(Node):
             points.append(p)
 
         new_poly = PolygonStamped()
-        new_poly.header.stamp = self.get_clock().now() #rospy.Time.now()
+        new_poly.header.stamp = self.get_clock().now()
         new_poly.header.frame_id = 'world'
         new_poly.polygon.points = points
 
@@ -151,7 +150,7 @@ class VehicleFootprint(Node):
 # =============================================================================
 def main():
     print('Generate RViz footprint and markers for 2D visualization')
-    #rospy.init_node('generate_vehicle_footprint')
+    #TODO Add rclpy instruction
 
     try:
         sim_time_param = is_sim_time()

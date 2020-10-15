@@ -127,18 +127,12 @@ class TestThrusterAllocator(unittest.TestCase):
             self.assertTrue(srv.wait_for_service(timeout_sec=20), 'service %s not ready' % srv.srv_name)
 
     # =========================================================================
-    def test_config(self):
-        #axis = self.node.get_parameter('axis').value
-        # ref_config = rospy.get_param('/{}/thruster_manager'.format(NS))
-        
+    def test_config(self):        
         srv_name = '/{}/thruster_manager/get_config'.format(NS)
         cli = self.node.create_client(GetThrusterManagerConfig, srv_name)
         
         if not cli.wait_for_service(timeout_sec=30):
             self.fail('service %s not available...' % srv_name)
-        
-        # srv = rospy.ServiceProxy('/{}/thruster_manager/get_config'.format(NS), GetThrusterManagerConfig)
-        # tm_config = srv()
 
         req = GetThrusterManagerConfig.Request()
         future = cli.call_async(req)
@@ -228,8 +222,7 @@ def generate_test_description():
         node_namespace = 'test_vehicle',
         package='robot_state_publisher',
         node_executable='robot_state_publisher',
-        #parameters=[{'robot_description', doc}]
-        # To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
+        # TODO To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
         arguments=args,
         output='screen',
         parameters=[{'use_sim_time':False}], # Use subst here

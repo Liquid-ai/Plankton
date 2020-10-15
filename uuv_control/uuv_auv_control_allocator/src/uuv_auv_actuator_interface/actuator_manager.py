@@ -36,7 +36,7 @@ from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 from .fin_model import FinModel
 from plankton_utils.params_helper import parse_nested_params_to_dict
 
-
+#TODO Refactor
 class ActuatorManager(Node):
     MAX_FINS = 4
 
@@ -45,10 +45,6 @@ class ActuatorManager(Node):
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)
-
-        #Default sim_time to True
-        # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        # self.set_parameters([sim_time])
 
         # Acquiring the namespace of the vehicle
         self.namespace = self.get_namespace().replace('/', '')
@@ -85,11 +81,7 @@ class ActuatorManager(Node):
         
         self.base_link = self.get_parameter('base_link', 'base_link').get_parameter_value().string_value
 
-        # Check if the thruster configuration is available
-        # if not self.has_parameter('thruster_config'):
-        #     raise RuntimeError('Thruster configuration not available') 
-
-        # Retrieve the thruster configuration parameters
+        # Retrieve the thruster configuration parameters if available
         thruster_config = self.get_parameters_by_prefix('thruster_config')
         if len(thruster_config) == 0:
             raise RuntimeError('Thruster configuration not available') 
@@ -108,14 +100,8 @@ class ActuatorManager(Node):
         self.thruster_topic = build_topic_name(self.namespace, 
             self.thruster_config['topic_prefix'], 0, 
             self.thruster_config['topic_suffix'])
-        # self.thruster_topic = '/%s/%s/%d/%s' %  (self.namespace, 
-        #     self.thruster_config['topic_prefix'], 0, 
-        #     self.thruster_config['topic_suffix'])
+        
         self.thruster = None
-
-        # Check if the fin configuration is available
-        # if not self.has_parameter('fin_config'):
-        #     raise RuntimeError('Fin configuration is not available')
 
         # Retrieve the fin configuration if available
         fin_config = self.get_parameters_by_prefix('fin_config')
@@ -124,8 +110,6 @@ class ActuatorManager(Node):
         
         
         self.fin_config = parse_nested_params_to_dict(self.fin_config, '.', True)
-        #self.fin_config = self.get_parameter('~fin_config').value
-
 
         # Check if all necessary fin parameters are available
         fin_params = ['fluid_density', 'lift_coefficient', 'fin_area', 
@@ -204,8 +188,6 @@ class ActuatorManager(Node):
 
                 fin_topic = build_topic_name(self.namespace, 
                     self.fin_config['topic_prefix'], i, self.fin_config['topic_suffix'])
-                # fin_topic = '/%s/%s/%d/%s' % (self.namespace, 
-                #     self.fin_config['topic_prefix'], i, self.fin_config['topic_suffix'])
 
                 self.fins[i] = FinModel(
                     i,
@@ -252,5 +234,5 @@ class ActuatorManager(Node):
             self.fins[i].publish_command(command[i + 1])
 
     # =========================================================================
-    def build_topic_name(namespace, topic_prefix, id, topic_prefix):
+    def build_topic_name(self, namespace, topic_prefix, id, topic_prefix):
         return '/%s/%s/id_%d/%s' %  (namespace, topic_prefix, 0, topic_suffix)

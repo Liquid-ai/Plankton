@@ -77,9 +77,6 @@
         <param file="$(var model_params_file)"/>
 
         <param name="inertial_frame_id" value="world_ned"/>
-        <!-- <rosparam subst_value="true">
-          inertial_frame_id: world_ned
-        </rosparam> -->
       </node>
 
       <node pkg="uuv_trajectory_control"
@@ -100,10 +97,6 @@
         <param from="$(var model_params_file)"/>
         
         <param name="inertial_frame_id" value="world"/>
-        
-        <!-- <rosparam subst_value="true">
-          inertial_frame_id: world
-        </rosparam> -->
       </node>
     </group>
   </group>
@@ -132,13 +125,6 @@
         <param name="lambda" value="[$(var lambda)]"/>
         <param name="c" value="[$(var c)]"/>
         <param name="inertial_frame_id" value="world_ned"/>
-        <!-- <rosparam subst_value="true">
-          saturation: $(arg saturation)
-          Kd: [$(arg Kd)]
-          lambda: [$(arg lambda)]
-          c: [$(arg c)]
-          inertial_frame_id: world_ned
-        </rosparam> -->
       </node>
 
       <node pkg="uuv_trajectory_control"
@@ -162,14 +148,6 @@
         <param name="lambda" value="[$(var lambda)]"/>
         <param name="c" value="[$(var c)]"/>
         <param name="inertial_frame_id" value="world"/>
-
-        <!-- <rosparam subst_value="true">
-          saturation: $(arg saturation)
-          Kd: [$(arg Kd)]
-          lambda: [$(arg lambda)]
-          c: [$(arg c)]
-          inertial_frame_id: world
-        </rosparam> -->
       </node>
     </group>
   </group>

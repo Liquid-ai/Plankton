@@ -20,7 +20,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
 import os
 import time
 import sys, select, termios, tty
@@ -77,12 +76,7 @@ class KeyBoardVehicleTeleop(Node):
 
         print(self.msg)
 
-        # Ros Spin
-        #rate = rospy.Rate(50)  # 50hz
         timer = self.create_timer(1 / 50., self._parse_keyboard)
-        # while not rclpy.ok().is_shutdown():
-        #     rate.sleep()
-        #     self._parse_keyboard()
 
     #==========================================================================
     # Every spin this function will return the key being pressed
@@ -201,11 +195,10 @@ def main(args=None):
     time.sleep(5)
     # Start the node
     node_name = os.path.splitext(os.path.basename(__file__))[0]
-    #rospy.init_node(node_name)
-    #rospy.loginfo('Starting [%s] node' % node_name)
     rclpy.init()
     
     teleop = KeyBoardVehicleTeleop(node_name)
+    teleop.get_logger().info('Starting [%s] node' % node_name)
 
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
 

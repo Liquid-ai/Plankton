@@ -79,7 +79,7 @@ void UmbilicalPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   // simulation iteration.
   this->updateConnection =
       event::Events::ConnectWorldUpdateBegin(
-        boost::bind(&UmbilicalPlugin::OnUpdate, this, _1));
+        std::bind(&UmbilicalPlugin::OnUpdate, this, std::placeholders::_1));
 }
 
 /////////////////////////////////////////////////

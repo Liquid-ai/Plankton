@@ -48,11 +48,6 @@ import array
 
 
 class TestDefaultFossenVehicle(unittest.TestCase):
-    # def tearDownClass(self):
-        # FIXME Temporary solution to avoid gzserver lingering after the
-        # simulation node is killed (Gazebo 9.1)
-        # os.system('killall -9 gzserver')
-
     @classmethod
     def setUpClass(cls):
         # Initialize the ROS context for the test node
@@ -63,6 +58,7 @@ class TestDefaultFossenVehicle(unittest.TestCase):
     def tearDownClass(cls):
         # Shutdown the ROS context
         rclpy.shutdown()
+        # Needed to force Gazebo 9 to shutdown when the tests finish
         os.system('killall -9 gzserver')
 
     # =========================================================================
@@ -109,18 +105,6 @@ class TestDefaultFossenVehicle(unittest.TestCase):
     def test_get_model_parameters(self):
         srv_name = '/vehicle/get_model_properties'
         s_get = self.create_service(GetModelProperties, srv_name)
-        # srv_name = '/vehicle/get_model_properties'
-        # s = self.node.create_client(GetModelProperties, srv_name)
-
-        # if not s.wait_for_service(timeout_sec=10):
-        #     self.fail('service %s not available...' % srv_name)
-
-        # req = GetModelProperties.Request()
-        # future = s.call_async(req)
-
-        # rclpy.spin_until_future_complete(self.node, future)
-
-        # models = future.result()
 
         models = self.service_request(s_get)
 
@@ -187,85 +171,35 @@ class TestDefaultFossenVehicle(unittest.TestCase):
     # =========================================================================
     def test_set_fluid_density(self):
         srv_name = '/vehicle/get_fluid_density'
-        s_get = self.create_service(GetFloat, srv_name)
-        # s_get = self.node.create_client(GetFloat, srv_name)
-
-        # if not s_get.wait_for_service(timeout_sec=10):
-        #     self.fail('service %s not available...' % srv_name)
-        
-        # req = GetFloat.Request()
-        # future = s_get.call_async(req)
-
-        # rclpy.spin_until_future_complete(self.node, future)
-
-        # get_func = future.result()
+        # TODO Rename function
+        s_get = self.create_service(GetFloat, srv_name) 
 
         get_func = self.service_request(s_get)
-        #get_func = self.create_service_and_request(GetFloat, srv_name)
+    
         self.assertEqual(get_func.data, 1028.0)
 
         #
         srv_name = '/vehicle/set_fluid_density'
         s_set = self.create_service(SetFloat, srv_name)
-        # s_set = self.node.create_client(SetFloat, srv_name)
-
-        # if not s_set.wait_for_service(timeout_sec=10):
-        #     self.fail('service %s not available...' % srv_name)
-
-        # req = SetFloat.Request()
-        # req.data = 1025.0
-        # future = s_set.call_async(req)
-
-        # rclpy.spin_until_future_complete(self.node, future)
-
-        # set_func = future.result()
 
         set_func = self.service_request(s_set, data=1025.0)
         # set_func = self.create_service_and_request(SetFloat, srv_name)
         self.assertTrue(set_func.success)
 
-        #
-        # req = GetFloat.Request()
-        # future = s_get.call_async(req)
-
-        # rclpy.spin_until_future_complete(self.node, future)
-
-        # get_func = future.result()
         get_func = self.service_request(s_get)
-        # get_func = self.create_service_and_request(GetFloat, srv_name)
+        
         self.assertEqual(get_func.data, 1025.0)
-
-        #
-        # req = SetFloat.Request()
-        # future = s_set.call_async(req)
-
-        # rclpy.spin_until_future_complete(self.node, future)
-
-        # set_func = future.result()
 
         set_func = self.service_request(s_set, data=1028.0)
         # set_func = self.create_service_and_request(SetFloat, srv_name)
         self.assertTrue(set_func.success)
 
-
-        # self.assertEqual(get_func.data, 1028.0)
-        # self.assertTrue(set_func(1025.0).success)
-        # self.assertEqual(get_func().data, 1025.0)
-        # self.assertTrue(set_func(1028.0).success)
-
     # =========================================================================
     def test_volume_offset(self):
-        # rospy.wait_for_service('/vehicle/set_volume_offset')
         s_set = self.create_service(SetFloat, '/vehicle/set_volume_offset')
-        # set_func = rospy.ServiceProxy('/vehicle/set_volume_offset', SetFloat)
-
-        # rospy.wait_for_service('/vehicle/get_volume_offset')
-        # get_func = rospy.ServiceProxy('/vehicle/get_volume_offset', GetFloat)
+        
         s_get = self.create_service(GetFloat, '/vehicle/get_volume_offset')
 
-        # rospy.wait_for_service('/vehicle/get_model_properties')
-        # get_model = rospy.ServiceProxy('/vehicle/get_model_properties',
-        #                                GetModelProperties)
         get_model = self.create_service(GetModelProperties, '/vehicle/get_model_properties')
 
         # Test that offset has changed
@@ -288,12 +222,8 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_added_mass_scaling(self):
-        # rospy.wait_for_service('/vehicle/set_added_mass_scaling')
-        # set_func = rospy.ServiceProxy('/vehicle/set_added_mass_scaling', SetFloat)
         s_set = self.create_service(SetFloat, '/vehicle/set_added_mass_scaling')
 
-        # rospy.wait_for_service('/vehicle/get_added_mass_scaling')
-        # get_func = rospy.ServiceProxy('/vehicle/get_added_mass_scaling', GetFloat)
         s_get = self.create_service(GetFloat, '/vehicle/get_added_mass_scaling')
 
         get_func = self.service_request(s_get)
@@ -310,12 +240,8 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_damping_scaling(self):
-        # rospy.wait_for_service('/vehicle/set_damping_scaling')
-        # set_func = rospy.ServiceProxy('/vehicle/set_damping_scaling', SetFloat)
         s_set = self.create_service(SetFloat, '/vehicle/set_damping_scaling')
 
-        # rospy.wait_for_service('/vehicle/get_damping_scaling')
-        # get_func = rospy.ServiceProxy('/vehicle/get_damping_scaling', GetFloat)
         s_get = self.create_service(GetFloat, '/vehicle/get_damping_scaling')
 
         get_func = self.service_request(s_get)
@@ -332,12 +258,8 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_volume_scaling(self):
-        # rospy.wait_for_service('/vehicle/set_volume_scaling')
-        # set_func = rospy.ServiceProxy('/vehicle/set_volume_scaling', SetFloat)
         s_set = self.create_service(SetFloat, '/vehicle/set_volume_scaling')
 
-        # rospy.wait_for_service('/vehicle/get_volume_scaling')
-        # get_func = rospy.ServiceProxy('/vehicle/get_volume_scaling', GetFloat)
         s_get = self.create_service(GetFloat, '/vehicle/get_volume_scaling')
 
         get_func = self.service_request(s_get)
@@ -354,12 +276,8 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_added_mass_offset(self):
-        # rospy.wait_for_service('/vehicle/set_added_mass_offset')
-        # set_func = rospy.ServiceProxy('/vehicle/set_added_mass_offset', SetFloat)
         s_set = self.create_service(SetFloat, '/vehicle/set_added_mass_offset')
 
-        # rospy.wait_for_service('/vehicle/get_added_mass_offset')
-        # get_func = rospy.ServiceProxy('/vehicle/get_added_mass_offset', GetFloat)
         s_get = self.create_service(GetFloat, '/vehicle/get_added_mass_offset')
 
         get_func = self.service_request(s_get)
@@ -376,12 +294,8 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_linear_damping_offset(self):
-        # rospy.wait_for_service('/vehicle/set_linear_damping_offset')
-        # set_func = rospy.ServiceProxy('/vehicle/set_linear_damping_offset', SetFloat)
         s_set = self.create_service(SetFloat, '/vehicle/set_linear_damping_offset')
 
-        # rospy.wait_for_service('/vehicle/get_linear_damping_offset')
-        # get_func = rospy.ServiceProxy('/vehicle/get_linear_damping_offset', GetFloat)
         s_get = self.create_service(GetFloat, '/vehicle/get_linear_damping_offset')
 
         get_func = self.service_request(s_get)
@@ -398,12 +312,8 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_linear_forward_speed_damping_offset(self):
-        # rospy.wait_for_service('/vehicle/set_linear_forward_speed_damping_offset')
-        # set_func = rospy.ServiceProxy('/vehicle/set_linear_forward_speed_damping_offset', SetFloat)
         s_set = self.create_service(SetFloat, '/vehicle/set_linear_forward_speed_damping_offset')
 
-        # rospy.wait_for_service('/vehicle/get_linear_forward_speed_damping_offset')
-        # get_func = rospy.ServiceProxy('/vehicle/get_linear_forward_speed_damping_offset', GetFloat)
         s_get = self.create_service(GetFloat, '/vehicle/get_linear_forward_speed_damping_offset')
 
         get_func = self.service_request(s_get)
@@ -420,12 +330,8 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_linear_forward_speed_damping_offset(self):
-        # rospy.wait_for_service('/vehicle/set_nonlinear_damping_offset')
-        # set_func = rospy.ServiceProxy('/vehicle/set_nonlinear_damping_offset', SetFloat)
         s_set = self.create_service(SetFloat, '/vehicle/set_nonlinear_damping_offset')
 
-        # rospy.wait_for_service('/vehicle/get_nonlinear_damping_offset')
-        # get_func = rospy.ServiceProxy('/vehicle/get_nonlinear_damping_offset', GetFloat)
         s_get = self.create_service(GetFloat, '/vehicle/get_nonlinear_damping_offset')
 
         get_func = self.service_request(s_get)
@@ -440,10 +346,6 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         set_func = self.service_request(s_set, data=0.0)
         self.assertTrue(set_func.success)
 
-
-# if __name__ == '__main__':
-#     import rosunit
-#     rosunit.unitrun(PKG, NAME, TestDefaultFossenVehicle)
 
 # =============================================================================
 @pytest.mark.rostest
@@ -498,15 +400,6 @@ def generate_test_description():
     upload_launch_desc = IncludeLaunchDescription(
             AnyLaunchDescriptionSource(upload_launch))
     
-
-
-    # listener_node = launch_ros.actions.Node(
-    #     executable=sys.executable,
-    #     arguments=[os.path.join(path_to_test, 'listener.py')],
-    #     additional_env={'PYTHONUNBUFFERED': '1'},
-    #     remappings=[('chatter', 'listener_chatter')]
-    # )
-
     return (
         launch.LaunchDescription([
             gazebo_launch_desc,

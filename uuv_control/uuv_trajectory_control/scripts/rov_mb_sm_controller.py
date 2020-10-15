@@ -221,13 +221,13 @@ class ROV_MB_SMController(DPControllerBase):
 
     # =========================================================================
     def set_mb_sm_controller_params_callback(self, request, response):
-        # TODO What does this function do ?
+        # What does this function do ?
         reponse.success = True
         return response
-        #return SetMBSMControllerParamsResponse(True)
 
     # =========================================================================
     def get_mb_sm_controller_params_callback(self, request, response):
+        # Not sure if it is still required to convert to lists
         response.lambda_array = self._lambda.tolist()
         response.rho_constant = self._rho_constant.tolist()
         response.k = self._k.tolist()
@@ -237,14 +237,6 @@ class ROV_MB_SMController(DPControllerBase):
         response.drift_prevent = self._drift_prevent
 
         return response
-        # return GetMBSMControllerParamsResponse(
-        #     self._lambda.tolist(),
-        #     self._rho_constant.tolist(),
-        #     self._k.tolist(),
-        #     self._c.tolist(),
-        #     self._adapt_slope.tolist(),
-        #     self._rho_0.tolist(),
-        #     self._drift_prevent)
 
     # =========================================================================
     def update_controller(self):

@@ -53,9 +53,6 @@ class TestRexROVURDFFiles(unittest.TestCase):
                 output.decode('utf-8'), 
                 'Some file not found in {}'.format('hey'))
 
-# if __name__ == '__main__':
-#     import rosunit
-#     rosunit.unitrun(PKG, NAME, TestRexROVURDFFiles)
 
 
 

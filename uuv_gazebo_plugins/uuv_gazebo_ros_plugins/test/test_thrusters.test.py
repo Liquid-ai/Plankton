@@ -44,15 +44,6 @@ from ament_index_python.packages import get_package_share_directory
 
 
 class TestThrusters(unittest.TestCase):
-    # def __init__(self, *args):
-    #     super(TestThrusters, self).__init__(*args)
-    #     rospy.init_node('test_thrusters', anonymous=True)
-
-    #     self.thruster_input_pub = dict()
-    #     for i in range(3):
-    #         self.thruster_input_pub[i] = rospy.Publisher(
-    #             '/vehicle/thrusters/%d/input' % i, FloatStamped, queue_size=1)
-
     @classmethod
     def setUpClass(cls):
         # Initialize the ROS context for the test node
@@ -145,13 +136,6 @@ class TestThrusters(unittest.TestCase):
     # =========================================================================
     def test_conversion_fcn_parameters(self):
         # Testing thruster #0 - basic/proportional model
-        # rospy.wait_for_service(
-        #     '/vehicle/thrusters/0/get_thruster_conversion_fcn')
-
-        # get_thruster_convertion_fcn = rospy.ServiceProxy(
-        #     '/vehicle/thrusters/0/get_thruster_conversion_fcn',
-        #     GetThrusterConversionFcn)
-
         s_get = self.create_service(
             GetThrusterConversionFcn, 
             self.build_topic_name(
@@ -162,7 +146,6 @@ class TestThrusters(unittest.TestCase):
         )
 
         fcn = self.service_request(s_get)
-        # fcn = get_thruster_convertion_fcn()
 
         self.assertEqual(fcn.fcn.function_name, 'Basic')
         self.assertEqual(len(fcn.fcn.tags), len(fcn.fcn.data))
@@ -171,13 +154,6 @@ class TestThrusters(unittest.TestCase):
         self.assertEqual(fcn.fcn.data[0], 0.001)
 
         # Testing thruster #1 - Bessa/nonlinear model
-        # rospy.wait_for_service(
-        #     '/vehicle/thrusters/1/get_thruster_conversion_fcn')
-
-        # get_thruster_convertion_fcn = rospy.ServiceProxy(
-        #     '/vehicle/thrusters/1/get_thruster_conversion_fcn',
-        #     GetThrusterConversionFcn)
-
         s_get = self.create_service(
             GetThrusterConversionFcn, 
             self.build_topic_name(
@@ -186,7 +162,6 @@ class TestThrusters(unittest.TestCase):
         )
 
         fcn = self.service_request(s_get)
-        # fcn = get_thruster_convertion_fcn()
 
         bessa_tags = ['rotor_constant_l', 'rotor_constant_r', 'delta_l',
                       'delta_r']
@@ -199,13 +174,6 @@ class TestThrusters(unittest.TestCase):
             self.assertEqual(p, bessa_params[bessa_tags.index(t)])
 
         # Testing thruster #2 - Linear interpolation
-        # rospy.wait_for_service(
-        #     '/vehicle/thrusters/2/get_thruster_conversion_fcn')
-
-        # get_thruster_convertion_fcn = rospy.ServiceProxy(
-        #     '/vehicle/thrusters/2/get_thruster_conversion_fcn',
-        #     GetThrusterConversionFcn)
-
         s_get = self.create_service(
             GetThrusterConversionFcn, 
             self.build_topic_name(
@@ -214,8 +182,6 @@ class TestThrusters(unittest.TestCase):
         )
 
         fcn = self.service_request(s_get)
-
-        # fcn = get_thruster_convertion_fcn()
 
         self.assertEqual(fcn.fcn.function_name, 'LinearInterp')
         self.assertEqual(len(fcn.fcn.tags), len(fcn.fcn.data))
@@ -231,12 +197,6 @@ class TestThrusters(unittest.TestCase):
     def test_change_thruster_state(self):
         
         for i in range(3):
-            # rospy.wait_for_service(
-            #     '/vehicle/thrusters/%d/set_thruster_state' % i)
-            # set_state = rospy.ServiceProxy(
-            #     '/vehicle/thrusters/%d/set_thruster_state' % i,
-            #     SetThrusterState)
-
             s_set = self.create_service(
                 SetThrusterState, 
                 self.build_topic_name(
@@ -246,12 +206,6 @@ class TestThrusters(unittest.TestCase):
             self.assertTrue(set_state.success)
 
             # Test that thruster is off
-            # rospy.wait_for_service(
-            #     '/vehicle/thrusters/%d/get_thruster_state' % i)
-            # get_state = rospy.ServiceProxy(
-            #     '/vehicle/thrusters/%d/get_thruster_state' % i,
-            #     GetThrusterState)
-
             s_get = self.create_service(
                 GetThrusterState, 
                 self.build_topic_name(
@@ -271,12 +225,6 @@ class TestThrusters(unittest.TestCase):
     # =========================================================================
     def test_change_thrust_efficiency(self):
         for i in range(3):
-            # rospy.wait_for_service(
-            #     '/vehicle/thrusters/%d/set_thrust_force_efficiency' % i)
-            # set_efficiency = rospy.ServiceProxy(
-            #     '/vehicle/thrusters/%d/set_thrust_force_efficiency' % i,
-            #     SetThrusterEfficiency)
-
             s_set = self.create_service(
                 SetThrusterEfficiency, 
                 self.build_topic_name(
@@ -287,13 +235,6 @@ class TestThrusters(unittest.TestCase):
             self.assertTrue(set_efficiency.success)
 
             # Test that thruster is off
-            
-            # rospy.wait_for_service(
-            #     '/vehicle/thrusters/%d/get_thrust_force_efficiency' % i)
-            # get_efficiency = rospy.ServiceProxy(
-            #     '/vehicle/thrusters/%d/get_thrust_force_efficiency' % i,
-            #     GetThrusterEfficiency)
-
             s_get = self.create_service(
                 GetThrusterEfficiency, 
                 self.build_topic_name(
@@ -312,13 +253,7 @@ class TestThrusters(unittest.TestCase):
 
     # =========================================================================
     def test_change_dyn_state_efficiency(self):
-        for i in range(3):
-            # rospy.wait_for_service(
-            #     '/vehicle/thrusters/%d/set_dynamic_state_efficiency' % i)
-            # set_efficiency = rospy.ServiceProxy(
-            #     '/vehicle/thrusters/%d/set_dynamic_state_efficiency' % i,
-            #     SetThrusterEfficiency)
-            
+        for i in range(3):            
             s_set = self.create_service(
                 SetThrusterEfficiency, 
                 self.build_topic_name(
@@ -329,12 +264,6 @@ class TestThrusters(unittest.TestCase):
             self.assertTrue(set_efficiency.success)
 
             # Test that thruster is off
-            # rospy.wait_for_service(
-            #     '/vehicle/thrusters/%d/get_dynamic_state_efficiency' % i)
-            # get_efficiency = rospy.ServiceProxy(
-            #     '/vehicle/thrusters/%d/get_dynamic_state_efficiency' % i,
-            #     GetThrusterEfficiency)
-
             s_get = self.create_service(
                 GetThrusterEfficiency, 
                 self.build_topic_name(
@@ -350,11 +279,6 @@ class TestThrusters(unittest.TestCase):
 
             get_efficiency = self.service_request(s_get)
             self.assertEqual(get_efficiency.efficiency, 1.0)
-
-
-# if __name__ == '__main__':
-#     import rostest
-#     rostest.rosrun(PKG, NAME, TestThrusters, sys.argv)
 
 
 # =============================================================================

@@ -10,7 +10,5 @@ find_package(ament_cmake REQUIRED)
 #         uuv_tutorial_seabed_world
 # )
 
-# ament_export_dependencies(ament_cmake)
-# ament_export_include_directories(${INCLUDE_DIRS})
 
 ament_package()

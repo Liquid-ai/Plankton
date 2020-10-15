@@ -35,6 +35,8 @@
       <remap from="joy" to="/$(var uuv_name)/joy"/>
       <param name="type" value="$(var message_type)"/>
       <param name="deadman_button" value="$(var deadman_button)"/>
+      <!-- Eloquent: special handling as a string which will be manually parsed -->
+      <!-- Should be changed using [] syntax -->
       <param name="exclusion_buttons" value="$(var exclusion_buttons)"/> <!--value-sep=","/>-->
       <param name="mapping">
         <param name="x">
@@ -62,30 +64,6 @@
           <param name="gain" value="$(var gain_yaw)"/>
         </param>
       </param>
-      <!-- <rosparam subst_value="true">
-        type: $(arg message_type)
-        deadman_button: $(arg deadman_button)
-        exclusion_buttons: [$(arg exclusion_buttons)]
-        mapping:
-          x:
-            axis: $(arg axis_x)
-            gain: $(arg gain_x)
-          y:
-            axis: $(arg axis_y)
-            gain: $(arg gain_y)
-          z:
-            axis: $(arg axis_z)
-            gain: $(arg gain_z)
-          roll:
-            axis: $(arg axis_roll)
-            gain: $(arg gain_roll)
-          pitch:
-            axis: $(arg axis_pitch)
-            gain: $(arg gain_pitch)
-          yaw:
-            axis: $(arg axis_yaw)
-            gain: $(arg gain_yaw)
-      </rosparam> -->
     </node>
   </group>
 </launch>

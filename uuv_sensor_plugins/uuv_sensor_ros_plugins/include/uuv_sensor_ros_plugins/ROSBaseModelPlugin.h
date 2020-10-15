@@ -39,11 +39,6 @@
 
 #include <geometry_msgs/msg/transform_stamped.hpp>
 
-// #include <tf/transform_datatypes.h>
-// #include <tf/tfMessage.h>
-// #include <tf/transform_listener.h>
-// #include <tf/tf.h>
-// #include <tf/transform_broadcaster.h>
 
 namespace gazebo
 {

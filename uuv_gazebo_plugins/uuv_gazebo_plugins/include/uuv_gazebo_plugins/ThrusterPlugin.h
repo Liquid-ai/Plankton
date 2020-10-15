@@ -25,7 +25,7 @@
 #ifndef __UUV_GAZEBO_PLUGINS_THRUSTER_PLUGIN_HH__
 #define __UUV_GAZEBO_PLUGINS_THRUSTER_PLUGIN_HH__
 
-#include <boost/scoped_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include <map>
 #include <string>

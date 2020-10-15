@@ -104,14 +104,12 @@ class ROVUnderActuatedPIDController(DPControllerBase):
         ki = request.ki
         if len(kp) != 4 or len(kd) != 4 or len(ki) != 4:
             response.success = False
-            #return SetPIDParamsResponse(False)
         else:
             self._Kp = np.diag(kp)
             self._Ki = np.diag(ki)
             self._Kd = np.diag(kd)
             response.success = True
         return response
-        # return SetPIDParamsResponse(True)
 
     # =========================================================================
     def get_pid_params_callback(self, request, response):
@@ -120,11 +118,6 @@ class ROVUnderActuatedPIDController(DPControllerBase):
         response.ki = [self._Ki[i, i] for i in range(4)]
 
         return response
-
-        # return GetPIDParamsResponse(
-        #     [self._Kp[i, i] for i in range(4)],
-        #     [self._Kd[i, i] for i in range(4)],
-        #     [self._Ki[i, i] for i in range(4)])
 
     # =========================================================================
     def update_controller(self):

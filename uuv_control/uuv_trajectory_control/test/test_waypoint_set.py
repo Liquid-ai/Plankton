@@ -15,8 +15,6 @@
 # limitations under the License.
 
 
-# PKG = 'uuv_trajectory_control'
-
 import sys
 import unittest
 
@@ -28,6 +26,7 @@ class TestWaypointSet(unittest.TestCase):
         wp_set = WaypointSet()
         self.assertEqual(wp_set.num_waypoints, 0, 'Waypoint list is not empty')
 
+    # =========================================================================
     def test_invalid_params_helix(self):
         wp_set = WaypointSet()
         self.assertFalse(wp_set.generate_helix(
@@ -40,6 +39,7 @@ class TestWaypointSet(unittest.TestCase):
             theta_offset=0.0,
             heading_offset=0.0), 'Invalid parameters have been wrongly instantiated')
 
+    # =========================================================================
     def test_invalid_params_circle(self):
         wp_set = WaypointSet()
         self.assertFalse(wp_set.generate_circle(
@@ -50,6 +50,7 @@ class TestWaypointSet(unittest.TestCase):
             theta_offset=0.0,
             heading_offset=0.0), 'Invalid parameters have been wrongly instantiated')
 
+    # =========================================================================
     def test_add_repeated_waypoint(self):
         wp = Waypoint(x=1, y=2, z=3, max_forward_speed=1)
         wp_set = WaypointSet()
@@ -58,7 +59,3 @@ class TestWaypointSet(unittest.TestCase):
         self.assertFalse(wp_set.add_waypoint(wp),
             'Repeated waypoint wrongfully added')
 
-
-# if __name__ == '__main__':
-#     import rosunit
-#     rosunit.unitrun(PKG, 'test_waypoint_set', TestWaypointSet)

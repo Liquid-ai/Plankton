@@ -1,5 +1,11 @@
-# Copyright (c) 2016-2019 The UUV Simulator Authors.
+# Copyright (c) 2020 The Plankton Authors.
 # All rights reserved.
+#
+# This source code is derived from UUV Simulator
+# (https://github.com/uuvsimulator/uuv_simulator)
+# Copyright (c) 2016-2019 The UUV Simulator Authors
+# licensed under the Apache license, Version 2.0
+# cf. 3rd-party-licenses.txt file in the root directory of this source tree.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -147,6 +153,7 @@ class BezierCurve(object):
                 self._control_pnts[4] = self._control_pnts[5] - alpha_k / 5.0 * tangents[1]
                 self._control_pnts[3] = 2.0 * self._control_pnts[4] - self._control_pnts[5] + beta_hat * alpha_k**2 / 20.0 * normals[1]
 
+    # =========================================================================
     @staticmethod
     def distance(p1, p2):
         """Compute the distance between two 3D points.
@@ -167,6 +174,7 @@ class BezierCurve(object):
             'Both input points must be three elements'        
         return np.sqrt(np.sum((p2 - p1)**2))
 
+    # =========================================================================
     @staticmethod
     def generate_cubic_curve(pnts):
         """Generate cubic Bezier curve segments from a list of points.
@@ -210,6 +218,7 @@ class BezierCurve(object):
 
         return segments, tangents
 
+    # =========================================================================
     @staticmethod
     def generate_quintic_curve(pnts):
         """Generate quintic Bezier curve segments from a list of points.
@@ -261,6 +270,7 @@ class BezierCurve(object):
 
         return segments
 
+    # =========================================================================
     def control_pnts(self):
         """Return the list of control points of the Bezier curve.
 
@@ -270,6 +280,7 @@ class BezierCurve(object):
         """
         return self._control_pnts
 
+    # =========================================================================
     def interpolate(self, u):
         """Interpolate the Bezier curve using the input parametric variable `u`.
         
@@ -289,6 +300,7 @@ class BezierCurve(object):
             b += self.compute_polynomial(self._order, i, u) * self._control_pnts[i]
         return b
 
+    # =========================================================================
     def get_derivative(self, u, order=1):
         """Compute the derivative of the Bezier curve using the input parametric 
         variable `u`.
@@ -311,6 +323,7 @@ class BezierCurve(object):
                  (self._control_pnts[i + 1] - self._control_pnts[i])        
         return b
 
+    # =========================================================================
     def get_length(self):
         """Get length of the Bezier curve segment.
 
@@ -320,6 +333,7 @@ class BezierCurve(object):
         """
         return self._order * np.linalg.norm(self._control_pnts[1] - self._control_pnts[0])
 
+    # =========================================================================
     def compute_polynomial(self, n, i, u):
         """Compute the Bernstein polynomial
 
@@ -339,6 +353,7 @@ class BezierCurve(object):
         """
         return self._get_binomial(n, i) * (1 - u)**(n - i) * u**i
 
+    # =========================================================================
     @staticmethod
     def _get_binomial(n, i):
         """Compute binomial function $\binom{n}{i}$ 

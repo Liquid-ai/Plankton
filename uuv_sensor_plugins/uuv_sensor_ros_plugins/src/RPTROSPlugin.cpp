@@ -93,7 +93,7 @@ bool RPTROSPlugin::OnUpdate(const common::UpdateInfo& _info)
   this->position.Y() += this->GetGaussianNoise(this->noiseAmp);
   this->position.Z() += this->GetGaussianNoise(this->noiseAmp);
 
-  myRosMessage.header.stamp = myRosNode->now();//ros::Time::now();
+  myRosMessage.header.stamp = myRosNode->now();
   myRosMessage.header.frame_id = this->referenceFrameID;
   myRosMessage.pos.pos.x = this->position.X();
   myRosMessage.pos.pos.y = this->position.Y();

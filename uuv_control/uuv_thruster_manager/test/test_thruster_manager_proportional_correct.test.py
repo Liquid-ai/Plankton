@@ -37,8 +37,6 @@ import pytest
 import threading
 import time
 
-#rospy.init_node('test_thruster_manager_proportional_correct', anonymous=True)
-
 
 REFERENCE_TAM = np.array([
     [1, 0, 0, 0, 0, 0],
@@ -220,7 +218,6 @@ def generate_test_description():
         node_namespace = 'test_vehicle',
         package='robot_state_publisher',
         node_executable='robot_state_publisher',
-        #parameters=[{'robot_description', doc}]
         # TODO To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
         arguments=args,
         output='screen',

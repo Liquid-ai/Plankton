@@ -186,8 +186,8 @@ void ThrusterPlugin::Load(physics::ModelPtr _model,
 
   // Connect the update event
   this->updateConnection = event::Events::ConnectWorldUpdateBegin(
-        boost::bind(&ThrusterPlugin::Update,
-                    this, _1));
+        std::bind(&ThrusterPlugin::Update,
+                    this, std::placeholders::_1));
 #if GAZEBO_MAJOR_VERSION >= 8
   this->thrusterAxis = this->joint->WorldPose().Rot().RotateVectorReverse(this->joint->GlobalAxis(0));
 #else

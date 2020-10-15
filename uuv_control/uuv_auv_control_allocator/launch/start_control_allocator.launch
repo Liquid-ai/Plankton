@@ -64,32 +64,6 @@
             <param name="timeout" value="$(var timeout)"/>
             <param name="update_rate" value="$(var update_rate)"/>
 
-            <!-- <rosparam subst_value="true">
-                output_dir: $(arg output_dir)
-                base_link: $(arg base_link)
-                thruster_config:
-                    topic_prefix: $(arg thruster_topic_prefix)
-                    topic_suffix: $(arg thruster_topic_suffix)
-                    frame_base: $(arg thruster_frame_base)
-                    max_thrust: $(arg max_thrust)
-                    conversion_fcn: $(arg thruster_conversion_fcn)
-                    conversion_fcn_params:
-                        gain: $(arg thruster_gain)
-                        input: [$(arg thruster_input)]
-                        output: [$(arg thruster_output)]
-                fin_config:
-                    frame_base: $(arg fin_frame_base)
-                    fluid_density: $(arg fluid_density)
-                    lift_coefficient: $(arg lift_coefficient)
-                    fin_area: $(arg fin_area)
-                    topic_prefix: $(arg fin_topic_prefix)
-                    topic_suffix: $(arg fin_topic_suffix)  
-                    lower_limit: $(arg fin_lower_joint_limit)
-                    upper_limit: $(arg fin_upper_joint_limit)
-                timeout: $(arg timeout)
-                update_rate: $(arg update_rate)
-            </rosparam> -->
-
             <remap from="control_input" to="$(var input_topic)"/>
         </node>
     </group>

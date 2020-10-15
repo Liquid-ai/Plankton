@@ -242,6 +242,7 @@ void imuCallback(sensor_msgs::msg::Imu::SharedPtr imu) {
 // Disabled multicallback as this is not seemingly possible easily with ros2
 
 int main(int argc, char** argv) {
+  //Use init_and_remove_arguments instead of init to remove cmd line args
   rclcpp::init(argc, argv);
   //Add node options to auto declare parameters from launch files and cmd line
   auto node = rclcpp::Node::make_shared("message_to_tf",
@@ -263,16 +264,6 @@ int main(int argc, char** argv) {
   node->get_parameter("position_frame_id", g_position_frame_id);
   node->get_parameter("stabilized_frame_id", g_stabilized_frame_id);
   node->get_parameter("child_frame_id", g_child_frame_id);
-
-  // get topic from the commandline
-  // Currently useless + cmd line args are not removed (use 
-  // init_and_remove_arguments instead of init)
-  // if (argc > 1) {
-  //     g_topic = argv[1];
-  //     g_odometry_topic.clear();
-  //     g_pose_topic.clear();
-  //     g_imu_topic.clear();
-  // }
 
   g_publish_roll_pitch = true;
   node->get_parameter("publish_roll_pitch", g_publish_roll_pitch);
@@ -334,7 +325,6 @@ int main(int argc, char** argv) {
       g_euler_publisher = node->create_publisher<geometry_msgs::msg::Vector3Stamped>(publish_euler_topic, 10);
     else
       g_euler_publisher = node->create_publisher<geometry_msgs::msg::Vector3Stamped>("~/euler", 10);
-      //g_euler_publisher = priv_nh.advertise<geometry_msgs::msg::Vector3Stamped>("~/euler", 10); //TODO to check
   }
 
   rclcpp::spin(node);

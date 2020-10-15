@@ -45,12 +45,9 @@ def main():
         automatically_declare_parameters_from_overrides=True,
         parameter_overrides=[sim_time_param])
 
-    # sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-    # node.set_parameters([sim_time])
-
     node.get_logger().info('Starting the circular trajectory creator')
     
-    #Important...ensure the clock has been updated when using sim time
+    # Important...ensure the clock has been updated when using sim time
     while node.get_clock().now() == rclpy.time.Time():
         rclpy.spin_once(node)
 
@@ -98,7 +95,7 @@ def main():
 
     node.get_logger().info('Generating trajectory that starts at t={} s'.format(start_time))
 
-    #Convert the time value
+    # Convert the time value
     (sec, nsec) = float_sec_to_int_sec_nano(start_time)
 
     req = InitCircularTrajectory.Request()
@@ -122,12 +119,6 @@ def main():
     else:
         node.get_logger().info('Trajectory successfully generated!')
 
-    #success = traj_gen.call(req)
-
-    # if success:
-    #     print('Trajectory successfully generated!')
-    # else:
-    #     print('Failed')
 
 #==============================================================================
 if __name__ == '__main__':
