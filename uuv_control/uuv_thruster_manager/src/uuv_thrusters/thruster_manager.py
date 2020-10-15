@@ -275,7 +275,7 @@ class ThrusterManager(Node):
         if self.configuration_matrix is not None and not recalculate:
             self._ready = True
             self.get_logger().info('TAM provided, skipping...')
-            self.get_logger().info('ThrusterManager: ready')
+            # self.get_logger().info('ThrusterManager: ready')
             return True
 
         self._ready = False
