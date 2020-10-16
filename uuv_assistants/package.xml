@@ -34,7 +34,7 @@
   <exec_depend>gazebo_msgs</exec_depend>
   <exec_depend>plankton_utils</exec_depend>
   <exec_depend>visualization_msgs</exec_depend>
-  <exec_depend>python-numpy</exec_depend> <!-- check -->
+  <exec_depend>python3-numpy</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

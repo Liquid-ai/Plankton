@@ -20,7 +20,7 @@
 
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>nav_msgs</exec_depend>
-  <exec_depend>python-numpy</exec_depend>  
+  <exec_depend>python3-numpy</exec_depend>  
   <exec_depend>plankton_utils</exec_depend> 
   <exec_depend>rcl_interfaces</exec_depend>
   <exec_depend>rclpy</exec_depend>
