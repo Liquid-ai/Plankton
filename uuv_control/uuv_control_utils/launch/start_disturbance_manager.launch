@@ -15,7 +15,7 @@
   <arg name="current_horz_angle" default="0.0"/>
   <arg name="current_vert_angle" default="0.0"/>
   <arg name="current_duration" default="10"/>
-  <!-- Body wrench -->
+  <!-- Link wrench -->
   <!-- Forces and torques are summed up -->
   <arg name="force_x" default="0"/>
   <arg name="force_y" default="2000"/>
@@ -35,7 +35,6 @@
           output="screen">
           <!-- Load  parameters -->
           <param from="$(var disturbance_file)"/>
-          <!-- <rosparam file="$(arg disturbance_file)" command="load"/> -->
         </node>
     </group>
 
@@ -58,41 +57,11 @@
             <param name="starting_time" value="$(var wrench_starting_time)"/>
             <param name="duration" value="$(var wrench_duration)"/>
             <param name="force" value="$(var force_x), $(var force_y), $(var force_z)" value-sep=", "/>
-            <param name="force" value="$(var torque_x), $(var torque_y), $(var torque_z)" value-sep=", "/>
+            <param name="torque" value="$(var torque_x), $(var torque_y), $(var torque_z)" value-sep=", "/>
           </param>
         </param>
       </node>
     </group>
-
-    <!-- <group unless="$(var use_file)">
-      <node pkg="uuv_control_utils"
-        exec="disturbance_manager.py"
-        name="disturbance_manager"
-        output="screen">
-        <rosparam subst_value="true">
-          disturbances:
-            -
-              type: current
-              starting_time: $(arg current_starting_time)
-              velocity: $(arg current_vel)
-              horizontal_angle: $(arg current_horz_angle)
-              vertical_angle: $(arg current_vert_angle)
-              duration: $(arg current_duration)
-            -
-              type: wrench
-              starting_time: $(arg wrench_starting_time)
-              duration: $(arg wrench_duration)
-              force:
-                - $(arg force_x)
-                - $(arg force_y)
-                - $(arg force_z)
-              torque:
-                - $(arg torque_x)
-                - $(arg torque_y)
-                - $(arg torque_z)
-        </rosparam>
-      </node>
-    </group> -->
   </group>
 
 </launch>
