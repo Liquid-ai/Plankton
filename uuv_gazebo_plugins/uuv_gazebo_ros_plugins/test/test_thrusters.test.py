@@ -79,7 +79,7 @@ class TestThrusters(unittest.TestCase):
         return prefix + '/id_' + str(id) + '/' + suffix
 
     # =========================================================================
-    def create_service(self, srv_type, srv_name):
+    def create_client(self, srv_type, srv_name):
         s = self.node.create_client(srv_type, srv_name)
         
         if not s.wait_for_service(timeout_sec=10):
@@ -136,7 +136,7 @@ class TestThrusters(unittest.TestCase):
     # =========================================================================
     def test_conversion_fcn_parameters(self):
         # Testing thruster #0 - basic/proportional model
-        s_get = self.create_service(
+        s_get = self.create_client(
             GetThrusterConversionFcn, 
             self.build_topic_name(
                 '/vehicle/thrusters', 
@@ -154,7 +154,7 @@ class TestThrusters(unittest.TestCase):
         self.assertEqual(fcn.fcn.data[0], 0.001)
 
         # Testing thruster #1 - Bessa/nonlinear model
-        s_get = self.create_service(
+        s_get = self.create_client(
             GetThrusterConversionFcn, 
             self.build_topic_name(
                 '/vehicle/thrusters', 1,
@@ -174,7 +174,7 @@ class TestThrusters(unittest.TestCase):
             self.assertEqual(p, bessa_params[bessa_tags.index(t)])
 
         # Testing thruster #2 - Linear interpolation
-        s_get = self.create_service(
+        s_get = self.create_client(
             GetThrusterConversionFcn, 
             self.build_topic_name(
                 '/vehicle/thrusters', 2,
@@ -197,7 +197,7 @@ class TestThrusters(unittest.TestCase):
     def test_change_thruster_state(self):
         
         for i in range(3):
-            s_set = self.create_service(
+            s_set = self.create_client(
                 SetThrusterState, 
                 self.build_topic_name(
                     '/vehicle/thrusters', i, 'set_thruster_state')
@@ -206,7 +206,7 @@ class TestThrusters(unittest.TestCase):
             self.assertTrue(set_state.success)
 
             # Test that thruster is off
-            s_get = self.create_service(
+            s_get = self.create_client(
                 GetThrusterState, 
                 self.build_topic_name(
                     '/vehicle/thrusters', i, 'get_thruster_state')
@@ -225,7 +225,7 @@ class TestThrusters(unittest.TestCase):
     # =========================================================================
     def test_change_thrust_efficiency(self):
         for i in range(3):
-            s_set = self.create_service(
+            s_set = self.create_client(
                 SetThrusterEfficiency, 
                 self.build_topic_name(
                     '/vehicle/thrusters', i, 'set_thrust_force_efficiency')
@@ -235,7 +235,7 @@ class TestThrusters(unittest.TestCase):
             self.assertTrue(set_efficiency.success)
 
             # Test that thruster is off
-            s_get = self.create_service(
+            s_get = self.create_client(
                 GetThrusterEfficiency, 
                 self.build_topic_name(
                     '/vehicle/thrusters', i, 'get_thrust_force_efficiency')
@@ -254,7 +254,7 @@ class TestThrusters(unittest.TestCase):
     # =========================================================================
     def test_change_dyn_state_efficiency(self):
         for i in range(3):            
-            s_set = self.create_service(
+            s_set = self.create_client(
                 SetThrusterEfficiency, 
                 self.build_topic_name(
                     '/vehicle/thrusters', i, 'set_dynamic_state_efficiency')
@@ -264,7 +264,7 @@ class TestThrusters(unittest.TestCase):
             self.assertTrue(set_efficiency.success)
 
             # Test that thruster is off
-            s_get = self.create_service(
+            s_get = self.create_client(
                 GetThrusterEfficiency, 
                 self.build_topic_name(
                     '/vehicle/thrusters', i, 'get_dynamic_state_efficiency')

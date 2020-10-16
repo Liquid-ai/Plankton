@@ -19,32 +19,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import unittest
-
-import pytest
-import rclpy
 from geometry_msgs.msg import Vector3, Inertia
 from uuv_gazebo_ros_plugins_msgs.msg import UnderwaterObjectModel
 from uuv_gazebo_ros_plugins_msgs.srv import *
 
-
+import rclpy
+import xacro
 import launch
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import AnyLaunchDescriptionSource
-
 import launch_testing.actions
-
-
 from ament_index_python.packages import get_package_share_directory
-import os
-import pathlib
-import pytest
-import xacro
 
 import array
-
-
-
+import unittest
+import pytest
+import os
+import pathlib
 
 
 class TestDefaultFossenVehicle(unittest.TestCase):
@@ -75,7 +66,7 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         self.node.destroy_node()
 
     # =========================================================================
-    def create_service(self, srv_type, srv_name):
+    def create_client(self, srv_type, srv_name):
         s = self.node.create_client(srv_type, srv_name)
         
         if not s.wait_for_service(timeout_sec=10):
@@ -104,7 +95,7 @@ class TestDefaultFossenVehicle(unittest.TestCase):
     # =========================================================================
     def test_get_model_parameters(self):
         srv_name = '/vehicle/get_model_properties'
-        s_get = self.create_service(GetModelProperties, srv_name)
+        s_get = self.create_client(GetModelProperties, srv_name)
 
         models = self.service_request(s_get)
 
@@ -171,8 +162,8 @@ class TestDefaultFossenVehicle(unittest.TestCase):
     # =========================================================================
     def test_set_fluid_density(self):
         srv_name = '/vehicle/get_fluid_density'
-        # TODO Rename function
-        s_get = self.create_service(GetFloat, srv_name) 
+   
+        s_get = self.create_client(GetFloat, srv_name) 
 
         get_func = self.service_request(s_get)
     
@@ -180,10 +171,9 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
         #
         srv_name = '/vehicle/set_fluid_density'
-        s_set = self.create_service(SetFloat, srv_name)
+        s_set = self.create_client(SetFloat, srv_name)
 
         set_func = self.service_request(s_set, data=1025.0)
-        # set_func = self.create_service_and_request(SetFloat, srv_name)
         self.assertTrue(set_func.success)
 
         get_func = self.service_request(s_get)
@@ -191,16 +181,15 @@ class TestDefaultFossenVehicle(unittest.TestCase):
         self.assertEqual(get_func.data, 1025.0)
 
         set_func = self.service_request(s_set, data=1028.0)
-        # set_func = self.create_service_and_request(SetFloat, srv_name)
         self.assertTrue(set_func.success)
 
     # =========================================================================
     def test_volume_offset(self):
-        s_set = self.create_service(SetFloat, '/vehicle/set_volume_offset')
+        s_set = self.create_client(SetFloat, '/vehicle/set_volume_offset')
         
-        s_get = self.create_service(GetFloat, '/vehicle/get_volume_offset')
+        s_get = self.create_client(GetFloat, '/vehicle/get_volume_offset')
 
-        get_model = self.create_service(GetModelProperties, '/vehicle/get_model_properties')
+        get_model = self.create_client(GetModelProperties, '/vehicle/get_model_properties')
 
         # Test that offset has changed
         get_func = self.service_request(s_get)
@@ -222,9 +211,9 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_added_mass_scaling(self):
-        s_set = self.create_service(SetFloat, '/vehicle/set_added_mass_scaling')
+        s_set = self.create_client(SetFloat, '/vehicle/set_added_mass_scaling')
 
-        s_get = self.create_service(GetFloat, '/vehicle/get_added_mass_scaling')
+        s_get = self.create_client(GetFloat, '/vehicle/get_added_mass_scaling')
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 1.0)
@@ -240,9 +229,9 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_damping_scaling(self):
-        s_set = self.create_service(SetFloat, '/vehicle/set_damping_scaling')
+        s_set = self.create_client(SetFloat, '/vehicle/set_damping_scaling')
 
-        s_get = self.create_service(GetFloat, '/vehicle/get_damping_scaling')
+        s_get = self.create_client(GetFloat, '/vehicle/get_damping_scaling')
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 1.0)
@@ -258,9 +247,9 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_volume_scaling(self):
-        s_set = self.create_service(SetFloat, '/vehicle/set_volume_scaling')
+        s_set = self.create_client(SetFloat, '/vehicle/set_volume_scaling')
 
-        s_get = self.create_service(GetFloat, '/vehicle/get_volume_scaling')
+        s_get = self.create_client(GetFloat, '/vehicle/get_volume_scaling')
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 1.0)
@@ -276,9 +265,9 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_added_mass_offset(self):
-        s_set = self.create_service(SetFloat, '/vehicle/set_added_mass_offset')
+        s_set = self.create_client(SetFloat, '/vehicle/set_added_mass_offset')
 
-        s_get = self.create_service(GetFloat, '/vehicle/get_added_mass_offset')
+        s_get = self.create_client(GetFloat, '/vehicle/get_added_mass_offset')
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 0.0)
@@ -294,27 +283,9 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_linear_damping_offset(self):
-        s_set = self.create_service(SetFloat, '/vehicle/set_linear_damping_offset')
+        s_set = self.create_client(SetFloat, '/vehicle/set_linear_damping_offset')
 
-        s_get = self.create_service(GetFloat, '/vehicle/get_linear_damping_offset')
-
-        get_func = self.service_request(s_get)
-        self.assertEqual(get_func.data, 0.0)
-
-        set_func = self.service_request(s_set, data=1.0)
-        self.assertTrue(set_func.success)
-
-        get_func = self.service_request(s_get)
-        self.assertEqual(get_func.data, 1.0)
-
-        set_func = self.service_request(s_set, data=0.0)
-        self.assertTrue(set_func.success)
-
-    # =========================================================================
-    def test_linear_forward_speed_damping_offset(self):
-        s_set = self.create_service(SetFloat, '/vehicle/set_linear_forward_speed_damping_offset')
-
-        s_get = self.create_service(GetFloat, '/vehicle/get_linear_forward_speed_damping_offset')
+        s_get = self.create_client(GetFloat, '/vehicle/get_linear_damping_offset')
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 0.0)
@@ -330,9 +301,27 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_linear_forward_speed_damping_offset(self):
-        s_set = self.create_service(SetFloat, '/vehicle/set_nonlinear_damping_offset')
+        s_set = self.create_client(SetFloat, '/vehicle/set_linear_forward_speed_damping_offset')
 
-        s_get = self.create_service(GetFloat, '/vehicle/get_nonlinear_damping_offset')
+        s_get = self.create_client(GetFloat, '/vehicle/get_linear_forward_speed_damping_offset')
+
+        get_func = self.service_request(s_get)
+        self.assertEqual(get_func.data, 0.0)
+
+        set_func = self.service_request(s_set, data=1.0)
+        self.assertTrue(set_func.success)
+
+        get_func = self.service_request(s_get)
+        self.assertEqual(get_func.data, 1.0)
+
+        set_func = self.service_request(s_set, data=0.0)
+        self.assertTrue(set_func.success)
+
+    # =========================================================================
+    def test_linear_forward_speed_damping_offset(self):
+        s_set = self.create_client(SetFloat, '/vehicle/set_nonlinear_damping_offset')
+
+        s_get = self.create_client(GetFloat, '/vehicle/get_nonlinear_damping_offset')
 
         get_func = self.service_request(s_get)
         self.assertEqual(get_func.data, 0.0)

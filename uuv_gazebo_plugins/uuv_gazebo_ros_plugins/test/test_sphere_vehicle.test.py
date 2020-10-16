@@ -73,7 +73,7 @@ class TestSphereVehicle(unittest.TestCase):
         self.node.destroy_node()
 
     # =========================================================================
-    def create_service(self, srv_type, srv_name):
+    def create_client(self, srv_type, srv_name):
         s = self.node.create_client(srv_type, srv_name)
         
         if not s.wait_for_service(timeout_sec=10):
@@ -83,7 +83,7 @@ class TestSphereVehicle(unittest.TestCase):
 
     # =========================================================================
     # @pytest.mark.skip()
-    def service_request(self, service, **kwargs):#data=None):
+    def service_request(self, service, **kwargs):
         req = service.srv_type.Request()
         for key, value in kwargs.items():
             try:
@@ -101,7 +101,7 @@ class TestSphereVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_get_model_parameters(self):
-        s_models = self.create_service(GetModelProperties, '/vehicle/get_model_properties')
+        s_models = self.create_client(GetModelProperties, '/vehicle/get_model_properties')
 
         models = self.service_request(s_models)
 
@@ -142,7 +142,7 @@ class TestSphereVehicle(unittest.TestCase):
 
     # =========================================================================
     def test_added_mass_coefs(self):
-        s_models = self.create_service(GetModelProperties, '/vehicle/get_model_properties')
+        s_models = self.create_client(GetModelProperties, '/vehicle/get_model_properties')
 
         models = self.service_request(s_models)
 
@@ -157,7 +157,7 @@ class TestSphereVehicle(unittest.TestCase):
 
     # ==============================================================
     def test_nonlinear_damping_coefs(self):
-        s_models = self.create_service(GetModelProperties, '/vehicle/get_model_properties')
+        s_models = self.create_client(GetModelProperties, '/vehicle/get_model_properties')
 
         models = self.service_request(s_models)
 
