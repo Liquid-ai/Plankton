@@ -43,7 +43,7 @@
         <arg name="max_forward_speed" value="0.6"/>
     </include>
 
-    <include file="$(find uuv_control_utils)/launch/apply_body_wrench.launch">
+    <include file="$(find uuv_control_utils)/launch/apply_link_wrench.launch">
         <arg name="uuv_name" value="rexrov"/>
         <arg name="starting_time" default="5"/>
         <arg name="duration" default="10"/>
@@ -51,7 +51,7 @@
         <arg name="force_y" default="3000"/>
     </include>
 
-    <include file="$(find uuv_control_utils)/launch/apply_body_wrench.launch">
+    <include file="$(find uuv_control_utils)/launch/apply_link_wrench.launch">
         <arg name="uuv_name" value="rexrov"/>
         <arg name="starting_time" default="20"/>
         <arg name="duration" default="10"/>
@@ -59,7 +59,7 @@
         <arg name="force_z" default="3000"/>
     </include>
 
-    <include file="$(find uuv_control_utils)/launch/apply_body_wrench.launch">
+    <include file="$(find uuv_control_utils)/launch/apply_link_wrench.launch">
         <arg name="uuv_name" value="rexrov"/>
         <arg name="starting_time" default="35"/>
         <arg name="duration" default="10"/>

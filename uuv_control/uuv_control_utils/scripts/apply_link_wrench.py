@@ -36,7 +36,7 @@ def main():
 
     sim_time_param = is_sim_time()
 
-    node = rclpy.create_node('set_body_wrench',
+    node = rclpy.create_node('set_link_wrench',
                             allow_undeclared_parameters=True, 
                             automatically_declare_parameters_from_overrides=True, 
                             parameter_overrides=[sim_time_param])
@@ -53,7 +53,7 @@ def main():
     if node.has_parameter('duration'):
         duration = float(node.get_parameter('duration').value)
 
-    #compare to eps ?
+    # Compare to eps ?
     if duration <= 0.0:
         node.get_logger().info('Duration not set, leaving node...')
         sys.exit(-1)
@@ -80,7 +80,13 @@ def main():
 
     node.get_logger().info('Torque [N]=' + str(torque))
 
-    service_name = '/gazebo/apply_link_wrench'
+    gazebo_ns = 'gazebo'
+    if node.has_parameter('gazebo_ns'):
+        gazebo_ns = node.get_parameter('gazebo_ns').value
+    if not gazebo_ns.startswith('/'):
+        gazebo_ns = '/' + gazebo_ns
+
+    service_name = '{}/apply_link_wrench'.format(gazebo_ns)
     try:
         apply_wrench = node.create_client(ApplyLinkWrench, service_name)
     except Exception as e:
@@ -120,21 +126,30 @@ def main():
 
     future = apply_wrench.call_async(apw)
 
-    # NB : spining is done from another thread    
-    # TODO Test response.success
+    # NB : spining is done from another thread
     while rclpy.ok():
         if future.done():
             try:
                 response = future.result()
             except Exception as e:
-                node.get_logger().error('Could not apply link wrench %r' % (e,))
+                node.get_logger().error(
+                    'Could not apply link wrench, exception thrown: %r' % (e,))
             else:
-                node.get_logger().info('Link wrench perturbation applied!')
-                node.get_logger().info('\tFrame: '+ body_name)
-                node.get_logger().info('\tDuration [s]: ' + str(duration))
-                node.get_logger().info('\tForce [N]: ' + str(force))
-                node.get_logger().info('\tTorque [Nm]: ' + str(torque))
-            break
+                if response.success:
+                    message = '\nLink wrench perturbation applied!'
+                    message += '\n\tFrame: '+ body_name
+                    message += '\n\tDuration [s]: ' + str(duration)
+                    message += '\n\tForce [N]: ' + str(force)
+                    message += '\n\tTorque [Nm]: ' + str(torque)
+                    node.get_logger().info(message)
+                else:
+                    message = 'Could not apply link wrench'
+                    message += '\n\tError is: %s' % (response.status_message)
+                    node.get_logger().error(message)
+            finally:
+                break
+
+    node.destroy_node()
 
 
 #==============================================================================
