@@ -106,13 +106,12 @@ class DPPIDControllerBase(DPControllerBase):
         if len(kp) != 6 or len(kd) != 6 or len(ki) != 6:
             response.success = False
             return response
-            #return SetPIDParamsResponse(False)
+
         self._Kp = np.diag(kp)
         self._Ki = np.diag(ki)
         self._Kd = np.diag(kd)
         response.success = True
         return response
-        #return SetPIDParamsResponse(True)
 
     # =========================================================================
     def get_pid_params_callback(self, request, response):
@@ -122,10 +121,8 @@ class DPPIDControllerBase(DPControllerBase):
         response.kp = [self._Kp[i, i] for i in range(6)]
         response.kd = [self._Kd[i, i] for i in range(6)]
         response.ki = [self._Ki[i, i] for i in range(6)]
-        # return GetPIDParamsResponse(
-        #     [self._Kp[i, i] for i in range(6)],
-        #     [self._Kd[i, i] for i in range(6)],
-        #     [self._Ki[i, i] for i in range(6)])
+
+        return response
 
     # =========================================================================
     def update_pid(self):
