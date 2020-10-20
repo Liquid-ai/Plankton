@@ -25,7 +25,8 @@
 
 namespace gazebo
 {
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 GaussMarkovProcess::GaussMarkovProcess()
 {
   this->mean = 0;
@@ -34,16 +35,19 @@ GaussMarkovProcess::GaussMarkovProcess()
   this->mu = 0;
   this->noiseAmp = 0;
   this->Reset();
+  //TODO Use modern rand
   std::srand(std::time(NULL));
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void GaussMarkovProcess::Reset()
 {
   this->var = this->mean;
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 bool GaussMarkovProcess::SetMean(double _mean)
 {
   if (this->min > _mean || this->max < _mean)
@@ -54,11 +58,12 @@ bool GaussMarkovProcess::SetMean(double _mean)
   return true;
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 bool GaussMarkovProcess::SetModel(double _mean, double _min, double _max,
     double _mu, double _noise)
 {
-  if (_min >= _max)
+  if (_min > _max)
     return false;
   if (_min > _mean || _max < _mean)
     return false;
@@ -76,7 +81,8 @@ bool GaussMarkovProcess::SetModel(double _mean, double _min, double _max,
   return true;
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 double GaussMarkovProcess::Update(double _time)
 {
   double step = _time - this->lastUpdate;
@@ -91,7 +97,8 @@ double GaussMarkovProcess::Update(double _time)
   return this->var;
 }
 
-/////////////////////////////////////////////////
+//=============================================================================
+///////////////////////////////////////////////////////////////////////////////
 void GaussMarkovProcess::Print()
 {
   gzmsg << "\tMean = " << this->mean << std::endl

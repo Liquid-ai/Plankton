@@ -246,6 +246,11 @@ void UnderwaterCurrentROSPlugin::UpdateCurrentVelocityModel(
     const uuv_world_ros_plugins_msgs::srv::SetCurrentModel::Request::SharedPtr _req,
     uuv_world_ros_plugins_msgs::srv::SetCurrentModel::Response::SharedPtr _res)
 {
+  if(_req->mean < 0 || _req->min < 0 || _req->max < 0)
+    gzwarn << "UpdateCurrentVelocity: " << " mean (" <<_req->mean 
+           << ") or min (" << _req->min << ") or max (" 
+           << _req->max << ") is negative. Setting to 0" << std::endl;
+           
   _res->success = this->currentVelModel.SetModel(
     std::max(0.0, _req->mean),
     std::max(0.0, _req->min),
