@@ -22,15 +22,15 @@
 
 import rclpy
 import sys
+import traceback
 from numpy import pi
 
 from uuv_control_msgs.srv import InitCircularTrajectory
 
 from geometry_msgs.msg import Point
-from std_msgs.msg import Time
 
 from plankton_utils.time import time_in_float_sec
-from plankton_utils import float_sec_to_int_sec_nano
+from plankton_utils.time import float_sec_to_int_sec_nano
 from plankton_utils.time import is_sim_time
 
 
@@ -48,7 +48,7 @@ def main():
     node.get_logger().info('Starting the circular trajectory creator')
     
     # Important...ensure the clock has been updated when using sim time
-    while node.get_clock().now() == rclpy.time.Time():
+    while node.get_clock().now() == rclpy.time.Time(clock_type=node.get_clock().clock_type):
         rclpy.spin_once(node)
 
     # If no start time is provided: start *now*.
@@ -75,15 +75,18 @@ def main():
         params[label] = node.get_parameter(label).value
 
     if len(params['center']) != 3:
-        node.get_logger().error('Center of circle must have 3 components (x, y, z)')
+        node.get_logger().error(
+            'Center of circle must have 3 components (x, y, z): ' + str(params['center']))
         sys.exit(-1)
 
     if params['n_points'] <= 2:
-        node.get_logger().error('Number of points must be at least 2')
+        node.get_logger().error(
+            'Number of points must be at least 2: ' + str(params['n_points']))
         sys.exit(-1)
 
     if params['max_forward_speed'] <= 0:
-        node.get_logger().error('Velocity limit must be positive')
+        node.get_logger().error(
+            'Velocity limit must be positive: ' + str(params['max_forward_speed']))
         sys.exit(-1)
 
     srv_name = 'start_circular_trajectory'
@@ -101,7 +104,7 @@ def main():
     req = InitCircularTrajectory.Request()
     req.start_time = rclpy.time.Time(seconds=sec, nanoseconds=nsec).to_msg()
     req.start_now = start_now
-    req.radius = params['radius'],
+    req.radius = params['radius']
     req.center = Point(params['center'][0], params['center'][1], params['center'][2])
     req.is_clockwise = False
     req.angle_offset = 0.0
@@ -111,21 +114,24 @@ def main():
     req.duration = params['duration']
 
     future = traj_gen.call_async(req)
-    rclpy.spin_until_future_complete(self, future)
+    rclpy.spin_until_future_complete(node, future)
     try:
         response = future.result()
     except Exception as e:
-        node.get_logger().error('Service call ' + srv_name + ' failed, error=' + str(e)):
+        node.get_logger().error('Service call ' + srv_name + ' failed, error=' + str(e))
     else:
         node.get_logger().info('Trajectory successfully generated!')
 
+    node.destroy_node()
 
-#==============================================================================
+
+# =============================================================================
 if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        print('Something went wrong: ' + str(e))
+        print('Something went wrong: ' + repr(e))
+        print(traceback.print_exc())
     finally:
         if rclpy.ok():
             rclpy.shutdown()

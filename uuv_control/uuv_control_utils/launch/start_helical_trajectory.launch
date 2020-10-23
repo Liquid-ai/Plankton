@@ -19,12 +19,12 @@
       exec="start_helical_trajectory.py"
       name="start_helical_trajectory"
       output="screen">
-      <param name="start_time" value="$(var start_time"/>
-      <param name="radius" value="$(var radius"/>
+      <param name="start_time" value="$(var start_time)"/>
+      <param name="radius" value="$(var radius)"/>
       <param name="center" value="$(var center_x), $(var center_y), $(var center_z)" value-sep=", "/>
-      <param name="n_points" value="$(var n_points"/>
-      <param name="heading_offset" value="$(var heading_offset"/>
-      <param name="max_forward_speed" value="$(var max_forward_speed"/>
+      <param name="n_points" value="$(var n_points)"/>
+      <param name="heading_offset" value="$(var heading_offset)"/>
+      <param name="max_forward_speed" value="$(var max_forward_speed)"/>
       <param name="duration" value="$(var duration)"/>
       <param name="n_turns" value="$(var n_turns)"/>
       <param name="delta_z" value="$(var delta_z)"/>

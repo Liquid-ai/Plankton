@@ -19,12 +19,12 @@
       output="screen">
      
       <param name="starting_time" value="$(var start_time)"/>
-      <param name="radius" value="$(var radius"/>
-      <param name="center" value="$(var center_x), $(var center_y), $(var center_z)" sep-value=", "/>
-      <param name="n_points" value="$(var n_points"/>
-      <param name="heading_offset" value="$(var heading_offset"/>
-      <param name="duration" value="$(var duration"/>
-      <param name="max_forward_speed" value="$(var max_forward_speed"/>
+      <param name="radius" value="$(var radius)"/>
+      <param name="center" value="$(var center_x), $(var center_y), $(var center_z)" value-sep=", "/>
+      <param name="n_points" value="$(var n_points)"/>
+      <param name="heading_offset" value="$(var heading_offset)"/>
+      <param name="duration" value="$(var duration)"/>
+      <param name="max_forward_speed" value="$(var max_forward_speed)"/>
     </node>
   </group>
 </launch>

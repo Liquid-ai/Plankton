@@ -1,5 +1,5 @@
 <launch>
-  <arg name="uuv_name" />
+  <arg name="uuv_name"/>
   <arg name="filename" default="$(find-pkg-share uuv_control_utils)/config/example_waypoints.yaml"/>
   <arg name="start_time" default="-1"/>
   <arg name="interpolator" default="lipb"/>
@@ -10,7 +10,7 @@
           exec="send_waypoint_file.py"
           node-name="send_waypoint_file"
           output="screen">
-      <param name="filename" value="($var filename)"/>
+      <param name="filename" value="$(var filename)"/>
       <param name="start_time" value="$(var start_time)"/>
       <param name="interpolator" value="$(var interpolator)"/>
     </node>

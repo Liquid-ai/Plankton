@@ -29,6 +29,7 @@ from geometry_msgs.msg import Point, Wrench, Vector3
 from gazebo_msgs.srv import ApplyLinkWrench
 
 from plankton_utils.time import time_in_float_sec
+from plankton_utils.time import float_sec_to_int_sec_nano
 from plankton_utils.time import is_sim_time
 
 def main():
@@ -52,9 +53,9 @@ def main():
     duration = 0.0
     if node.has_parameter('duration'):
         duration = float(node.get_parameter('duration').value)
-
+    
     # Compare to eps ?
-    if duration <= 0.0:
+    if duration == 0.0:
         node.get_logger().info('Duration not set, leaving node...')
         sys.exit(-1)
 
@@ -114,6 +115,8 @@ def main():
         if 1.0 / FREQ < starting_time: 
             rate.sleep()
 
+    (d_secs, d_nsecs) = float_sec_to_int_sec_nano(duration)
+
     apw = ApplyLinkWrench.Request()
     apw.link_name = body_name
     apw.reference_frame = 'world'
@@ -122,7 +125,7 @@ def main():
     apw.wrench.force = Vector3(x=force[0], y=force[1], z=force[2])
     apw.wrench.torque = Vector3(x=torque[0], y=torque[1], z=torque[2])
     apw.start_time = node.get_clock().now().to_msg()
-    apw.duration = rclpy.time.Duration(seconds=duration).to_msg()
+    apw.duration = rclpy.time.Duration(seconds=d_secs, nanoseconds=d_nsecs).to_msg()
 
     future = apply_wrench.call_async(apw)
 
@@ -152,7 +155,7 @@ def main():
     node.destroy_node()
 
 
-#==============================================================================
+# =============================================================================
 if __name__ == '__main__':
     try:
         main()

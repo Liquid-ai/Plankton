@@ -4,7 +4,7 @@
   <!-- Flag, if true, read disturbance specifications from a file -->
   <arg name="use_file" default="false" />
   <!-- Filename -->
-  <arg name="disturbance_file" />
+  <arg name="disturbance_file" default=""/>
   <!-- In case the file is not used, then the user can set one current
     perturbation and one body wrench through the launch file -->
 
@@ -38,30 +38,30 @@
         </node>
     </group>
 
-      <group unless="$(var use_file)">
-      <node pkg="uuv_control_utils"
+    <group unless="$(var use_file)">
+    <node pkg="uuv_control_utils"
         exec="disturbance_manager.py"
         node-name="disturbance_manager"
         output="screen">
-        <param name="disturbances">
-          <param name="d1">
-            <param name="type" value="current"/>
-            <param name="starting_time" value="$(var current_starting_time)"/>
-            <param name="velocity" value="$(var current_vel)"/>
-            <param name="horizontal_angle" value="$(var current_horz_angle)"/>
-            <param name="vertical_angle" value="$(var current_vert_angle)"/>
-            <param name="duration" value="$(var current_duration)"/>
-          </param>
-          <param name="d2">
-            <param name="type" value="wrench"/>
-            <param name="starting_time" value="$(var wrench_starting_time)"/>
-            <param name="duration" value="$(var wrench_duration)"/>
-            <param name="force" value="$(var force_x), $(var force_y), $(var force_z)" value-sep=", "/>
-            <param name="torque" value="$(var torque_x), $(var torque_y), $(var torque_z)" value-sep=", "/>
-          </param>
+      <param name="disturbances">
+        <param name="d1">
+          <param name="type" value="current"/>
+          <param name="starting_time" value="$(var current_starting_time)"/>
+          <param name="velocity" value="$(var current_vel)"/>
+          <param name="horizontal_angle" value="$(var current_horz_angle)"/>
+          <param name="vertical_angle" value="$(var current_vert_angle)"/>
+          <param name="duration" value="$(var current_duration)"/>
         </param>
-      </node>
-    </group>
+        <param name="d2">
+          <param name="type" value="wrench"/>
+          <param name="starting_time" value="$(var wrench_starting_time)"/>
+          <param name="duration" value="$(var wrench_duration)"/>
+          <param name="force" value="$(var force_x), $(var force_y), $(var force_z)" value-sep=", "/>
+          <param name="torque" value="$(var torque_x), $(var torque_y), $(var torque_z)" value-sep=", "/>
+        </param>
+      </param>
+    </node>
   </group>
+</group>
 
 </launch>
