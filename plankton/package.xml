@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="3">
     <name>plankton</name>
-    <version>0.5.1</version>
+    <version>0.5.2</version>
     <description>Open source simulator for maritime robotics research</description>
 
     <author email="loic.mougeolle@naval-group.com">Loïc Mougeolle</author>

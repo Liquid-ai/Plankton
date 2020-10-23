@@ -1,3 +1,9 @@
+## 0.5.2
+
+### uuv_sensor_ros_plugins
+
+-Updated deprecated remapping syntax warnings occuring in URDF files
+
 ## 0.5.1
 
 ### General

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<package format="2">
+<package format="3">
   <name>uuv_gazebo</name>
-  <version>0.5.1</version>
+  <version>0.5.2</version>
   <description>The uuv_gazebo package</description>
 
   <maintainer email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</maintainer>
