@@ -29,9 +29,15 @@ from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist, Accel, Vector3
 from rclpy.node import Node
 
+from plankton_utils.time import is_sim_time
+
 class KeyBoardVehicleTeleop(Node):
-    def __init__(self, node_name):
-        super().__init__(node_name)
+    def __init__(self, node_name, **kwargs):
+        super().__init__(node_name, 
+                        allow_undeclared_parameters=True, 
+                        automatically_declare_parameters_from_overrides=True,
+                        **kwargs)
+                        
         # Class Variables
         self.settings = termios.tcgetattr(sys.stdin)
 
@@ -197,7 +203,8 @@ def main(args=None):
     node_name = os.path.splitext(os.path.basename(__file__))[0]
     rclpy.init()
     
-    teleop = KeyBoardVehicleTeleop(node_name)
+    sim_time_param = is_sim_time()
+    teleop = KeyBoardVehicleTeleop(node_name, parameter_overrides=[sim_time_param])
     teleop.get_logger().info('Starting [%s] node' % node_name)
 
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)

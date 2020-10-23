@@ -14,6 +14,24 @@
         duration: 2.0
         force: [0.0, 0.0, 0.0]
         torque: [0.0, 0.0, 0.0]
+      d3:
+        type: thruster_state
+        starting_time: 14.0
+        duration: 20.0
+        thruster_id: 0
+        is_on: false
+      d4:
+        type: propeller_efficiency
+        starting_time: 18.0
+        duration: 5
+        thruster_id: 1
+        efficiency: 0.4
+      d5:
+        type: thrust_efficiency
+        starting_time: 20.0
+        duration: 10.0
+        thruster_id: 5
+        efficiency: 0.0
 
 
 # /**:

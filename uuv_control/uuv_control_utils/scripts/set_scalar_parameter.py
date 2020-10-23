@@ -21,6 +21,7 @@
 # limitations under the License.
 import rclpy
 import sys
+import traceback
 from uuv_gazebo_ros_plugins_msgs.srv import SetFloat
 
 def main():
@@ -31,7 +32,6 @@ def main():
         automatically_declare_parameters_from_overrides=True)
 
     node.get_logger().info('Set scalar parameter, namespace=' + node.get_namespace())
-
 
     services = ['set_fluid_density', 'set_added_mass_scaling',
                 'set_damping_scaling', 'set_volume_scaling',
@@ -45,11 +45,11 @@ def main():
     service_name = node.get_parameter('service_name').get_parameter_value().string_value
     assert service_name in services, 'Possible service names are=' + str(services)
 
-    data = node.get_parameter('data').value
+    data = float(node.get_parameter('data').value)
 
     service = node.create_client(SetFloat, service_name)
     
-    if not service.wait_for_service(timeout_sec=30)
+    if not service.wait_for_service(timeout_sec=30):
         raise RuntimeError("Service %s not running" % (service.srv_name))
 
     node.get_logger().info('Set scalar parameter, service=%s, data=%.2f' % (service_name, data))
@@ -57,30 +57,27 @@ def main():
     req = SetFloat.Request()
     req.data = data
 
-    future = set_model.call_async(req)
-    rclpy.spin_until_future_complete(self, future)
+    future = service.call_async(req)
+    rclpy.spin_until_future_complete(node, future)
     if future.result() is not None:
         res = future.result()
-        if res.succes:
+        if res.success:
             node.get_logger().info('Parameter set successfully')
         else:
-            node.get_logger().info('Error setting scalar parameter')
+            node.get_logger().info('Error setting scalar parameter')  
+        node.get_logger().info(res.message)
 
-    # output = service.call(data)
-    # if output.success:
-    #     node.get_logger().info('Parameter set successfully')
-    # else:
-    #     node.get_logger().info('Error setting scalar parameter')
-        
-    node.get_logger().info(output.message)
     node.get_logger().info('Leaving node...')
 
-#==============================================================================
+    node.destroy_node()
+
+# =============================================================================
 if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        print('Exception caught: ' + str(e))
+        print('Exception caught: ' + repr(e))
+        print(traceback.print_exc())
     finally:
         if rclpy.ok():
             rclpy.shutdown()

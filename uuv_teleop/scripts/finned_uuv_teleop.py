@@ -21,25 +21,22 @@
 # limitations under the License.
 import numpy
 import rclpy
+from rclpy.node import Node
 
 from sensor_msgs.msg import Joy
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 from uuv_thrusters.models import Thruster
 
 from plankton_utils.param_helper import parse_nested_params_to_dict
-
-from rclpy.node import Node
+from plankton_utils.time import is_sim_time
 
 
 class FinnedUUVControllerNode(Node):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__('finned_uuv_teleop',
                       allow_undeclared_parameters=True, 
-                      automatically_declare_parameters_from_overrides=True)
-
-        #Default sim_time to True
-        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        self.set_parameters([sim_time])
+                      automatically_declare_parameters_from_overrides=True,
+                      **kwargs)
 
         self.get_logger().info('FinnedUUVControllerNode: initializing node')
         
@@ -168,7 +165,8 @@ def main(args=None):
     rclpy.init(args=args)
 
     try:
-        node = FinnedUUVControllerNode()
+        sim_time_param = is_sim_time()
+        node = FinnedUUVControllerNode(parameter_overrides=[sim_time_param])
         rclpy.spin(node)
     except rclpy.exceptions.ROSInterruptException as excep:
         print('Caught ROSInterruptException exception: ' + str(excep))

@@ -19,7 +19,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
 import os
 import rclpy
 import numpy as np
@@ -28,17 +27,15 @@ from geometry_msgs.msg import Twist, Accel, Vector3
 from sensor_msgs.msg import Joy
 from rclpy.node import Node
 from plankton_utils.param_helper import parse_nested_params_to_dict
+from plankton_utils.time import is_sim_time
 
 
 class VehicleTeleop(Node):
-    def __init__(self, node_name):
+    def __init__(self, node_name, **kwargs):
         super().__init__(node_name,
                         allow_undeclared_parameters=True, 
-                        automatically_declare_parameters_from_overrides=True)
-
-        #Default use_sim_time to true
-        sim_time = rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)
-        self.set_parameters([sim_time])
+                        automatically_declare_parameters_from_overrides=True,
+                        **kwargs)
 
         # Load the mapping for each input
         self._axes = dict(x=4, y=3, z=1,
@@ -215,10 +212,14 @@ def main(args=None):
     node_name = os.path.splitext(os.path.basename(__file__))[0]
     rclpy.init()
     
-    teleop = VehicleTeleop(node_name)
-    teleop.get_logger().info('Starting [%s] node' % node_name)
+    try:
+        sim_time_param = is_sim_time()
+        teleop = VehicleTeleop(node_name, parameter_overrides=[sim_time_param])
+        teleop.get_logger().info('Starting [%s] node' % node_name)
 
-    rclpy.spin(teleop)
+        rclpy.spin(teleop)
+    except Exception as e:
+        print('Caught exception: ' + str(e))
 
     teleop.get_logger().info('Shutting down [%s] node' % node_name)
     rclpy.shutdown()

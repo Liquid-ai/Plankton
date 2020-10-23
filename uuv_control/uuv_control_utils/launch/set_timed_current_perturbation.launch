@@ -10,10 +10,10 @@
     exec="set_timed_current_perturbation.py"
     node-name="set_timed_current_perturbation"
     output="screen">
-    <param name="starting_time" value="$(var starting_time"/>
-    <param name="end_time" value="$(var end_time"/>
-    <param name="current_velocity" value="$(var current_vel"/>
-    <param name="horizontal_angle" value="$(var horizontal_angle"/>
-    <param name="vertical_angle" value="$(var vertical_angle"/>
+    <param name="starting_time" value="$(var starting_time)"/>
+    <param name="end_time" value="$(var end_time)"/>
+    <param name="current_velocity" value="$(var current_vel)"/>
+    <param name="horizontal_angle" value="$(var horizontal_angle)"/>
+    <param name="vertical_angle" value="$(var vertical_angle)"/>
   </node>
 </launch>

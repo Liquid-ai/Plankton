@@ -2,7 +2,7 @@
   <arg name="model_name" />
   <arg name="uuv_name" default="$(var model_name)"/>
 
- <include file="$(find uuv_thruster_manager)/launch/thruster_manager.launch">
+ <include file="$(find-pkg-share uuv_thruster_manager)/launch/thruster_manager.launch">
     <arg name="uuv_name" value="$(var uuv_name)" />
     <arg name="model_name" value="$(var model_name)" />
   </include>

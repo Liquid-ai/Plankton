@@ -22,13 +22,13 @@
 
 import rclpy
 import sys
+import traceback
 from uuv_control_msgs.srv import InitHelicalTrajectory
 from numpy import pi
 from geometry_msgs.msg import Point
-from std_msgs.msg import Time
 
 from plankton_utils.time import time_in_float_sec
-from plankton_utils import float_sec_to_int_sec_nano
+from plankton_utils.time import float_sec_to_int_sec_nano
 from plankton_utils.time import is_sim_time
 
 def main(): 
@@ -45,8 +45,8 @@ def main():
         
     node.get_logger().info('Starting the helical trajectory creator')
 
-    # Important...ensure the clock has been updated when using sim time
-    while node.get_clock().now() == rclpy.time.Time():
+    # Ensure the clock has been updated when using sim time
+    while node.get_clock().now() == rclpy.time.Time(clock_type=node.get_clock().clock_type):
         rclpy.spin_once(node)
 
     # If no start time is provided: start *now*.
@@ -73,18 +73,20 @@ def main():
         params[label] = node.get_parameter(label).value
 
     if len(params['center']) != 3:
-        raise RuntimeError('Center of circle must have 3 components (x, y, z)')
+        raise RuntimeError(
+        'Center of circle must have 3 components (x, y, z):' + str(params['center']))
 
     if params['n_points'] <= 2:
-        raise RuntimeError('Number of points must be at least 2')
+        raise RuntimeError(
+        'Number of points must be at least 2' + str(params['n_points']))
 
     if params['max_forward_speed'] <= 0:
-        raise RuntimeError('Velocity limit must be positive')
+        raise RuntimeError('Velocity limit must be positive' + str(params['max_forward_speed']))
 
     srv_name = 'start_helical_trajectory'
     traj_gen = node.create_client(InitHelicalTrajectory, 'start_helical_trajectory')
 
-    if not traj_gen.wait_for_service(timeout_sec=20)
+    if not traj_gen.wait_for_service(timeout_sec=20):
         raise RuntimeError('Service %s not available! Closing node...' %(traj_gen.srv_name))
 
     node.get_logger().info('Generating trajectory that starts at t={} s'.format(start_time))
@@ -107,20 +109,23 @@ def main():
     req.delta_z = params['delta_z']
 
     future = traj_gen.call_async(req)
-    rclpy.spin_until_future_complete(self, future)
+    rclpy.spin_until_future_complete(node, future)
     try:
         response = future.result()
     except Exception as e:
-        node.get_logger().error('Service call ' + srv_name + ' failed, error=' + str(e)):
+        node.get_logger().error('Service call ' + srv_name + ' failed, error=' + str(e))
     else:
         node.get_logger().info('Trajectory successfully generated!')
 
-#==============================================================================
+    node.destroy_node()
+
+# =============================================================================
 if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        print('Exception caught: ' + str(e))
+        print('Exception caught: ' + repr(e))
+        print(traceback.print_exc())
     finally:
         if rclpy.ok():
             rclpy.shutdown()

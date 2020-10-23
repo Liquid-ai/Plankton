@@ -21,6 +21,7 @@
 # limitations under the License.
 
 import os
+import traceback
 import yaml
 from datetime import datetime
 
@@ -97,11 +98,13 @@ class TrajectoryMarkerPublisher(Node):
         self._reference_marker_pub = self.create_publisher(
             Marker, 'reference_marker', 1)
 
-        self._update_markers_timer = node.create_timer(
+        self._update_markers_timer = self.create_timer(
             0.5, self._update_markers)
 
-    #==========================================================================
-    def _update_markers(self, event):
+        self.get_logger().info('Trajectory and waypoint marker publisher ready')
+
+    # =========================================================================
+    def _update_markers(self):
         if self._waypoints is None:
             waypoint_path_marker = Path()
             t_msg = self.get_clock().now().to_msg()
@@ -139,16 +142,16 @@ class TrajectoryMarkerPublisher(Node):
         self._trajectory_path_pub.publish(traj_marker)
         return True
 
-    #==========================================================================
+    # =========================================================================
     def _update_trajectory(self, msg):
         self._trajectory = msg
 
-    #==========================================================================
+    # =========================================================================
     def _update_waypoints(self, msg):
         self._waypoints = uuv_waypoints.WaypointSet()
         self._waypoints.from_message(msg)
 
-    #==========================================================================
+    # =========================================================================
     def _update_auto_mode(self, msg):
         self._is_auto_on = msg.data
 
@@ -156,11 +159,11 @@ class TrajectoryMarkerPublisher(Node):
     def _update_station_keeping_mode(self, msg):
         self._is_station_keeping_on = msg.data
 
-    #==========================================================================
+    # =========================================================================
     def _update_traj_tracking_mode(self, msg):
         self._is_traj_tracking_on = msg.data
 
-    #==========================================================================
+    # =========================================================================
     def _reference_callback(self, msg):
         marker = Marker()
         marker.header.stamp = self.get_clock().now().to_msg()
@@ -182,7 +185,7 @@ class TrajectoryMarkerPublisher(Node):
         self._reference_marker_pub.publish(marker)
 
 
-#==============================================================================
+# =============================================================================
 if __name__ == '__main__':
     print('Starting trajectory and waypoint marker publisher')
     rclpy.init()
@@ -195,7 +198,8 @@ if __name__ == '__main__':
             parameter_overrides=[sim_time_param])
         rclpy.spin(node)
     except Exception as e:
-        print('Caught exception' + str(e))
+        print('Caught exception' + repr(e))
+        print(traceback.print_exc())
     finally:
         if rclpy.ok():
             rclpy.shutdown()

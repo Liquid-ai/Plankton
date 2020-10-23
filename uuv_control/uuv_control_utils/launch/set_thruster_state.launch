@@ -5,16 +5,18 @@
   <arg name="is_on" default="0"/>
   <arg name="duration" default="-1"/>
 
+  <!-- FIXME node name is invalid in case starting_time is a float or negative -->
+  
   <group>
     <push-ros-namespace namespace="$(var uuv_name)"/>
     <node pkg="uuv_control_utils"
       exec="set_thruster_state.py"
-      name="set_thruster_state_$(var starting_time)_$(var thruster_id)"
+      node-name="set_thruster_state_$(var starting_time)_$(var thruster_id)"
       output="screen">
-      <param name="starting_time" value="$(var starting_time"/>
-      <param name="thruster_id" value="$(var thruster_id"/>
-      <param name="is_on" value="$(var is_on"/>
-      <param name="duration" value="$(var duration"/>
+      <param name="starting_time" value="$(var starting_time)"/>
+      <param name="thruster_id" value="$(var thruster_id)"/>
+      <param name="is_on" value="$(var is_on)"/>
+      <param name="duration" value="$(var duration)"/>
     </node>
   </group>
 </launch>

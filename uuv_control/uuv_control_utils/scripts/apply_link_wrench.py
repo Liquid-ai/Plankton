@@ -29,6 +29,7 @@ from geometry_msgs.msg import Point, Wrench, Vector3
 from gazebo_msgs.srv import ApplyLinkWrench
 
 from plankton_utils.time import time_in_float_sec
+from plankton_utils.time import float_sec_to_int_sec_nano
 from plankton_utils.time import is_sim_time
 
 def main():
@@ -36,7 +37,7 @@ def main():
 
     sim_time_param = is_sim_time()
 
-    node = rclpy.create_node('set_body_wrench',
+    node = rclpy.create_node('set_link_wrench',
                             allow_undeclared_parameters=True, 
                             automatically_declare_parameters_from_overrides=True, 
                             parameter_overrides=[sim_time_param])
@@ -52,9 +53,9 @@ def main():
     duration = 0.0
     if node.has_parameter('duration'):
         duration = float(node.get_parameter('duration').value)
-
-    #compare to eps ?
-    if duration <= 0.0:
+    
+    # Compare to eps ?
+    if duration == 0.0:
         node.get_logger().info('Duration not set, leaving node...')
         sys.exit(-1)
 
@@ -80,7 +81,13 @@ def main():
 
     node.get_logger().info('Torque [N]=' + str(torque))
 
-    service_name = '/gazebo/apply_link_wrench'
+    gazebo_ns = 'gazebo'
+    if node.has_parameter('gazebo_ns'):
+        gazebo_ns = node.get_parameter('gazebo_ns').value
+    if not gazebo_ns.startswith('/'):
+        gazebo_ns = '/' + gazebo_ns
+
+    service_name = '{}/apply_link_wrench'.format(gazebo_ns)
     try:
         apply_wrench = node.create_client(ApplyLinkWrench, service_name)
     except Exception as e:
@@ -108,6 +115,8 @@ def main():
         if 1.0 / FREQ < starting_time: 
             rate.sleep()
 
+    (d_secs, d_nsecs) = float_sec_to_int_sec_nano(duration)
+
     apw = ApplyLinkWrench.Request()
     apw.link_name = body_name
     apw.reference_frame = 'world'
@@ -116,28 +125,37 @@ def main():
     apw.wrench.force = Vector3(x=force[0], y=force[1], z=force[2])
     apw.wrench.torque = Vector3(x=torque[0], y=torque[1], z=torque[2])
     apw.start_time = node.get_clock().now().to_msg()
-    apw.duration = rclpy.time.Duration(seconds=duration).to_msg()
+    apw.duration = rclpy.time.Duration(seconds=d_secs, nanoseconds=d_nsecs).to_msg()
 
     future = apply_wrench.call_async(apw)
 
-    # NB : spining is done from another thread    
-    # TODO Test response.success
+    # NB : spining is done from another thread
     while rclpy.ok():
         if future.done():
             try:
                 response = future.result()
             except Exception as e:
-                node.get_logger().error('Could not apply link wrench %r' % (e,))
+                node.get_logger().error(
+                    'Could not apply link wrench, exception thrown: %r' % (e,))
             else:
-                node.get_logger().info('Link wrench perturbation applied!')
-                node.get_logger().info('\tFrame: '+ body_name)
-                node.get_logger().info('\tDuration [s]: ' + str(duration))
-                node.get_logger().info('\tForce [N]: ' + str(force))
-                node.get_logger().info('\tTorque [Nm]: ' + str(torque))
-            break
+                if response.success:
+                    message = '\nLink wrench perturbation applied!'
+                    message += '\n\tFrame: '+ body_name
+                    message += '\n\tDuration [s]: ' + str(duration)
+                    message += '\n\tForce [N]: ' + str(force)
+                    message += '\n\tTorque [Nm]: ' + str(torque)
+                    node.get_logger().info(message)
+                else:
+                    message = 'Could not apply link wrench'
+                    message += '\n\tError is: %s' % (response.status_message)
+                    node.get_logger().error(message)
+            finally:
+                break
+
+    node.destroy_node()
 
 
-#==============================================================================
+# =============================================================================
 if __name__ == '__main__':
     try:
         main()

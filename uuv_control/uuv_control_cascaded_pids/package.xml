@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="2">
   <name>uuv_control_cascaded_pid</name>
-  <version>0.5.0</version>
+  <version>0.5.1</version>
   <description>A cascade of PID controllers for acceleration, velocity, and position control.</description>
 
     <maintainer email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</maintainer>
@@ -20,7 +20,7 @@
 
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>nav_msgs</exec_depend>
-  <exec_depend>python-numpy</exec_depend>  
+  <exec_depend>python3-numpy</exec_depend>  
   <exec_depend>plankton_utils</exec_depend> 
   <exec_depend>rcl_interfaces</exec_depend>
   <exec_depend>rclpy</exec_depend>

@@ -3,7 +3,7 @@
   <arg name="uuv_name" default="$(var model_name)"/>
   <arg name="joy_id" default="0"/>
 
-  <include file="$(find uuv_thruster_manager)/launch/thruster_manager.launch">
+  <include file="$(find-pkg-share uuv_thruster_manager)/launch/thruster_manager.launch">
     <arg name="uuv_name" value="$(var uuv_name)" />
     <arg name="model_name" value="$(var model_name)" />
   </include>
@@ -13,12 +13,12 @@
     
     <node pkg="uuv_control_cascaded_pid" exec="acceleration_control.py" node-name="acceleration_control"
           output="screen">
-      <param name="tf_prefix" type="string" value="$(var uuv_name)/" />
+      <!-- <param name="tf_prefix" type="string" value="$(var uuv_name)/" /> -->
       <param from="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/inertial.yaml"/>
     </node>
   </group>
 
-  <include file="$(find uuv_teleop)/launch/uuv_teleop.launch">
+  <include file="$(find-pkg-share uuv_teleop)/launch/uuv_teleop.launch">
     <arg name="uuv_name" value="$(var uuv_name)"/>
     <arg name="joy_id" value="$(var joy_id)"/>
     <arg name="output_topic" value="cmd_accel"/>

@@ -12,11 +12,9 @@
               exec="publish_vehicle_footprint.py" 
               output="screen">
               <remap from="odom" to="$(arg odom_topic)"/>
-              <rosparam subst_value="true"> <!-- TODO change-->
-                scale_footprint: $(arg scale_footprint)
-                scale_label: $(arg scale_label)
-                label_x_offset: $(arg label_x_offset)
-              </rosparam>
+              <param name="scale_footprint" value="$(var scale_footprint)"/>
+              <param name="scale_label" value="$(var scale_label)"/>
+              <param name="label_x_offset" value="$(var label_x_offset)"/>
         </node>
     </group>
 </launch>

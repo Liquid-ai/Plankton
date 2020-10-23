@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="2">
   <name>uuv_control_utils</name>
-  <version>0.5.0</version>
+  <version>0.5.1</version>
   <description>The uuv_control_utils package</description>
 
     <maintainer email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</maintainer>
@@ -23,7 +23,7 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>uuv_world_ros_plugins_msgs</exec_depend>
   <exec_depend>uuv_gazebo_ros_plugins_msgs</exec_depend>
-  <exec_depend>python-numpy</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
   <exec_depend>uuv_control_msgs</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>python-yaml</exec_depend>
