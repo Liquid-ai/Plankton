@@ -1,3 +1,37 @@
+## 0.5.1
+
+### General
+
+- Fixed incorrect dependencies in package.xml
+
+### uuv_assistants
+
+- [**publish_vehicle_footprint**, **unpause_simulation**] Syntax error fixes
+
+### uuv_control_utils
+
+- Typo in some launch files
+- Fixed the crashes occuring in the disturbance services files
+- [**apply_link_wrench.launch**] Changed file name from *apply_body_wrench* for consistency. A param was added to change the service namespace
+- [**apply_link_wrench.py**] Previously, the user was not informed when a service request failed
+- [**set_thruster_output_efficiency**] Fixed an incorrect loop condition
+
+### uuv_trajectory_control
+
+- [**dp_pid_controller_base**] Added a missing return instruction
+
+### uuv_gazebo_ros_plugins
+
+- [**test files**] A misleading function was renamed
+
+### uuv_teleop
+
+- [**finned_uuv_teleop**, **vehicle_keyboard_teleop**, **vehicle_teleop**] Sim time was not handled correctly
+
+### uuv_world_ros_plugins
+
+- [**GaussMarkovProcess**] Changed model validity criterion from `min must be < max` to `min must be <= max`
+
 ## 0.5.0
 
 ## General
