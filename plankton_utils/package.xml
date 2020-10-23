@@ -3,7 +3,7 @@
 <package format="3">
   <name>plankton_utils</name>
   
-    <version>0.5.0</version>
+    <version>0.5.1</version>
     <description>A collection of functions to help interacting with ROS 2 API</description>
 
     <author email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</author>

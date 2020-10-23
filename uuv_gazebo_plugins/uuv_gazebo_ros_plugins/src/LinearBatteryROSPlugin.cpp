@@ -66,6 +66,7 @@ void LinearBatteryROSPlugin::Load(physics::ModelPtr _parent,
     return;
   }
 
+  //TODO Remove ?
   if (_sdf->HasElement("namespace"))
     myRobotNamespace = _sdf->Get<std::string>("namespace");
 

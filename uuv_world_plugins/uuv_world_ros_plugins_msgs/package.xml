@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="3">
   <name>uuv_world_ros_plugins_msgs</name>
-  <version>0.5.0</version>
+  <version>0.5.1</version>
   <description>The uuv_world_ros_plugins_msgs package</description>
 
   <maintainer email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</maintainer>
@@ -20,7 +20,6 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   
   <depend>geometry_msgs</depend>
-  <!-- <depend>std_msgs</depend> -->
 
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
