@@ -93,8 +93,8 @@
 
       <plugin name="left_controller" filename="libgazebo_ros_camera.so">
         <ros>
-          <argument>image_raw:=image_raw</argument>
-          <argument>camera_info:=camera_info</argument>
+          <remapping>image_raw:=image_raw</remapping>
+          <remapping>camera_info:=camera_info</remapping>
         </ros>
         <!-- <alwaysOn>true</alwaysOn> -->
         <!-- <updateRate>30.0</updateRate> -->
@@ -159,8 +159,8 @@
 
       <plugin name="right_controller" filename="libgazebo_ros_camera.so">
         <ros>
-          <argument>image_raw:=image_raw</argument>
-          <argument>camera_info:=camera_info</argument>
+          <remapping>image_raw:=image_raw</remapping>
+          <remapping>camera_info:=camera_info</remapping>
         </ros>
         <camera_name>${namespace}/duo3d_right</camera_name>
         <frame_name>${namespace}/duo3d_right_link</frame_name>

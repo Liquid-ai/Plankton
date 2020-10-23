@@ -153,7 +153,8 @@
           <backgroundB>0</backgroundB>
 
           <ros>
-            <argument>image_raw:=${topic}_image</argument>
+            <!-- Use either <argument> with - -ros-args -r or remapping -->
+            <remapping>image_raw:=${topic}_image</remapping>
           </ros>
 
           <!-- Only useful for depth camera -->
