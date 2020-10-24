@@ -124,17 +124,16 @@
             <max>81</max>
             <resolution>0.01</resolution>
           </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.005</stddev>
+          </noise>
         </ray>
-
-        <noise>
-          <type>gaussian</type>
-          <mean>0.0</mean>
-          <stddev>0.005</stddev>
-        </noise>
 
         <plugin filename="libgazebo_ros_ray_sensor.so" name="dvl${suffix}_sonar${index}">
           <ros>
-            <argument>~/out:=${topic}_sonar${index}</argument>
+            <remapping>~/out:=${topic}_sonar${index}</remapping>
           </ros>
           <!-- <gaussianNoise>0.005</gaussianNoise> -->
           <alwaysOn>true</alwaysOn>
