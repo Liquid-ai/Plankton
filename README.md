@@ -8,7 +8,8 @@ It is a maritime environment simulator with an open source core, and a special f
 
 We intend to build a sustainable and open source core simulator for maritime robotics research. This core will support flexible specification of sensor suites and environmental conditions.
 
-This project benefits from great open source advances in the simulation domain, mainly ROS, gazebo and its plugin UUV Simulator.
+This project benefits from great open source advances in the simulation domain, mainly ROS, gazebo and its plugin UUV Simulator. 
+It is also built on data characterizing the needs of robotics researchers in terms of simulation. We gathered these data in our [wiki](https://github.com/Liquid-ai/Plankton/wiki), including the results of our [own survey](https://github.com/Liquid-ai/Plankton/blob/master/user_needs/Survey_about_simulators_for_robotics_research.pdf) on simulation needs.
 
 # Roadmap #
 The first iteration of the projet is built from UUV Simulator and gazebo 9. We made UUV Simulator compatible with ROS2. In the following months, we intend to improve the performance (speed) of the simulator, and to test different alternatives to gazebo 9. We will choose the best simulation framework according to our users present and future needs.
