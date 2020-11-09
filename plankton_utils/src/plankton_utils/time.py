@@ -40,8 +40,7 @@ def float_sec_to_int_sec_nano(float_sec):
 def __is_sim_time_subprocess(timeout_sec= 5, default_value=False, return_param=True):
     """
     Sends a request to the global sim time node and returns the value of the 
-    use_sim_time parameter. If a 'no_global_sim_time' parameter has been
-    specified to the node, the function returns the default value.
+    use_sim_time parameter running a command.
 
     :param timeout_sec: timeout in seconds before returning the default value
     :param return_param: True to return a parameter, False to return the raw
@@ -52,25 +51,40 @@ def __is_sim_time_subprocess(timeout_sec= 5, default_value=False, return_param=T
     sim time
     """
     res = default_value
-    try:
-        import subprocess
-        from subprocess import TimeoutExpired
+    starting_time = time.time()
+    retry = True
+    # Loop until the timeout has expired
+    while retry:
+        try:
+            import subprocess
+            from subprocess import TimeoutExpired
 
-        output = subprocess.check_output(
-            ['ros2', 'param', 'get', '/plankton_global_sim_time', 'use_sim_time'], 
-            timeout=timeout_sec
-        )
+            output = subprocess.check_output(
+                ['ros2', 'param', 'get', '/plankton_global_sim_time', 'use_sim_time'], 
+                timeout=max(timeout_sec - (time.time() - starting_time), 0),
+                shell=True
+            )
 
-        output = output.decode()
+            output = output.decode()
+            res = True if 'True' in output else False
+            retry = False
 
-        res = True if 'True' in output else False
+        except TimeoutExpired:
+            print('Could not request for sim time. Defaulting to %s' % default_value)
+            retry = False
+            pass
+        except subprocess.CalledProcessError:
+            if time.time() > starting_time + timeout_sec:
+                print('Sim time service not available. '
+                'Defaulting to %s' % default_value)
+                retry = False
+            pass
+        except Exception as e:
+            print('Unexpected exception while requesting sim time (%s). '
+                'Defaulting to %s' % (repr(e), default_value))
+            retry = False
+            pass
 
-    except TimeoutExpired:
-        print('Could not request for sim time. Defaulting to %s' % default_value)
-        pass
-    except Exception as e:
-        print('Unexpected exception while requesting sim time. Defaulting to %s' % default_value)
-        pass
 
     if return_param:
         return rclpy.parameter.Parameter(
@@ -83,7 +97,7 @@ def __is_sim_time_subprocess(timeout_sec= 5, default_value=False, return_param=T
 
 
 # =============================================================================
-def __is_sim_time_node(timeout_sec=5, return_param=True, default_value=False):
+def __is_sim_time_node(timeout_sec=10, return_param=True, default_value=False):
     """
     Sends a request to the global sim time node and returns the value of the 
     use_sim_time parameter. If a 'no_global_sim_time' parameter has been
@@ -109,22 +123,34 @@ def __is_sim_time_node(timeout_sec=5, return_param=True, default_value=False):
                 return value
         
         import random
+        import os
         import string
+    
+        node = None
 
         LENGTH = 5
 
+        if not rclpy.ok():
+            raise RuntimeError('rclpy has not been initialized. Initialize rclpy first')
+
         letter_pool = string.ascii_letters
         random_name = 'test_sim_time_' + ''.join(random.choice(letter_pool) for i in range(LENGTH))
+        random_name += '_%d' % os.getpid()
 
         node = rclpy.create_node(random_name)
 
         if node.has_parameter('no_global_sim_time'):
             return get_value(default_value)
 
+        start_time = time.time()
+
         sim_time_srv = node.create_client(GetParameters, '/plankton_global_sim_time/get_parameters')
-        if not sim_time_srv.wait_for_service(timeout_sec=5):
+        if not sim_time_srv.wait_for_service(timeout_sec=timeout_sec):
             node.get_logger().info('service %s not available' % sim_time_srv.srv_name)
             return get_value(default_value)
+
+        # Compute the remaining time
+        timeout_sec -= time.time() - start_time
         
         req = GetParameters.Request()
         req.names = ['use_sim_time']
@@ -141,17 +167,17 @@ def __is_sim_time_node(timeout_sec=5, return_param=True, default_value=False):
         return get_value(resp)
 
     except Exception as e:
-        print('Caught exception: ' + str(e))
+        print('Caught exception: ' + repr(e))
 
     finally:
-        if node:
+        if node is not None:
             node.destroy_node()
             node = None
 
 
 # =============================================================================
 def is_sim_time(
-    timeout_sec=5, 
+    timeout_sec=10, 
     return_param=True, 
     default_value=False, 
     use_subprocess=False

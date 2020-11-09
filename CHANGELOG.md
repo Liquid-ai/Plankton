@@ -1,8 +1,18 @@
+## Latest
+
+### General
+
+- Fixed a problem where the simulated time request was not correctly handled while using subprocess and failed
+
+### plankton_utils
+
+-Increased the default timeout for sim time request to 10s
+
 ## 0.5.2
 
 ### uuv_sensor_ros_plugins
 
--Updated deprecated remapping syntax warnings occuring in URDF files
+- Updated deprecated remapping syntax warnings occuring in URDF files
 
 ## 0.5.1
 
