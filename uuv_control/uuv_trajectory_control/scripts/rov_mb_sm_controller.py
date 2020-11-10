@@ -336,7 +336,7 @@ def main():
         rclpy.spin(node)
     except Exception as e:
         print('Caught exception: ' + repr(e))
-        print(traceback.print_exc())
+        traceback.print_exc()
     finally:
         if rclpy.ok():
             rclpy.shutdown()

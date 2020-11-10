@@ -30,62 +30,6 @@ from plankton_utils.time import time_in_float_sec
 from plankton_utils.time import is_sim_time
 
 
-# def get_world_ned_to_enu(sim_time_param):    
-#     import threading
-#     print(sim_time_param)
-#     tf_trans_ned_to_enu = None
-#     done = False
-#     node = rclpy.create_node('tf_get_ned_to_enu', parameter_overrides=[sim_time_param])
-#   
-#     import tf2_ros
-    
-#     tf_buffer = tf2_ros.Buffer(node=node)
-#     listener = tf2_ros.TransformListener(tf_buffer, node)
-#     import time
-#     time.sleep(5)
-#  
-#     future = tf_buffer.wait_for_transform_async('world', 'world_ned', rclpy.time.Time())
-#   
-#     rclpy.spin_until_future_complete(node, future)
-#     tf_trans_ned_to_enu = tf_buffer.lookup_transform(
-#                         'world', 'world_ned', rclpy.time.Time(),
-#                         rclpy.time.Duration(seconds=10))
-#  
-
-
-
-
-
-#     # def get_tf():
-#     #     try:
-#     #         import tf2_ros
-#     #         tf_buffer = tf2_ros.Buffer()
-#     #         listener = tf2_ros.TransformListener(tf_buffer, node)
-
-#     #        
-#     #         tf_trans_ned_to_enu = tf_buffer.lookup_transform(
-#     #                     'world', 'world_ned', rclpy.time.Time(),
-#     #                     rclpy.time.Duration(seconds=10))
-#     #    
-#     #     except Exception as ex:
-#     #         node._logger.warning(
-#     #                 'Error while requesting ENU to NED transform'
-#     #                 ', message={}'.format(ex))
-
-#     #     finally:
-#     #         done = True
-
-#     # thread = threading.Thread(target=get_tf, daemon=True)
-#     # thread.start()
-#    
-#     # while not done:
-#     #     rclpy.spin_once(node)
-
-
-#     node.destroy_node()
-#     return tf_trans_ned_to_enu
-
-
 class ROV_NMB_SMController(DPControllerBase):
     """
     Model-free sliding mode controller based on the work published in [1] and
@@ -321,7 +265,7 @@ def main():
         pass
     except Exception as e:
         print('Caught exception: ' + repr(e))
-        print(traceback.print_exc())
+        traceback.print_exc()
     finally:
         if rclpy.ok():
             rclpy.shutdown()

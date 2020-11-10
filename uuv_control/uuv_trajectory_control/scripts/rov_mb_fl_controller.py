@@ -22,6 +22,7 @@
 
 import rclpy
 import numpy as np
+import traceback
 
 from utils.transform import get_world_ned_to_enu
 from uuv_control_interfaces import DPPIDControllerBase
@@ -114,7 +115,8 @@ def main():
     except rclpy.exceptions.ROSInterruptException as excep:
         print('Caught ROSInterruptException exception: ' + str(excep))
     except Exception as e:
-        print('Caught exception: ' + str(e))
+        print('Caught exception: ' + repr(e))
+        traceback.print_exc()
     finally:
         if rclpy.ok():
             rclpy.shutdown()
