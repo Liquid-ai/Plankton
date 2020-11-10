@@ -137,7 +137,7 @@ class ThrusterManager(Node):
                 source = 'base_link_ned'
             source = source[1::]
             tf_trans_ned_to_enu = self.tf_buffer.lookup_transform(
-                target, source, rclpy.time.Time(), rclpy.time.Duration(seconds=1))
+                target, source, rclpy.time.Time(), rclpy.time.Duration(seconds=10))
         except Exception as e:
             self.get_logger().warn('No transform found between base_link and base_link_ned'
                   ' for vehicle {}, message={}'.format(self.namespace, e))
