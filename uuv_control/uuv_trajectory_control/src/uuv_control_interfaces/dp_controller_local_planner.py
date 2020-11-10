@@ -33,6 +33,7 @@ from uuv_control_msgs.srv import *
 from uuv_control_msgs.msg import Trajectory, TrajectoryPoint, WaypointSet
 from visualization_msgs.msg import MarkerArray
 from geometry_msgs.msg import Point
+from geometry_msgs.msg import TransformStamped
 
 import uuv_trajectory_generator
 import uuv_waypoints
@@ -47,7 +48,7 @@ from plankton_utils.param_helper import get_parameter_or_helper
 from plankton_utils.time import time_in_float_sec as to_fsec
 from plankton_utils.time import float_sec_to_int_sec_nano
 
-# TODO Rewrite for TF2
+
 class DPControllerLocalPlanner(object):
     """Local planner for the dynamic positioning controllers 
     to interpolate trajectories and generate trajectories from 
@@ -110,7 +111,12 @@ class DPControllerLocalPlanner(object):
     * `go_to_incremental` (*type:* `uuv_control_msgs.GoToIncremental`)
     """
 
-    def __init__(self, node: Node, full_dof=False, stamped_pose_only=False, thrusters_only=True):
+    def __init__(self, node: Node, 
+                full_dof=False, 
+                stamped_pose_only=False, 
+                thrusters_only=True, 
+                callback_group = None, 
+                tf_trans_world_ned_to_enu: TransformStamped = None):
         self.node = node
         self._logger = get_logger()
 
@@ -147,26 +153,36 @@ class DPControllerLocalPlanner(object):
 
         #node.set_parameter('inertial_frame_id', self.inertial_frame_id)
 
-        try:
-            import tf2_ros
-
-            tf_buffer = tf2_ros.Buffer()
-            listener = tf2_ros.TransformListener(tf_buffer, node)
-
-            tf_trans_ned_to_enu = tf_buffer.lookup_transform(
-                'world', 'world_ned', rclpy.time.Time(),
-                rclpy.time.Duration(seconds=10))
-            
+        if tf_trans_world_ned_to_enu is not None:
             self.q_ned_to_enu = np.array(
-                [tf_trans_ned_to_enu.transform.rotation.x,
-                tf_trans_ned_to_enu.transform.rotation.y,
-                tf_trans_ned_to_enu.transform.rotation.z,
-                tf_trans_ned_to_enu.transform.rotation.w])
-        except Exception as ex:
-            self._logger.warning(
-                'Error while requesting ENU to NED transform'
-                ', message={}'.format(ex))
+                [tf_trans_world_ned_to_enu.transform.rotation.x,
+                tf_trans_world_ned_to_enu.transform.rotation.y,
+                tf_trans_world_ned_to_enu.transform.rotation.z,
+                tf_trans_world_ned_to_enu.transform.rotation.w])
+        else:
+            self._logger.info('No world ned to enu was provided. Setting to default')
             self.q_ned_to_enu = quaternion_from_euler(2 * np.pi, 0, np.pi)
+
+        # try:
+        #     import tf2_ros
+
+        #     tf_buffer = tf2_ros.Buffer()
+        #     listener = tf2_ros.TransformListener(tf_buffer, node)
+
+        #     tf_trans_ned_to_enu = tf_buffer.lookup_transform(
+        #         'world', 'world_ned', rclpy.time.Time(),
+        #         rclpy.time.Duration(seconds=10))
+            
+        #     self.q_ned_to_enu = np.array(
+        #         [tf_trans_ned_to_enu.transform.rotation.x,
+        #         tf_trans_ned_to_enu.transform.rotation.y,
+        #         tf_trans_ned_to_enu.transform.rotation.z,
+        #         tf_trans_ned_to_enu.transform.rotation.w])
+        # except Exception as ex:
+        #     self._logger.warning(
+        #         'Error while requesting ENU to NED transform'
+        #         ', message={}'.format(ex))
+        #     self.q_ned_to_enu = quaternion_from_euler(2 * np.pi, 0, np.pi)
                                 
         self.transform_ned_to_enu = quaternion_matrix(
                 self.q_ned_to_enu)[0:3, 0:3]
@@ -202,7 +218,7 @@ class DPControllerLocalPlanner(object):
         self.init_odom_event.clear()
 
         self._timeout_idle_mode = get_parameter_or_helper(node, 'timeout_idle_mode', 5.0).value
-        self._start_count_idle = node.get_clock().now()
+        self._start_count_idle = to_fsec(node.get_clock().now())
 
         self._thrusters_only = thrusters_only
 
@@ -227,18 +243,18 @@ class DPControllerLocalPlanner(object):
 
         self._interp_visual_markers = node.create_publisher(MarkerArray, 'interpolator_visual_markers', 1)
 
-        self._teleop_sub = node.create_subscription(Twist, 'cmd_vel', self._update_teleop, 10)
+        self._teleop_sub = node.create_subscription(Twist, 'cmd_vel', self._update_teleop, 10, callback_group = callback_group)
 
         self._waypoints_msg = None
         self._trajectory_msg = None
 
         # Subscribing topic for the trajectory given to the controller
         self._input_trajectory_sub = node.create_subscription(
-            Trajectory, 'input_trajectory', self._update_trajectory_from_msg, 10)
+            Trajectory, 'input_trajectory', self._update_trajectory_from_msg, 10, callback_group = callback_group)
 
         self._max_time_pub = node.create_publisher(Float64, 'time_to_target', 1)
 
-        self._traj_info_update_timer = node.create_timer(0.2, self._publish_trajectory_info)
+        self._traj_info_update_timer = node.create_timer(0.2, self._publish_trajectory_info, callback_group = callback_group)
         # Flag to activate station keeping
         self._station_keeping_on = True
         # Flag to set vehicle control to automatic
@@ -257,30 +273,30 @@ class DPControllerLocalPlanner(object):
         self._services = dict()
         
         srv_name = 'hold_vehicle'
-        self._services[srv_name] = node.create_service(Hold, srv_name, self.hold_vehicle)
+        self._services[srv_name] = node.create_service(Hold, srv_name, self.hold_vehicle, callback_group=callback_group)
 
         srv_name = 'start_waypoint_list'
         self._services[srv_name] = node.create_service(
-            InitWaypointSet, srv_name, self.start_waypoint_list)
+            InitWaypointSet, srv_name, self.start_waypoint_list, callback_group=callback_group)
 
         srv_name = 'start_circular_trajectory'
         self._services[srv_name] = node.create_service(
-            InitCircularTrajectory, srv_name, self.start_circle)
+            InitCircularTrajectory, srv_name, self.start_circle, callback_group=callback_group)
 
         srv_name = 'start_helical_trajectory'
         self._services[srv_name] = node.create_service(
-            InitHelicalTrajectory, srv_name, self.start_helix)
+            InitHelicalTrajectory, srv_name, self.start_helix, callback_group=callback_group)
 
         srv_name = 'init_waypoints_from_file'
         self._services[srv_name] = node.create_service(
-            InitWaypointsFromFile, srv_name, self.init_waypoints_from_file)
+            InitWaypointsFromFile, srv_name, self.init_waypoints_from_file, callback_group=callback_group)
 
         srv_name = 'go_to'  
-        self._services[srv_name] = node.create_service(GoTo, srv_name, self.go_to)
+        self._services[srv_name] = node.create_service(GoTo, srv_name, self.go_to, callback_group=callback_group)
 
         srv_name = 'go_to_incremental'
         self._services[srv_name] = node.create_service(
-            GoToIncremental, srv_name, self.go_to_incremental)
+            GoToIncremental, srv_name, self.go_to_incremental, callback_group=callback_group)
 
     # =========================================================================
     def __del__(self):
@@ -376,7 +392,7 @@ class DPControllerLocalPlanner(object):
         return wp_set
 
     # =========================================================================
-    def _publish_trajectory_info(self, event):
+    def _publish_trajectory_info(self):
         """Publish messages for the waypoints, trajectory and 
         debug flags.
         """
@@ -402,7 +418,7 @@ class DPControllerLocalPlanner(object):
             wps = self._traj_interpolator.get_waypoints()
             if wps is not None:
                 wps.inertial_frame_id = self.inertial_frame_id
-                self._waypoints_msg = wps.to_message(self.node)
+                self._waypoints_msg = wps.to_message(self.node.get_clock().now())
                 self._waypoints_msg.header.frame_id = self.inertial_frame_id
         msg = self._traj_interpolator.get_trajectory_as_message()
         if msg is not None:
@@ -658,8 +674,8 @@ class DPControllerLocalPlanner(object):
             response.success = False
             return response
             #return InitWaypointSetResponse(False)
-        t = rclpy.time.Time(request.start_time.data.secs, request.start_time.data.nsecs)
-        
+        t = rclpy.time.Time(request.start_time.sec, request.start_time.nanosec)
+    
         if to_fsec(t) < to_fsec(self.node.get_clock().now()) and not request.start_now:
             self._logger.error('The trajectory starts in the past, correct the starting time!')
             response.success = False
@@ -667,6 +683,7 @@ class DPControllerLocalPlanner(object):
             #return InitWaypointSetResponse(False)
         else:
             self._logger.info('Start waypoint trajectory now!')
+        
         self._lock.acquire()
         # Create a waypoint set
         wp_set = uuv_waypoints.WaypointSet(
@@ -679,6 +696,7 @@ class DPControllerLocalPlanner(object):
             waypointset_msg.start_time = self.node.get_clock().now().to_msg()
         else:
             waypointset_msg.start_time = t.to_msg()
+        
         waypointset_msg.waypoints = request.waypoints
         wp_set.from_message(waypointset_msg)
         wp_set = self._transform_waypoint_set(wp_set)
@@ -727,7 +745,8 @@ class DPControllerLocalPlanner(object):
             response.success = False
             return response
             #return InitCircularTrajectoryResponse(False)
-        t = rclpy.time.Time(request.start_time.data.secs, request.start_time.data.nsecs)
+        t = rclpy.time.Time(
+            seconds=request.start_time.sec, nanoseconds=request.start_time.nanosec)
         if to_fsec(t) < to_fsec(self.node.get_clock().now()) and not request.start_now:
             self._logger.error('The trajectory starts in the past, correct the starting time!')
             response.success = False
@@ -757,23 +776,29 @@ class DPControllerLocalPlanner(object):
             self._lock.acquire()
             # Activates station keeping
             self.set_station_keeping(True)
+            
             self._traj_interpolator.set_interp_method('cubic')
+            
             self._traj_interpolator.set_waypoints(wp_set, self.get_vehicle_rot())
             self._station_keeping_center = None
+            
             self._traj_interpolator.set_start_time((to_fsec(t) if not request.start_now else to_fsec(self.node.get_clock().now())))
+            
             if request.duration > 0:
                 if self._traj_interpolator.set_duration(request.duration):
                     self._logger.info('Setting a maximum duration, duration=%.2f s' % request.duration)
                 else:
                     self._logger.error('Setting maximum duration failed')
+            
             self._update_trajectory_info()
+            
             # Disables station keeping to start trajectory
             self.set_station_keeping(False)
             self.set_automatic_mode(True)
             self.set_trajectory_running(True)
             self._idle_circle_center = None
             self._smooth_approach_on = True
-
+            
             self._logger.info('============================')
             self._logger.info('CIRCULAR TRAJECTORY GENERATED FROM WAYPOINT INTERPOLATION')
             self._logger.info('============================')
@@ -815,13 +840,13 @@ class DPControllerLocalPlanner(object):
            self._logger.error('Invalid parameters to generate a helical trajectory')
            response.success = False
            return response
-           #return InitHelicalTrajectoryResponse(False)
-        t = rclpy.time.Time(request.start_time.data.secs, request.start_time.data.nsecs)
+             
+        t = rclpy.time.Time(seconds=request.start_time.sec, nanoseconds=request.start_time.nanosec)
+        
         if to_fsec(t) < to_fsec(self.node.get_clock().now()) and not request.start_now:
             self._logger.error('The trajectory starts in the past, correct the starting time!')
             response.success = False
             return response
-            #return InitHelicalTrajectoryResponse(False)
         else:
             self._logger.info('Start helical trajectory now!')
 
@@ -835,18 +860,15 @@ class DPControllerLocalPlanner(object):
                                             num_turns=request.n_turns,
                                             theta_offset=request.angle_offset,
                                             heading_offset=request.heading_offset)
-
             if not success:
                 self._logger.error('Error generating circular trajectory from waypoint set')
                 response.success = False
                 return response
-                #return InitHelicalTrajectoryResponse(False)
             wp_set = self._apply_workspace_constraints(wp_set)
             if wp_set.is_empty:
                 self._logger.error('Waypoints violate workspace constraints, are you using world or world_ned as reference?')
                 response.success = False
                 return response
-                #return InitHelicalTrajectoryResponse(False)
 
             self._lock.acquire()
             self.set_station_keeping(True)
@@ -880,7 +902,7 @@ class DPControllerLocalPlanner(object):
             self._logger.info('# of points = %d' % request.n_points)
             self._logger.info('Max. forward speed = %.2f' % request.max_forward_speed)
             self._logger.info('Delta Z = %.2f' % request.delta_z)
-            self._logger.info('# of turns = %d' % request.n_turns)
+            self._logger.info('# of turns = %f' % request.n_turns)
             self._logger.info('Helix angle offset = %.2f' % request.angle_offset)
             self._logger.info('Heading offset = %.2f' % request.heading_offset)
             self._logger.info('# waypoints = %d' % self._traj_interpolator.get_waypoints().num_waypoints)
@@ -915,13 +937,11 @@ class DPControllerLocalPlanner(object):
             self._logger.error('Invalid waypoint file')
             response.success = False
             return response
-            #return InitWaypointsFromFileResponse(False)
-        t = rclpy.time.Time(request.start_time.data.secs, request.start_time.data.nsecs)
+        t = rclpy.time.Time(seconds=request.start_time.sec, nanoseconds=request.start_time.nanosec)
         if to_fsec(t) < to_fsec(self.node.get_clock().now()) and not request.start_now:
             self._logger.error('The trajectory starts in the past, correct the starting time!')
             response.success = False
             return response
-            #return InitWaypointsFromFileResponse(False)
         else:
             self._logger.info('Start waypoint trajectory now!')
         self._lock.acquire()
@@ -933,10 +953,9 @@ class DPControllerLocalPlanner(object):
             self._logger.info('Error occurred while parsing waypoint file')
             response.success = False
             return response
-            #return InitWaypointsFromFileResponse(False)
+            
         wp_set = self._transform_waypoint_set(wp_set)
         wp_set = self._apply_workspace_constraints(wp_set)
-
         if self._traj_interpolator.set_waypoints(wp_set, self.get_vehicle_rot()):
             self._station_keeping_center = None
             self._traj_interpolator.set_start_time((to_fsec(t) if not request.start_now else to_fsec(self.node.get_clock().now())))
@@ -959,13 +978,11 @@ class DPControllerLocalPlanner(object):
             self._lock.release()
             response.success = True
             return response
-            #return InitWaypointsFromFileResponse(True)
         else:
             self._logger.error('Error occurred while parsing waypoint file')
             self._lock.release()
             response.success = False
             return response
-            #return InitWaypointsFromFileResponse(False)
 
     # =========================================================================
     def go_to(self, request, response):
@@ -980,12 +997,12 @@ class DPControllerLocalPlanner(object):
             self._logger.error('Current pose has not been initialized yet')
             response.success = False
             return response
-            #return GoToResponse(False)
+            
         if request.waypoint.max_forward_speed <= 0.0:
             self._logger.error('Max. forward speed must be greater than zero')
             response.success = False
             return response
-            #return GoToResponse(False)
+            
         self.set_station_keeping(True)
         self._lock.acquire()
         wp_set = uuv_waypoints.WaypointSet(
@@ -1008,7 +1025,6 @@ class DPControllerLocalPlanner(object):
             self._lock.release()
             response.success = False
             return response
-            #return GoToResponse(False)
 
         self._station_keeping_center = None
         t = to_fsec(self.node.get_clock().now())
@@ -1032,7 +1048,6 @@ class DPControllerLocalPlanner(object):
         self._lock.release()
         response.success = True
         return response
-        #return GoToResponse(True)
 
     #==========================================================================
     def go_to_incremental(self, request):
@@ -1047,12 +1062,11 @@ class DPControllerLocalPlanner(object):
             self._logger.error('Current pose has not been initialized yet')
             response.success = False
             return response
-            #return GoToIncrementalResponse(False)
+
         if request.max_forward_speed <= 0:
             self._logger.error('Max. forward speed must be positive')
             response.success = False
             return response
-            #return GoToIncrementalResponse(False)
 
         self._lock.acquire()
         self.set_station_keeping(True)
@@ -1081,7 +1095,6 @@ class DPControllerLocalPlanner(object):
             self._lock.release()
             response.success = False
             return response
-            #return GoToIncrementalResponse(False)
 
         self._station_keeping_center = None
         self._traj_interpolator.set_start_time(to_fsec(self.node.get_clock().now()))
@@ -1102,7 +1115,6 @@ class DPControllerLocalPlanner(object):
         self._lock.release()
         response.success = True
         return response
-        #return GoToIncrementalResponse(True)
 
     # =========================================================================
     def generate_reference(self, t):
@@ -1199,7 +1211,8 @@ class DPControllerLocalPlanner(object):
             if self._look_ahead_delay > 0:
                 self._this_ref_pnt = self.generate_reference(t + self._look_ahead_delay)
 
-            self._max_time_pub.publish(Float64(self._traj_interpolator.get_max_time() - to_fsec(self.node.get_clock().now())))
+            self._max_time_pub.publish(
+                Float64(data=self._traj_interpolator.get_max_time() - to_fsec(self.node.get_clock().now())))
 
             if not self._traj_running:
                 self._traj_running = True
@@ -1234,7 +1247,7 @@ class DPControllerLocalPlanner(object):
         elif self._station_keeping_on:
             if self._is_teleop_active:
                 self._this_ref_pnt = self._calc_teleop_reference()
-            self._max_time_pub.publish(Float64(0))
+            self._max_time_pub.publish(Float64(data=0.0))
             #######################################################################
             if not self._thrusters_only and not self._is_teleop_active and to_fsec(self.node.get_clock().now()) - self._start_count_idle > self._timeout_idle_mode:
                 self._logger.info('AUV STATION KEEPING')

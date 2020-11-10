@@ -21,6 +21,9 @@
 # limitations under the License.
 import numpy as np
 import rclpy
+import traceback
+
+from utils.transform import get_world_ned_to_enu
 from uuv_control_msgs.srv import *
 from uuv_control_interfaces.dp_controller_base import DPControllerBase
 from plankton_utils.time import is_sim_time
@@ -85,7 +88,7 @@ class ROVUnderActuatedPIDController(DPControllerBase):
         srv_name = 'get_pid_params'
         self._services[srv_name] = self.create_service(
             GetPIDParams,
-            ssrv_name,
+            srv_name,
             self.get_pid_params_callback)
 
         self._is_init = True
@@ -153,13 +156,17 @@ if __name__ == '__main__':
     try:
         sim_time_param = is_sim_time()
 
+        tf_world_ned_to_enu = get_world_ned_to_enu(sim_time_param)
+
         node = ROVUnderActuatedPIDController(
             'rov_ua_pid_controller',
+            world_ned_to_enu=tf_world_ned_to_enu,
             parameter_overrides=[sim_time_param])
 
         rclpy.spin(node)
     except Exception as e:
-        print('Caught exception: ' + str(e))
+        print('Caught exception: ' + repr(e))
+        print(traceback.print_exc())
     finally:
         if rclpy.ok():
             rclpy.shutdown()

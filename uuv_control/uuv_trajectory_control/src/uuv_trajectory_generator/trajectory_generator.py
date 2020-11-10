@@ -154,10 +154,11 @@ class TrajectoryGenerator(object):
         """Return true if the waypoint interpolation is being used."""
         return self._wp_interp_on
 
+    # =========================================================================
     def set_waypoints(self, waypoints, init_rot=(0, 0, 0, 1)):
         """Initializes the waypoint interpolator with a set of waypoints."""
-        self._logger.info('Initial rotation vector (quat)=%s', str(init_rot))
-        self._logger.info('Initial rotation vector (rpy)=%s',
+        self.node.get_logger().info('Initial rotation vector (quat)=%s' % str(init_rot))
+        self.node.get_logger().info('Initial rotation vector (rpy)=%s' %
                       str(euler_from_quaternion(init_rot)))
         if self._wp_interp.init_waypoints(waypoints, init_rot):
             self._wp_interp_on = True

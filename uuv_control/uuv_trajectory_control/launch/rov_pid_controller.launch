@@ -48,7 +48,7 @@
       <push-ros-namespace namespace="$(var uuv_name)"/>
       <node pkg="uuv_control_utils"
             exec="trajectory_marker_publisher.py"
-            name="trajectory_marker_publisher"
+            node-name="trajectory_marker_publisher"
             output="screen">
         <remap from="trajectory" to="dp_controller/trajectory"/>
         <remap from="waypoints" to="dp_controller/waypoints"/>
@@ -61,7 +61,7 @@
       <push-ros-namespace namespace="$(var uuv_name)"/>
       <node pkg="uuv_trajectory_control"
             exec="rov_pid_controller.py"
-            name="rov_pid_controller"
+            node-name="rov_pid_controller"
             output="screen"
             if="$(var use_ned_frame)">
         <!-- Remap necessary topics -->
@@ -72,6 +72,10 @@
         <remap from="error" to="dp_controller/error"/>
         <remap from="reference" to="dp_controller/reference"/>
         <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+
+        <!-- FIXME Bug due to relative topic under python -->
+        <remap from="tf" to="/tf"/>
+        <remap from="tf_static" to="/tf_static"/>
         
         <param from="$(var controller_config_file)"/>
         
@@ -91,8 +95,12 @@
         <remap from="error" to="dp_controller/error"/>
         <remap from="reference" to="dp_controller/reference"/>
         <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+
+        <!-- FIXME Bug due to relative topic under python -->
+        <remap from="tf" to="/tf"/>
+        <remap from="tf_static" to="/tf_static"/>
         
-        <param file="$(var controller_config_file)"/>
+        <param from="$(var controller_config_file)"/>
 
         <param name="inertial_frame_id" value="world"/>
       </node>
@@ -115,6 +123,11 @@
         <remap from="error" to="dp_controller/error"/>
         <remap from="reference" to="dp_controller/reference"/>
         <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+
+        <!-- FIXME Bug due to relative topic under python -->
+        <remap from="tf" to="/tf"/>
+        <remap from="tf_static" to="/tf_static"/>
+
         <!-- Controller parameters -->
         <param name="saturation" value="$(var saturation)"/>
         <param name="Kp" value="[$(var Kp)]"/>
@@ -136,6 +149,11 @@
         <remap from="error" to="dp_controller/error"/>
         <remap from="reference" to="dp_controller/reference"/>
         <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+
+        <!-- FIXME Bug due to relative topic under python -->
+        <remap from="tf" to="/tf"/>
+        <remap from="tf_static" to="/tf_static"/>
+
         <!-- Controller parameters -->
         <param name="saturation" value="$(var saturation)"/>
         <param name="Kp" value="[$(var Kp)]"/>

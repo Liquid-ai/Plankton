@@ -25,6 +25,7 @@ from copy import deepcopy
 
 from tf_quaternion.transformations import quaternion_from_euler, euler_from_quaternion, \
     quaternion_matrix, rotation_matrix, is_same_transform
+from geometry_msgs.msg import TransformStamped
 from ._log import get_logger
 try: 
     import casadi
@@ -42,7 +43,7 @@ def cross_product_operator(x):
                   [-x[1], x[0], 0]])
     return S
 
-# TODO Maybe rewrite for TF2
+
 class Vehicle(object):
     """Vehicle interface to be used by model-based controllers. It receives the
     parameters necessary to compute the vehicle's motion according to Fossen's.
@@ -50,7 +51,9 @@ class Vehicle(object):
 
     _INSTANCE = None
 
-    def __init__(self, node: Node, inertial_frame_id='world'):
+    def __init__(self, node: Node, 
+                 inertial_frame_id='world', 
+                 tf_trans_world_ned_to_enu: TransformStamped = None):
         """Class constructor."""
         self.node = node
         assert inertial_frame_id in ['world', 'world_ned']
@@ -66,26 +69,37 @@ class Vehicle(object):
         else:
             self._body_frame_id = 'base_link_ned'
 
-        try:
-            import tf2_ros
-
-            tf_buffer = tf2_ros.Buffer()
-            listener = tf2_ros.TransformListener(tf_buffer, self.node)
-
-            tf_trans_ned_to_enu = tf_buffer.lookup_transform(
-                'world', 'world_ned', rclpy.time.Time(),
-                rclpy.time.Duration(seconds=10))
-            
+        # Handle tf2 results here
+        if tf_trans_world_ned_to_enu is not None:
             self.q_ned_to_enu = np.array(
-                [tf_trans_ned_to_enu.transform.rotation.x,
-                tf_trans_ned_to_enu.transform.rotation.y,
-                tf_trans_ned_to_enu.transform.rotation.z,
-                tf_trans_ned_to_enu.transform.rotation.w])
-        except Exception as ex:
-            self._logger.warning(
-                'Error while requesting ENU to NED transform'
-                ', message={}'.format(ex))
+                [tf_trans_world_ned_to_enu.transform.rotation.x,
+                tf_trans_world_ned_to_enu.transform.rotation.y,
+                tf_trans_world_ned_to_enu.transform.rotation.z,
+                tf_trans_world_ned_to_enu.transform.rotation.w])
+        else:
+            self._logger.info('No world ned to enu was provided. Setting to default')
             self.q_ned_to_enu = quaternion_from_euler(2 * np.pi, 0, np.pi)
+            
+        # try:
+        #     import tf2_ros
+
+        #     tf_buffer = tf2_ros.Buffer()
+        #     listener = tf2_ros.TransformListener(tf_buffer, self.node)
+
+        #     tf_trans_ned_to_enu = tf_buffer.lookup_transform(
+        #         'world', 'world_ned', rclpy.time.Time(),
+        #         rclpy.time.Duration(seconds=10))
+            
+        #     self.q_ned_to_enu = np.array(
+        #         [tf_trans_ned_to_enu.transform.rotation.x,
+        #         tf_trans_ned_to_enu.transform.rotation.y,
+        #         tf_trans_ned_to_enu.transform.rotation.z,
+        #         tf_trans_ned_to_enu.transform.rotation.w])
+        # except Exception as ex:
+        #     self._logger.warning(
+        #         'Error while requesting ENU to NED transform'
+        #         ', message={}'.format(ex))
+        #     self.q_ned_to_enu = quaternion_from_euler(2 * np.pi, 0, np.pi)
                                 
         self.transform_ned_to_enu = quaternion_matrix(
                 self.q_ned_to_enu)[0:3, 0:3]
@@ -175,7 +189,7 @@ class Vehicle(object):
             # Get 1D array
             Ma = self.node.get_parameter('Ma').value
             # Reshape the array.
-            self._Ma = numpy.reshape(Ma, (6, 6))
+            self._Ma = np.reshape(Ma, (6, 6))
             if self._Ma.shape != (6, 6):
                 raise RuntimeError('Invalid added mass matrix')
 

@@ -19,7 +19,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import rclpy.time
-from rclpy.node import Node
 import numpy as np
 import os
 import yaml
@@ -322,7 +321,7 @@ class WaypointSet(object):
             return False
 
     # =========================================================================
-    def to_message(self, node):
+    def to_message(self, when: rclpy.time.Time):
         """Convert waypoints set to message `uuv_control_msgs/WaypointSet`
         
         > *Returns*
@@ -330,7 +329,7 @@ class WaypointSet(object):
         `uuv_control_msgs/WaypointSet` message object
         """
         msg = WaypointSetMessage()
-        msg.header.stamp = node.get_clock().now().to_msg()
+        msg.header.stamp = when.to_msg()
         msg.header.frame_id = self._inertial_frame_id
         msg.waypoints = list()
         for wp in self._waypoints:
@@ -404,7 +403,7 @@ class WaypointSet(object):
             return None
 
     # =========================================================================
-    def to_path_marker(self, node: Node, clear=False):
+    def to_path_marker(self, when: rclpy.time.Time, clear=False):
         """Return a `nav_msgs/Path` message with all waypoints in the set
         
         > *Input arguments*
@@ -416,14 +415,14 @@ class WaypointSet(object):
         `nav_msgs/Path` message
         """
         path = Path()
-        t = node.get_clock().now()
-        path.header.stamp = t.to_msg()
+       
+        path.header.stamp = when.to_msg()
         path.header.frame_id = self._inertial_frame_id
         if self.num_waypoints > 1 and not clear:
             for i in range(self.num_waypoints):
                 wp = self.get_waypoint(i)
                 pose = PoseStamped()
-                pose.header.stamp = rclpy.time.Time(seconds=i) # TODO check
+                pose.header.stamp = rclpy.time.Time(seconds=i).to_msg()
                 pose.header.frame_id = self._inertial_frame_id
                 pose.pose.position.x = wp.x
                 pose.pose.position.y = wp.y
@@ -432,7 +431,7 @@ class WaypointSet(object):
         return path
 
     # =========================================================================
-    def to_marker_list(self, node, clear=False):
+    def to_marker_list(self, when: rclpy.time.Time, clear=False):
         """Return waypoint set as a markers list message of type `visualization_msgs/MarkerArray`
         
         > *Input arguments*
@@ -444,10 +443,10 @@ class WaypointSet(object):
         `visualization_msgs/MarkerArray` message
         """
         list_waypoints = MarkerArray()
-        t = node.get_clock().now()
+        
         if self.num_waypoints == 0 or clear:
             marker = Marker()
-            marker.header.stamp = t.to_msg()
+            marker.header.stamp = when.to_msg()
             marker.header.frame_id = self._inertial_frame_id
             marker.id = 0
             marker.type = Marker.SPHERE
@@ -457,7 +456,7 @@ class WaypointSet(object):
             for i in range(self.num_waypoints):
                 wp = self.get_waypoint(i)
                 marker = Marker()
-                marker.header.stamp = t.to_msg()
+                marker.header.stamp = when.to_msg()
                 marker.header.frame_id = self._inertial_frame_id
                 marker.id = i
                 marker.type = Marker.SPHERE

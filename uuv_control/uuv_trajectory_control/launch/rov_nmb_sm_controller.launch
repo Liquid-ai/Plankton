@@ -76,6 +76,9 @@
           <remap from="error" to="dp_controller/error"/>
           <remap from="reference" to="dp_controller/reference"/>
           <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+          <!-- FIXME Bug due to relative topic under python -->
+          <remap from="tf" to="/tf"/>
+          <remap from="tf_static" to="/tf_static"/>
           
           <param from="$(var controller_config_file)"/>
           
@@ -97,6 +100,9 @@
           <remap from="error" to="dp_controller/error"/>
           <remap from="reference" to="dp_controller/reference"/>
           <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+          <!-- FIXME Bug due to relative topic under python -->
+          <remap from="tf" to="/tf"/>
+          <remap from="tf_static" to="/tf_static"/>
           
           <param from="$(var controller_config_file)"/>
           
@@ -123,6 +129,9 @@
           <remap from="error" to="dp_controller/error"/>
           <remap from="reference" to="dp_controller/reference"/>
           <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+          <!-- FIXME Bug due to relative topic under python -->
+          <remap from="tf" to="/tf"/>
+          <remap from="tf_static" to="/tf_static"/>
 
           <param name="saturation" value="$(var saturation)"/>
           <param name="K" value="[$(var K)]"/>
@@ -146,6 +155,9 @@
           <remap from="error" to="dp_controller/error"/>
           <remap from="reference" to="dp_controller/reference"/>
           <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+          <!-- FIXME Bug due to relative topic under python -->
+          <remap from="tf" to="/tf"/>
+          <remap from="tf_static" to="/tf_static"/>
 
           <param name="saturation" value="$(var saturation)"/>
           <param name="K" value="[$(var K)]"/>

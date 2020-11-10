@@ -21,11 +21,69 @@
 # limitations under the License.
 import rclpy
 import numpy as np
+import traceback
 
+from utils.transform import get_world_ned_to_enu
 from uuv_control_interfaces import DPControllerBase
 from uuv_control_msgs.srv import *
 from plankton_utils.time import time_in_float_sec
 from plankton_utils.time import is_sim_time
+
+
+# def get_world_ned_to_enu(sim_time_param):    
+#     import threading
+#     print(sim_time_param)
+#     tf_trans_ned_to_enu = None
+#     done = False
+#     node = rclpy.create_node('tf_get_ned_to_enu', parameter_overrides=[sim_time_param])
+#   
+#     import tf2_ros
+    
+#     tf_buffer = tf2_ros.Buffer(node=node)
+#     listener = tf2_ros.TransformListener(tf_buffer, node)
+#     import time
+#     time.sleep(5)
+#  
+#     future = tf_buffer.wait_for_transform_async('world', 'world_ned', rclpy.time.Time())
+#   
+#     rclpy.spin_until_future_complete(node, future)
+#     tf_trans_ned_to_enu = tf_buffer.lookup_transform(
+#                         'world', 'world_ned', rclpy.time.Time(),
+#                         rclpy.time.Duration(seconds=10))
+#  
+
+
+
+
+
+#     # def get_tf():
+#     #     try:
+#     #         import tf2_ros
+#     #         tf_buffer = tf2_ros.Buffer()
+#     #         listener = tf2_ros.TransformListener(tf_buffer, node)
+
+#     #        
+#     #         tf_trans_ned_to_enu = tf_buffer.lookup_transform(
+#     #                     'world', 'world_ned', rclpy.time.Time(),
+#     #                     rclpy.time.Duration(seconds=10))
+#     #    
+#     #     except Exception as ex:
+#     #         node._logger.warning(
+#     #                 'Error while requesting ENU to NED transform'
+#     #                 ', message={}'.format(ex))
+
+#     #     finally:
+#     #         done = True
+
+#     # thread = threading.Thread(target=get_tf, daemon=True)
+#     # thread.start()
+#    
+#     # while not done:
+#     #     rclpy.spin_once(node)
+
+
+#     node.destroy_node()
+#     return tf_trans_ned_to_enu
 
 
 class ROV_NMB_SMController(DPControllerBase):
@@ -45,6 +103,7 @@ class ROV_NMB_SMController(DPControllerBase):
 
     def __init__(self, node_name, **kwargs):
         DPControllerBase.__init__(self, node_name, is_model_based=False, **kwargs)
+  
         self._logger.info('Initializing: ' + self._LABEL)
         self._first_pass = True
         self._t_init = 0.0
@@ -112,18 +171,20 @@ class ROV_NMB_SMController(DPControllerBase):
         self._prev_sign_sn_angular_b = np.array([0, 0, 0])
 
         self._tau = np.zeros(6)
-
+    
         srv_name = 'set_sm_controller_params'
         self._services[srv_name] = self.create_service(
             SetSMControllerParams,
             srv_name,
-            self.set_sm_controller_params_callback)
+            self.set_sm_controller_params_callback,
+            callback_group=self._callback_group)
         
         srv_name = 'get_sm_controller_params'
         self._services[srv_name] = self.create_service(
             GetSMControllerParams,
             srv_name,
-            self.get_sm_controller_params_callback)
+            self.get_sm_controller_params_callback,
+            callback_group=self._callback_group)
 
         self._is_init = True
         self._logger.info(self._LABEL + ' ready')
@@ -246,13 +307,21 @@ def main():
     try:
         sim_time_param = is_sim_time()
 
+        tf_world_ned_to_enu = get_world_ned_to_enu(sim_time_param)
+        
         node = ROV_NMB_SMController(
             'rov_nmb_sm_controller',
+            world_ned_to_enu=tf_world_ned_to_enu,
             parameter_overrides=[sim_time_param])
-            
-        rclpy.spin(node)
+        executor = rclpy.executors.MultiThreadedExecutor()
+        executor.add_node(node)
+        executor.spin()
+        # rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
     except Exception as e:
-        print('Caught exception: ' + str(e))
+        print('Caught exception: ' + repr(e))
+        print(traceback.print_exc())
     finally:
         if rclpy.ok():
             rclpy.shutdown()

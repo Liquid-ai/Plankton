@@ -104,7 +104,7 @@ class DPControllerBase(Node):
     _LABEL = ''
 
     def __init__(self, node_name, is_model_based=False, list_odometry_callbacks=None,
-        planner_full_dof=False, **kwargs):
+        planner_full_dof=False, world_ned_to_enu=None, **kwargs):
 
         super().__init__(node_name,
                         allow_undeclared_parameters=True, 
@@ -133,13 +133,17 @@ class DPControllerBase(Node):
         # Flag indicating if the vehicle has only thrusters, otherwise
         # the AUV allocation node will be used
         self.thrusters_only = self.get_parameter_or_helper('thrusters_only', True).get_parameter_value().bool_value
+
+        self._callback_group = rclpy.callback_groups.ReentrantCallbackGroup()
      
         # Instance of the local planner for local trajectory generation
         self._local_planner = LocalPlanner(
             self,
             full_dof=planner_full_dof,
             stamped_pose_only=self._use_stamped_poses_only,
-            thrusters_only=self.thrusters_only)
+            thrusters_only=self.thrusters_only,
+            callback_group = self._callback_group,
+            tf_trans_world_ned_to_enu=world_ned_to_enu)
 
         self._control_saturation = 5000
         # TODO: Fix the saturation term and how it is applied
@@ -195,7 +199,8 @@ class DPControllerBase(Node):
         self._services = dict()
         self._services['reset'] = self.create_service(ResetController,
                                                     'reset_controller',
-                                                    self.reset_controller_callback)
+                                                    self.reset_controller_callback,
+                                                    callback_group=self._callback_group)
 
         # Time stamp for the received trajectory
         self._stamp_trajectory_received = time_in_float_sec(self.get_clock().now())
@@ -210,13 +215,14 @@ class DPControllerBase(Node):
             self._odometry_callbacks = [self.update_errors,
                                         self.update_controller]
         # Initialize vehicle, if model based
-        self._create_vehicle_model()
+        self._create_vehicle_model(world_ned_to_enu)
         # Flag to indicate that odometry topic is receiving data
         self._init_odom = False
 
         # Subscribe to odometry topic
         self._odom_topic_sub = self.create_subscription(
-            Odometry, 'odom', self._odometry_callback, 10)
+            Odometry, 'odom', self._odometry_callback, 10, 
+            callback_group=self._callback_group)
 
         # Stores last simulation time
         self._prev_t = -1.0
@@ -315,7 +321,7 @@ class DPControllerBase(Node):
         return msg
 
     # =========================================================================
-    def _create_vehicle_model(self):
+    def _create_vehicle_model(self, world_ned_to_enu):
         """Create a new instance of a vehicle model. If controller is not model
         based, this model will have its parameters set to 0 and will be used
         to receive and transform the odometry data.
@@ -323,7 +329,7 @@ class DPControllerBase(Node):
         if self._vehicle_model is not None:
             del self._vehicle_model
         self._vehicle_model = Vehicle(
-            self, inertial_frame_id=self._local_planner.inertial_frame_id)
+            self, inertial_frame_id=self._local_planner.inertial_frame_id,tf_trans_world_ned_to_enu=world_ned_to_enu)
 
     # =========================================================================
     def _update_reference(self):
@@ -342,7 +348,7 @@ class DPControllerBase(Node):
             self._reference['rot'] = reference.q
             self._reference['vel'] = np.hstack((reference.v, reference.w))
             self._reference['acc'] = np.hstack((reference.a, reference.alpha))
-        if reference is not None and self._reference_pub.get_num_connections() > 0:
+        if reference is not None and self._reference_pub.get_subscription_count() > 0:
             # Publish current reference
             msg = TrajectoryPoint()
             msg.header.stamp = self.get_clock().now().to_msg()
@@ -395,7 +401,7 @@ class DPControllerBase(Node):
                             vel=np.zeros(6))
 
     # =========================================================================
-    def reset_controller_callback(self, request):
+    def reset_controller_callback(self, request, response):
         """Service handler function."""
         self._reset_controller()
 
@@ -414,7 +420,7 @@ class DPControllerBase(Node):
     def update_errors(self):
         """Update error vectors."""
         if not self.odom_is_init:
-            self._logger.warning('Odometry topic has not been update yet')
+            self._logger.warning('Odometry topic has not been updated yet')
             return
         self._update_reference()
         # Calculate error in the BODY frame
@@ -439,7 +445,7 @@ class DPControllerBase(Node):
                 np.dot(rotItoB, self._reference['vel'][0:3]) - vel[0:3],
                 np.dot(rotItoB, self._reference['vel'][3:6]) - vel[3:6]))
 
-        if self._error_pub.get_num_connections() > 0:
+        if self._error_pub.get_subscription_count() > 0:
             stamp = self.get_clock().now().to_msg()
             msg = TrajectoryPoint()
             msg.header.stamp = stamp

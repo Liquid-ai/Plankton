@@ -2,7 +2,7 @@
   <!-- Vehicle namespace -->
   <arg name="uuv_name"/>
   <!-- Name of the vehicle model -->
-  <arg name="model_name" default="$(arg uuv_name)"/>
+  <arg name="model_name" default="$(var uuv_name)"/>
   <!-- Thruster saturation -->
   <arg name="saturation" default="1200"/>
   <!-- Flag set as true to use load controller the parameters from the file  -->
@@ -66,6 +66,10 @@
         <remap from="error" to="dp_controller/error"/>
         <remap from="reference" to="dp_controller/reference"/>
         <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+
+         <!-- FIXME Bug due to relative topic under python -->
+        <remap from="tf" to="/tf"/>
+        <remap from="tf_static" to="/tf_static"/>
         
         <param from="$(var controller_config_file)"/>
       </node>
@@ -87,6 +91,11 @@
         <remap from="error" to="dp_controller/error"/>
         <remap from="reference" to="dp_controller/reference"/>
         <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+
+         <!-- FIXME Bug due to relative topic under python -->
+        <remap from="tf" to="/tf"/>
+        <remap from="tf_static" to="/tf_static"/>
+
         <!-- Controller parameters -->
         <param name="saturation" value="$(var saturation)"/>
         <param name="Kp" value="[$(var Kp)]"/>

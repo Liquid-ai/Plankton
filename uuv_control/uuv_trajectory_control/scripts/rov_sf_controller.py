@@ -21,7 +21,9 @@
 # limitations under the License.
 import rclpy
 import numpy as np
+import traceback
 
+from utils.transform import get_world_ned_to_enu
 from uuv_control_interfaces import DPControllerBase
 from plankton_utils.time import time_in_float_sec
 from plankton_utils.time import is_sim_time
@@ -50,7 +52,7 @@ class ROV_SFController(DPControllerBase):
         self._Kd = np.zeros(shape=(6, 6))
 
         if self.has_parameter('Kd'):
-            coefs = rclpy.get_parameter('Kd').value
+            coefs = self.get_parameter('Kd').value
             if len(coefs) == 6:
                 self._Kd = np.diag(coefs)
             else:
@@ -62,7 +64,9 @@ class ROV_SFController(DPControllerBase):
         # Build delta matrix
         self._delta = np.zeros(shape=(6, 6))
 
-        l = self.get_parameter('lambda', [0.0]).value
+        l = [0.0]
+        if self.has_parameter('lambda'):
+            l = self.get_parameter('lambda').value
 
         # Turn l into a list if it is not the case
         if type(l) is not list:
@@ -76,7 +80,9 @@ class ROV_SFController(DPControllerBase):
             raise RuntimeError(
                 'lambda: either a scalar or a 3 element vector must be provided')
 
-        c = self.get_parameter('c', [0.0]).value
+        c = [0.0]
+        if self.has_parameter('c'):
+            c = self.get_parameter('c').value
 
         # Turn c into a list if it is not the case
         if type(c) is not list:
@@ -157,13 +163,17 @@ def main():
     try:
         sim_time_param = is_sim_time()
 
+        tf_world_ned_to_enu = get_world_ned_to_enu(sim_time_param)
+
         node = ROV_SFController(
             'rov_sf_controller',
+            world_ned_to_enu=tf_world_ned_to_enu,
             parameter_overrides=[sim_time_param])
 
         rclpy.spin(node)
     except Exception as e:
-        print('Caught exception: ' + str(e))
+        print('Caught exception: ' + repr(e))
+        print(traceback.print_exc())
     finally:
         if rclpy.ok():
             rclpy.shutdown()
