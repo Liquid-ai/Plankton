@@ -18,7 +18,7 @@
       node-name="start_circular_trajectory"
       output="screen">
      
-      <param name="starting_time" value="$(var start_time)"/>
+      <param name="start_time" value="$(var start_time)"/>
       <param name="radius" value="$(var radius)"/>
       <param name="center" value="$(var center_x), $(var center_y), $(var center_z)" value-sep=", "/>
       <param name="n_points" value="$(var n_points)"/>
