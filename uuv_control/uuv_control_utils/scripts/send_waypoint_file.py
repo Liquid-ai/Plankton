@@ -73,11 +73,11 @@ def main():
     srv_name = 'init_waypoints_from_file'
     
     init_wp = node.create_client(InitWaypointsFromFile, srv_name)
-
+    
     ready = init_wp.wait_for_service(timeout_sec=30)
     if not ready:
         raise RuntimeError('Service not available! Closing node...')
-        
+    
     (sec, nsec) = float_sec_to_int_sec_nano(start_time)
 
     req = InitWaypointsFromFile.Request()
@@ -87,14 +87,15 @@ def main():
     req.interpolator = String(data=interpolator)
 
     future = init_wp.call_async(req)
+    
     rclpy.spin_until_future_complete(node, future)
     try:
         response = future.result()
     except Exception as e:
-        node.get_logger().error('Service call ' + srv_name + ' failed, error=' + str(e))
+        node.get_logger().error('Service call ' + srv_name + ' failed, error=' + repr(e))
     else:
         node.get_logger().info('Waypoints file successfully received, '
-                      'filename=%s', filename)
+                      'filename=%s' % filename)
 
     node.destroy_node()
 

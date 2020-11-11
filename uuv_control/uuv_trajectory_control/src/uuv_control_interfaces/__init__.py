@@ -18,7 +18,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function
 from .vehicle import Vehicle
 from .dp_controller_base import DPControllerBase
 from .dp_pid_controller_base import DPPIDControllerBase

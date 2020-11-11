@@ -22,12 +22,15 @@
 
 import rclpy
 import numpy as np
+import traceback
 
+from utils.transform import get_world_ned_to_enu
 from uuv_control_interfaces import DPControllerBase
 from uuv_control_msgs.srv import *
 from uuv_control_interfaces.vehicle import cross_product_operator
 from plankton_utils.time import time_in_float_sec
 from plankton_utils.time import is_sim_time
+
 
 class ROV_MB_SMController(DPControllerBase):
     _LABEL = 'Model-based Sliding Mode Controller'
@@ -55,16 +58,18 @@ class ROV_MB_SMController(DPControllerBase):
         self._drift_prevent = 0
 
         if self.has_parameter('lambda'):
-            coefs = self.get_parameter('lambda').get_parameter_value().double_array_value
-            if len(coefs) == 6:
-                self._lambda = np.array(coefs)
+            coeffs = self.get_parameter('lambda').value
+            coeffs = [float(c) for c in coeffs]
+            if len(coeffs) == 6:
+                self._lambda = np.array(coeffs)
             else:
                 raise RuntimeError('lambda coefficients: 6 coefficients '
                                          'needed')
         print('lambda=', self._lambda)
 
         if self.has_parameter('rho_constant'):
-            coeffs = self.get_parameter('rho_constant').get_parameter_value().double_array_value
+            coeffs = self.get_parameter('rho_constant').value
+            coeffs = [float(c) for c in coeffs]
             if len(coeffs) == 6:
                 self._rho_constant = np.array(coeffs)
             else:
@@ -73,7 +78,8 @@ class ROV_MB_SMController(DPControllerBase):
         print('rho_constant=', self._rho_constant)
 
         if self.has_parameter('k'):
-            coeffs = self.get_parameter('k').get_parameter_value().double_array_value
+            coeffs = self.get_parameter('k').value
+            coeffs = [float(c) for c in coeffs]
             if len(coeffs) == 6:
                 self._k = np.array(coeffs)
             else:
@@ -82,7 +88,8 @@ class ROV_MB_SMController(DPControllerBase):
         print('k=', self._k)
 
         if self.has_parameter('c'):
-            coeffs = self.get_parameter('c').get_parameter_value().double_array_value
+            coeffs = self.get_parameter('c').value
+            coeffs = [float(c) for c in coeffs]
             if len(coeffs) == 6:
                 self._c = np.array(coeffs)
             else:
@@ -91,7 +98,8 @@ class ROV_MB_SMController(DPControllerBase):
         print('c=', self._c)
 
         if self.has_parameter('adapt_slope'):
-            coeffs = self.get_parameter('adapt_slope').get_parameter_value().double_array_value
+            coeffs = self.get_parameter('adapt_slope').value
+            coeffs = [float(c) for c in coeffs]
             if len(coeffs) == 3:
                 self._adapt_slope = np.array(coeffs)
             else:
@@ -100,7 +108,8 @@ class ROV_MB_SMController(DPControllerBase):
         print('adapt_slope=', self._adapt_slope)
 
         if self.has_parameter('rho_0'):
-            coeffs = self.get_parameter('rho_0').get_parameter_value().double_array_value
+            coeffs = self.get_parameter('rho_0').value
+            coeffs = [float(c) for c in coeffs]
             if len(coeffs) == 6:
                 self._rho_0 = np.array(coeffs)
             else:
@@ -109,7 +118,8 @@ class ROV_MB_SMController(DPControllerBase):
         print('rho_0=', self._rho_0)
 
         if self.has_parameter('drift_prevent'):
-            scalar = self.get_parameter('drift_prevent').get_parameter_value().double_value
+            scalar = self.get_parameter('drift_prevent').value
+            coeffs = [float(c) for c in coeffs]
             if not isinstance(scalar, list):
                 self._drift_prevent = scalar
             else:
@@ -317,12 +327,16 @@ def main():
     try:
         sim_time_param = is_sim_time()
 
+        tf_world_ned_to_enu = get_world_ned_to_enu(sim_time_param)
+
         node = ROV_MB_SMController(
             'rov_mb_sm_controller', 
-            parameter_overrides=[sim_time_param])
+            parameter_overrides=[sim_time_param],
+            world_ned_to_enu=tf_world_ned_to_enu)
         rclpy.spin(node)
     except Exception as e:
-        print('Caught exception: ' + str(e))
+        print('Caught exception: ' + repr(e))
+        traceback.print_exc()
     finally:
         if rclpy.ok():
             rclpy.shutdown()

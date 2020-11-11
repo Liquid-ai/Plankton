@@ -51,7 +51,7 @@
     <group>
       <push-ros-namespace namespace="$(var uuv_name)"/>
       <node pkg="uuv_control_utils"
-            type="trajectory_marker_publisher.py"
+            exec="trajectory_marker_publisher.py"
             node-name="trajectory_marker_publisher"
             output="screen"/>
     </group>
@@ -65,6 +65,10 @@
             output="screen"
             unless="$(var use_ned_frame)">
         <remap from="odom" to="pose_gt"/>
+
+        <!-- FIXME Bug due to relative topic under python -->
+        <remap from="tf" to="/tf"/>
+        <remap from="tf_static" to="/tf_static"/>
 
         <param name="max_forward_speed" value="$(var max_forward_speed)"/>
         <param name="base_link" value="base_link"/>

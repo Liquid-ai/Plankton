@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="3">
   <name>uuv_control_cascaded_pid</name>
-  <version>0.5.2</version>
+  <version>0.5.3</version>
   <description>A cascade of PID controllers for acceleration, velocity, and position control.</description>
 
     <maintainer email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</maintainer>

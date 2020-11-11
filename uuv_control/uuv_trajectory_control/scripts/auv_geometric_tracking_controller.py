@@ -22,6 +22,8 @@
 from copy import deepcopy
 import math
 import numpy as np
+import traceback
+import threading
 
 import rclpy
 import tf2_ros
@@ -30,22 +32,25 @@ from rclpy.node import Node
 import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
 
-# import tf
-# import tf.transformations as trans
-
 import uuv_control_msgs.msg as uuv_control_msgs
 from uuv_thrusters.models import Thruster
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 from uuv_control_msgs.msg import TrajectoryPoint
 from uuv_control_interfaces import DPControllerLocalPlanner
-from tf_quaternion.transformations import quaternion_matrix
+#from tf_quaternion.transformations import quaternion_matrix
+from tf_quaternion.transformations import quaternion_multiply
+from tf_quaternion.transformations import quaternion_inverse
+from tf_quaternion.transformations import euler_from_quaternion
 
 from plankton_utils.param_helper import parse_nested_params_to_dict, \
                                         get_parameter_or_helper
 from plankton_utils.time import is_sim_time
+from plankton_utils.time import time_in_float_sec
+from utils.transform import get_world_ned_to_enu
+
 
 class AUVGeometricTrackingController(Node):
-    def __init__(self, node_name, **kwargs):
+    def __init__(self, node_name, world_ned_to_enu=None,**kwargs):
         super().__init__(node_name,
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True,
@@ -57,8 +62,8 @@ class AUVGeometricTrackingController(Node):
         self.namespace = self.get_namespace().replace('/', '')
         self.get_logger().info('Initialize control for vehicle <%s>' % self.namespace)
 
-        self.local_planner = DPControllerLocalPlanner(full_dof=True, thrusters_only=False,
-            stamped_pose_only=False)
+        self.local_planner = DPControllerLocalPlanner(self, full_dof=True, thrusters_only=False,
+            stamped_pose_only=False, tf_trans_world_ned_to_enu=world_ned_to_enu)
 
         self.base_link = self.get_parameter_or_helper('base_link', 'base_link').get_parameter_value().string_value
 
@@ -131,9 +136,9 @@ class AUVGeometricTrackingController(Node):
         assert len(self.map_yaw) == self.n_fins
 
         # Retrieve the thruster configuration parameters
-        self.thruster_config = self.get_parameter_by_prefix('thruster_config')
+        self.thruster_config = self.get_parameters_by_prefix('thruster_config')
         #Parse parameters to dictionary and unpack params to values
-        self.thruster_config = parse_nested_params_to_dict(thruster_config, '.', True)
+        self.thruster_config = parse_nested_params_to_dict(self.thruster_config, '.', True)
 
         # Check if all necessary thruster model parameter are available
         thruster_params = ['conversion_fcn_params', 'conversion_fcn',
@@ -145,22 +150,51 @@ class AUVGeometricTrackingController(Node):
                     'missing' % p)
 
         # Setting up the thruster topic name
-        self.thruster_topic = build_thruster_topic_name(self.namespace,
+        self.thruster_topic = self.build_thruster_topic_name(self.namespace,
             self.thruster_config['topic_prefix'], 0,
             self.thruster_config['topic_suffix'])
         # self.thruster_topic = '/%s/%s/id_%d/%s' %  (self.namespace,
         #     self.thruster_config['topic_prefix'], 0,
         #     self.thruster_config['topic_suffix'])
 
-        base = '%s/%s' % (self.namespace, self.base_link)
+        self.max_fin_angle = self.get_parameter_or_helper('max_fin_angle', 0.0).value
+        assert self.max_fin_angle > 0
 
-        frame = '%s/%s%d' % (self.namespace, self.thruster_config['frame_base'], 0)
+        # Reading the fin input topic prefix
+        self.fin_topic_prefix = self.get_parameter_or_helper('fin_topic_prefix', 'fins').get_parameter_value().string_value
+        self.fin_topic_suffix = self.get_parameter_or_helper('fin_topic_suffix', 'input').get_parameter_value().string_value
+
+        self.rpy_to_fins = np.vstack((self.map_roll, self.map_pitch, self.map_yaw)).T
+       
+        self.pub_cmd = list()
+        self.odometry_sub = None
+        self.reference_pub = None
+        self.error_pub = None
 
         self.tf_buffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.tf_buffer, self)
 
+        self._ready = False
+        self.init_future = rclpy.Future()
+        self.init_thread = threading.Thread(target=self._init_async, daemon=True)
+        self.init_thread.start()
+
+    # =========================================================================
+    def _init_async(self):
+        try:
+            self._init_async_impl()
+        except Exception as e:
+            self.get_logger().error('Caught exception: ' + repr(e))
+            traceback.print_exc()
+    
+    # =========================================================================
+    def _init_async_impl(self):
+        base = '%s/%s' % (self.namespace, self.base_link)
+
+        frame = '%s/%s%d' % (self.namespace, self.thruster_config['frame_base'], 0)
+
         self.get_logger().info('Lookup: Thruster transform found %s -> %s' % (base, frame))
-        trans = self.tf_buffer.lookup_transform(base, frame, rclpy.time.Time(), rclpy.time.Duration(5))
+        trans = self.tf_buffer.lookup_transform(base, frame, rclpy.time.Time(), rclpy.time.Duration(seconds=5))
         pos = np.array([trans.transform.translation.x,
                         trans.transform.translation.y,
                         trans.transform.translation.z])
@@ -171,25 +205,17 @@ class AUVGeometricTrackingController(Node):
         self.get_logger().info('Thruster transform found %s -> %s' % (base, frame))
         self.get_logger().info('pos=' + str(pos))
         self.get_logger().info('rot=' + str(quat))
-        
+    
         # Read transformation from thruster
-        #params = {key: val.value for key, val in params.items()}
+        # params = {key: val.value for key, val in params.items()}
         self.thruster = Thruster.create_thruster(
+            self,
             self.thruster_config['conversion_fcn'], 0,
             self.thruster_topic, pos, quat,
             **self.thruster_config['conversion_fcn_params'])
 
         self.get_logger().info('Thruster configuration=\n' + str(self.thruster_config))
         self.get_logger().info('Thruster input topic=' + self.thruster_topic)
-
-        self.max_fin_angle = self.get_parameter_or_helper('max_fin_angle', 0.0).value
-        assert self.max_fin_angle > 0
-
-        # Reading the fin input topic prefix
-        self.fin_topic_prefix = self.get_parameter_or_helper('fin_topic_prefix', 'fins').get_parameter_value().string_value
-        self.fin_topic_suffix = self.get_parameter_or_helper('fin_topic_suffix', 'input').get_parameter_value().string_value
-
-        self.rpy_to_fins = np.vstack((self.map_roll, self.map_pitch, self.map_yaw)).T
 
         self.pub_cmd = list()
 
@@ -208,6 +234,15 @@ class AUVGeometricTrackingController(Node):
         # Publish error (for debugging)
         self.error_pub = self.create_publisher(
             TrajectoryPoint, 'error', 1)
+
+        self._ready = True
+        self.get_logger().info('AUV geometric tracking controller: ready')
+        self.init_future.set_result(True)
+
+    #==========================================================================
+    @property
+    def ready(self):
+        return self._ready
 
     #==========================================================================
     @staticmethod
@@ -248,10 +283,10 @@ class AUVGeometricTrackingController(Node):
         ref_msg = TrajectoryPoint()
         ref_msg.header.stamp = self.get_clock().now().to_msg()
         ref_msg.header.frame_id = self.local_planner.inertial_frame_id
-        ref_msg.pose.position = geometry_msgs.Vector3(*des.p)
-        ref_msg.pose.orientation = geometry_msgs.Quaternion(*des.q)
-        ref_msg.velocity.linear = geometry_msgs.Vector3(*des.vel[0:3])
-        ref_msg.velocity.angular = geometry_msgs.Vector3(*des.vel[3::])
+        ref_msg.pose.position = geometry_msgs.Point(**self.to_dict_vect3(*des.p))
+        ref_msg.pose.orientation = geometry_msgs.Quaternion(**self.to_dict_quat(*des.q))
+        ref_msg.velocity.linear = geometry_msgs.Vector3(**self.to_dict_vect3(*des.vel[0:3]))
+        ref_msg.velocity.angular = geometry_msgs.Vector3(**self.to_dict_vect3(*des.vel[3::]))
 
         self.reference_pub.publish(ref_msg)
 
@@ -260,7 +295,7 @@ class AUVGeometricTrackingController(Node):
         ref_vel = des.vel[0:3]
 
         q = self.quaternion_to_np(msg.pose.pose.orientation)
-        rpy = trans.euler_from_quaternion(q, axes='sxyz')
+        rpy = euler_from_quaternion(q, axes='sxyz')
 
         # Compute tracking errors wrt world frame:
         e_p = des.p - p
@@ -271,11 +306,13 @@ class AUVGeometricTrackingController(Node):
         error_msg = TrajectoryPoint()
         error_msg.header.stamp = self.get_clock().now().to_msg()
         error_msg.header.frame_id = self.local_planner.inertial_frame_id
-        error_msg.pose.position = geometry_msgs.Vector3(*e_p)
+        error_msg.pose.position = geometry_msgs.Point(**self.to_dict_vect3(*e_p))
         error_msg.pose.orientation = geometry_msgs.Quaternion(
-            *trans.quaternion_multiply(trans.quaternion_inverse(q), des.q))
-        error_msg.velocity.linear = geometry_msgs.Vector3(*(des.vel[0:3] - self.vector_to_np(msg.twist.twist.linear)))
-        error_msg.velocity.angular = geometry_msgs.Vector3(*(des.vel[3::] - self.vector_to_np(msg.twist.twist.angular)))
+            **self.to_dict_quat(*quaternion_multiply(quaternion_inverse(q), des.q)))
+        error_msg.velocity.linear = geometry_msgs.Vector3(
+            **self.to_dict_vect3(*(des.vel[0:3] - self.vector_to_np(msg.twist.twist.linear))))
+        error_msg.velocity.angular = geometry_msgs.Vector3(
+            **self.to_dict_vect3(*(des.vel[3::] - self.vector_to_np(msg.twist.twist.angular))))
 
         # Based on position tracking error: Compute desired orientation
         pitch_des = -math.atan2(e_p[2], np.linalg.norm(e_p[0:2]))
@@ -335,12 +372,20 @@ class AUVGeometricTrackingController(Node):
         return get_parameter_or_helper(self, name, default_value)
 
     # =========================================================================
-    def build_thruster_topic_name(namespace, topic_prefix, id, topic_suffix):
+    def build_thruster_topic_name(self, namespace, topic_prefix, id, topic_suffix) -> str:
         return '/%s/%s/id_%d/%s' %  (namespace, topic_prefix, id, topic_suffix)
 
     # =========================================================================
-    def build_fin_topic_name(self, topic_prefix, id, topic_suffix) -> str :
-        return '%s/id_%d/%s' % (topic_prefix, i, topic_suffix)
+    def build_fin_topic_name(self, topic_prefix, id, topic_suffix) -> str:
+        return '%s/id_%d/%s' % (topic_prefix, id, topic_suffix)
+
+    # =========================================================================
+    def to_dict_vect3(self, *args) -> dict:
+        return { 'x': args[0], 'y': args[1], 'z': args[2] }
+
+    # =========================================================================
+    def to_dict_quat(self, *args) -> dict:
+        return { 'x': args[0], 'y': args[1], 'z': args[2], 'w': args[3] }
 
 
 #==============================================================================
@@ -351,12 +396,17 @@ def main():
     try:
         sim_time_param = is_sim_time()
 
+        tf_world_ned_to_enu = get_world_ned_to_enu(sim_time_param)
+        
         node = AUVGeometricTrackingController(
-            'auv_geometric_tracking_controller', 
+            'auv_geometric_tracking_controller',
+            world_ned_to_enu=tf_world_ned_to_enu, 
             parameter_overrides=[sim_time_param])
         rclpy.spin(node)
+        
     except Exception as e:
-        print('caught exception: ' + str(e)) 
+        print('caught exception: ' + repr(e))
+        traceback.print_exc()
     finally:
         if rclpy.ok():
             rclpy.shutdown()

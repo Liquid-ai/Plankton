@@ -226,7 +226,6 @@ class TrajectoryPoint(object):
         # FIXME Sometimes the time t stored is NaN
         (secs, nsecs) = float_sec_to_int_sec_nano(self.t)
         p_msg.header.stamp = rclpy.time.Time(seconds=secs, nanoseconds=nsecs).to_msg()
-        print(str(type(self.p[0])))
         p_msg.pose.position = geometry_msgs.Point(x=self.p[0], y= self.p[1], z=self.p[2])
         p_msg.pose.orientation = geometry_msgs.Quaternion(x=self.q[0], y=self.q[1], z=self.q[2], w=self.q[3])
         p_msg.velocity.linear = geometry_msgs.Vector3(x=self.v[0], y=self.v[1], z=self.v[2])

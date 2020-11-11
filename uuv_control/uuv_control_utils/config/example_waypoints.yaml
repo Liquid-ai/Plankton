@@ -1,59 +1,59 @@
-/**:
-  ros__parameters:
-    inertial_frame_id: world
-    waypoints:
-      wp1:
-        point: [0.0, 2.0, -22.0]
-        max_forward_speed: 0.4
-        heading: 0
-        use_fixed_heading: False
-      wp2:
-        point: [16.0, 12.0, -24.0]
-        max_forward_speed: 0.4
-        heading: 0
-        use_fixed_heading: False
-      wp3:
-        point: [20.0, 12.0, -27.0]
-        max_forward_speed: 0.4
-        heading: 0
-        use_fixed_heading: False
-      wp4:
-        point: [25.0, 16.0, -25.0]
-        max_forward_speed: 0.4
-        heading: 0
-        use_fixed_heading: False
-      wp4:
-        point: [25.0, 20.0, -25.0]
-        max_forward_speed: 0.4
-        heading: 0
-        use_fixed_heading: False
-      wp5:
-        point: [30.0, 40.0, -25.0]
-        max_forward_speed: 0.4
-        heading: 0
-        use_fixed_heading: False
-      wp6:
-        point: [36.0, 45.0, -25.0]
-        max_forward_speed: 0.4
-        heading: 0
-        use_fixed_heading: False
-      wp7:
-        point: [60.0, 70.0, -45.0]
-        max_forward_speed: 0.4
-        heading: 0
-        use_fixed_heading: False
-      wp8:
-        point: [105.0, 56.0, -60.0]
-        max_forward_speed: 0.4
-        heading: 0
-        use_fixed_heading: False
-      wp9:
-        point: [100.0, -20.0, -60.0]
-        max_forward_speed: 0.4
-        heading: 0
-        use_fixed_heading: False
-      wp10:
-        point: [100.0, -20.0, -59.0]
-        max_forward_speed: 0.4
-        heading: 0
-        use_fixed_heading: False
+# This file does not need to follow the ROS 2 yaml syntax as it 
+# is not parsed by the ROS 2 API
+inertial_frame_id: world
+waypoints:
+  -
+    point: [0.0, 2.0, -22.0]
+    max_forward_speed: 0.4
+    heading: 0
+    use_fixed_heading: False
+  -
+    point: [16.0, 12.0, -24.0]
+    max_forward_speed: 0.4
+    heading: 0
+    use_fixed_heading: False
+  -
+    point: [20.0, 12.0, -27.0]
+    max_forward_speed: 0.4
+    heading: 0
+    use_fixed_heading: False
+  -
+    point: [25.0, 16.0, -25.0]
+    max_forward_speed: 0.4
+    heading: 0
+    use_fixed_heading: False
+  -
+    point: [25.0, 20.0, -25.0]
+    max_forward_speed: 0.4
+    heading: 0
+    use_fixed_heading: False
+  -
+    point: [30.0, 40.0, -25.0]
+    max_forward_speed: 0.4
+    heading: 0
+    use_fixed_heading: False
+  -
+    point: [36.0, 45.0, -25.0]
+    max_forward_speed: 0.4
+    heading: 0
+    use_fixed_heading: False
+  -
+    point: [60.0, 70.0, -45.0]
+    max_forward_speed: 0.4
+    heading: 0
+    use_fixed_heading: False
+  -
+    point: [105.0, 56.0, -60.0]
+    max_forward_speed: 0.4
+    heading: 0
+    use_fixed_heading: False
+  -
+    point: [100.0, -20.0, -60.0]
+    max_forward_speed: 0.4
+    heading: 0
+    use_fixed_heading: False
+  -
+    point: [100.0, -20.0, -59.0]
+    max_forward_speed: 0.4
+    heading: 0
+    use_fixed_heading: False

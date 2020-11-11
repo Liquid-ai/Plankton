@@ -97,16 +97,19 @@ def main():
     req = InitHelicalTrajectory.Request()
     req.start_time = rclpy.time.Time(seconds=sec, nanoseconds=nsec).to_msg()
     req.start_now = start_now
-    req.radius = params['radius']
-    req.center = Point(params['center'][0], params['center'][1], params['center'][2])
+    req.radius = float(params['radius'])
+    req.center = Point(x=float(params['center'][0]), 
+                       y=float(params['center'][1]), 
+                       z=float(params['center'][2]))
     req.is_clockwise = False
     req.angle_offset = 0.0
     req.n_points = params['n_points']
-    req.heading_offset = params['heading_offset'] * pi / 180
-    req.max_forward_speed = params['max_forward_speed']
-    req.duration = params['duration']
-    req.n_turns = params['n_turns']
-    req.delta_z = params['delta_z']
+    req.heading_offset = float(params['heading_offset'] * pi / 180)
+    req.max_forward_speed = float(params['max_forward_speed'])
+    req.duration = float(params['duration'])
+    # As partial turns can be given, it is a float
+    req.n_turns = float(params['n_turns'])
+    req.delta_z = float(params['delta_z'])
 
     future = traj_gen.call_async(req)
     rclpy.spin_until_future_complete(node, future)

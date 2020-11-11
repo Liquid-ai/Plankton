@@ -7,6 +7,7 @@ ament_python_install_package(uuv_control_interfaces PACKAGE_DIR src/uuv_control_
 ament_python_install_package(uuv_trajectory_generator PACKAGE_DIR src/uuv_trajectory_generator)
 ament_python_install_package(uuv_waypoints PACKAGE_DIR src/uuv_waypoints)
 ament_python_install_package(uuv_trajectory_generator.path_generator PACKAGE_DIR src/uuv_trajectory_generator/path_generator)
+ament_python_install_package(utils PACKAGE_DIR src/utils)
 
 install(PROGRAMS 
 scripts/rov_nl_pid_controller.py

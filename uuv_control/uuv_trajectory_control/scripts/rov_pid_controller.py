@@ -21,8 +21,12 @@
 # limitations under the License.
 import rclpy
 import numpy as np
+import traceback
+
+from utils.transform import get_world_ned_to_enu
 from uuv_control_interfaces import DPPIDControllerBase
 from plankton_utils.time import is_sim_time
+
 
 class ROV_PIDController(DPPIDControllerBase):
     """PID controller for the dynamic positioning of ROVs."""
@@ -51,13 +55,17 @@ def main():
     try:
         sim_time_param = is_sim_time()
 
+        tf_world_ned_to_enu = get_world_ned_to_enu(sim_time_param)
+
         node = ROV_PIDController(
             'rov_pid_controller',
+            world_ned_to_enu=tf_world_ned_to_enu,
             parameter_overrides=[sim_time_param])
             
         rclpy.spin(node)
     except Exception as e:
-        print('Caught exception: ' + str(e))
+        print('Caught exception: ' + repr(e))
+        traceback.print_exc()
     finally:
         if rclpy.ok():
             rclpy.shutdown()

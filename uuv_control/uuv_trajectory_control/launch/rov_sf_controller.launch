@@ -72,9 +72,13 @@
         <remap from="error" to="dp_controller/error"/>
         <remap from="reference" to="dp_controller/reference"/>
         <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+
+        <!-- FIXME Bug due to relative topic under python -->
+        <remap from="tf" to="/tf"/>
+        <remap from="tf_static" to="/tf_static"/>
         
-        <param file="$(var controller_config_file)"/>
-        <param file="$(var model_params_file)"/>
+        <param from="$(var controller_config_file)"/>
+        <param from="$(var model_params_file)"/>
 
         <param name="inertial_frame_id" value="world_ned"/>
       </node>
@@ -92,6 +96,10 @@
         <remap from="error" to="dp_controller/error"/>
         <remap from="reference" to="dp_controller/reference"/>
         <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+
+        <!-- FIXME Bug due to relative topic under python -->
+        <remap from="tf" to="/tf"/>
+        <remap from="tf_static" to="/tf_static"/>
         
         <param from="$(var controller_config_file)"/>
         <param from="$(var model_params_file)"/>
@@ -117,6 +125,10 @@
         <remap from="error" to="dp_controller/error"/>
         <remap from="reference" to="dp_controller/reference"/>
         <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+
+        <!-- FIXME Bug due to relative topic under python -->
+        <remap from="tf" to="/tf"/>
+        <remap from="tf_static" to="/tf_static"/>
         
         <param from="$(var model_params_file)"/>
         <!-- Controller parameters -->
@@ -140,6 +152,10 @@
         <remap from="error" to="dp_controller/error"/>
         <remap from="reference" to="dp_controller/reference"/>
         <remap from="thruster_output" to="thruster_manager/input_stamped"/>
+
+        <!-- FIXME Bug due to relative topic under python -->
+        <remap from="tf" to="/tf"/>
+        <remap from="tf_static" to="/tf_static"/>
         
         <param from="$(var model_params_file)"/>
         <!-- Controller parameters -->
