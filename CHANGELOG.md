@@ -1,12 +1,25 @@
-## Latest
+## 0.5.3
 
 ### General
 
 - Fixed a problem where the simulated time request was not correctly handled while using subprocess and failed
+- Fixed many issues occuring in the trajectory control and control utils
+- Known issues: teleop shows unexpected behaviour with the trajectory control package's controllers, as well as the rov_mb_sm controller / rov_nl_pid_controller when station is keeping on.
+- Known issues: the CPC sensor and the custom battery plugins crash when loaded
+- Increased the timeout while waiting for the tf transforms in the thruster_manager
+- Reverted yaml format for file-based waypoints to plain old yaml as the values are not read as ROS parameters
 
 ### plankton_utils
 
--Increased the default timeout for sim time request to 10s
+- Increased the default timeout for sim time request to 10s
+
+### uuv_control_utils
+
+- [**start_circular_trajectory.launch**] Changed incorrect arg name `starting_time`
+
+### uuv_thruster_manager
+
+- Increased the default timeout while waiting for tf transforms to 10s
 
 ## 0.5.2
 
