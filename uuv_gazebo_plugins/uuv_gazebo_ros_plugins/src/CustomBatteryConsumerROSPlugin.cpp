@@ -85,7 +85,9 @@ void CustomBatteryConsumerROSPlugin::Load(physics::ModelPtr _parent,
   }
 
   gzmsg << "CustomBatteryConsumerROSPlugin::Device <"
-    << this->linkName << "> added as battery consumer" << std::endl
+    << _sdf->Get<std::string>("name") 
+    << "> added as battery consumer for the battery <" 
+    << this->linkName << ">" << std::endl
     << "\t- ID=" << this->consumerID << std::endl
     << "\t- Power load [W]=" << this->powerLoad
     << std::endl;

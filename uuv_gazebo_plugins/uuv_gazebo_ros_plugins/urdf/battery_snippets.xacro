@@ -58,14 +58,16 @@
 
   <!-- Battery consumer plugin that can be switched ON and OFF -->
   <xacro:macro name="switchable_battery_consumer_macro"
-    params="link_name
+    params="namespace
+            id
+            link_name
             battery_link
             battery_name
             power_load
             topic">
     <gazebo>
       <plugin filename="libcustom_battery_consumer_ros_plugin.so"
-        name="${link_name}_battery_consumer">
+        name="${namespace}_${id}_battery_consumer">
         <link_name>${battery_link}</link_name>
         <battery_name>${battery_name}</battery_name>
         <power_load>${power_load}</power_load>
@@ -76,13 +78,15 @@
 
   <!-- Battery consumer plugin for devices that are always ON -->
   <xacro:macro name="basic_battery_consumer_macro"
-    params="link_name
+    params="namespace
+            id
+            link_name
             battery_link
             battery_name
             power_load">
     <gazebo>
       <plugin filename="libcustom_battery_consumer_ros_plugin.so"
-        name="${link_name}_battery_consumer">
+        name="${namespace}_${id}_battery_consumer">
         <link_name>${battery_link}</link_name>
         <battery_name>${battery_name}</battery_name>
         <power_load>${power_load}</power_load>
