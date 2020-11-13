@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="3">
   <name>uuv_tutorial_rov_model</name>
-  <version>0.5.3</version>
+  <version>0.5.4</version>
   <description>Template package for the construction of a new thruster actuated UUV model.</description>
 
   <maintainer email="jean-philip-a.royer@naval-group.com">Jean-Philip Royer</maintainer>

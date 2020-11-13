@@ -1,3 +1,9 @@
+## 0.5.4
+
+### General
+
+- Fixed the issues referenced in 0.5.3 with the CPC sensor and the custom battery plugins. Added parameters `namespace` and `id` in the xacro battery snippet as parameters for the consumer plugins.
+
 ## 0.5.3
 
 ### General
