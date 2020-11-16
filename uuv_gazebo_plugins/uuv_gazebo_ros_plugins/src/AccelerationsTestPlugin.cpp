@@ -85,7 +85,7 @@ void AccelerationsTestPlugin::Load(physics::ModelPtr _model,
   this->Connect();
 
   // ROS:
-  if (!rclcpp::is_initialized())
+  if (!rclcpp::ok())
   {
     gzerr << "Not loading plugin since ROS has not been "
           << "properly initialized.  Try starting gazebo with ros plugin:\n"
@@ -149,11 +149,6 @@ void AccelerationsTestPlugin::Update(const common::UpdateInfo &_info)
 
 
 #if GAZEBO_MAJOR_VERSION >= 8
-// Velocities of this link in link frame.
-Eigen::Vector6d gazebo_b_v_w_b = EigenStack(
-  this->link->RelativeLinearVel(),
-  this->link->RelativeAngularVel());
-
 // Velocities of this link in world frame
 Eigen::Vector6d gazebo_w_v_w_b = EigenStack(
   this->link->WorldLinearVel(),
@@ -170,11 +165,6 @@ Eigen::Vector6d gazebo_b_a_w_b = EigenStack(
   this->link->RelativeLinearAccel(),
   this->link->RelativeAngularAccel());
 #else
-  // Velocities of this link in link frame.
-  Eigen::Vector6d gazebo_b_v_w_b = EigenStack(
-    this->link->GetRelativeLinearVel().Ign(),
-    this->link->GetRelativeAngularVel().Ign());
-
   // Velocities of this link in world frame
   Eigen::Vector6d gazebo_w_v_w_b = EigenStack(
     this->link->GetWorldLinearVel().Ign(),

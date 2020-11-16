@@ -37,8 +37,8 @@ add_library(uuv_sc_ros_interface_plugin SHARED src/SphericalCoordinatesROSInterf
 ament_target_dependencies(uuv_sc_ros_interface_plugin ${LIBS})
 
 install(
-  TARGETS uuv_underwater_current_ros_plugin 
-  EXPORT  export_uuv_underwater_current_ros_plugin 
+  TARGETS uuv_underwater_current_ros_plugin
+  EXPORT  export_uuv_underwater_current_ros_plugin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin/${PROJECT_NAME}

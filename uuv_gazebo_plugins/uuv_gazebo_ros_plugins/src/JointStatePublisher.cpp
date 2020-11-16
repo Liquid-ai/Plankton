@@ -53,7 +53,7 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
 
   this->world = myModel->GetWorld();
 
-  if (!rclcpp::is_initialized())
+  if (!rclcpp::ok())
   {
     gzerr << "ROS was not initialized. Closing plugin..." << std::endl;
     return;

@@ -51,7 +51,7 @@ void SphericalCoordinatesROSInterfacePlugin::Load(
   using std::placeholders::_1;
   using std::placeholders::_2;
 
-  if (!rclcpp::is_initialized())
+  if (!rclcpp::ok())
   {
     gzerr << "Not loading plugin since ROS has not been "
           << "properly initialized.  Try starting gazebo with ros plugin:\n"

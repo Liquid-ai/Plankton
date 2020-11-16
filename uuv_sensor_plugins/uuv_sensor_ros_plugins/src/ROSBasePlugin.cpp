@@ -89,7 +89,7 @@ bool ROSBasePlugin::InitBasePlugin(sdf::ElementPtr _sdf)
   this->gazeboNode->Init(myRobotNamespace);
 
   // Create ROS node
-  if (!rclcpp::is_initialized())
+  if (!rclcpp::ok())
   {
     gzerr << "Not loading sensor plugin since ROS has not been properly "
           << "initialized." << std::endl;

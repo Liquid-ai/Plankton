@@ -4,7 +4,7 @@ find_package(ament_cmake REQUIRED)
 find_package(gazebo_dev REQUIRED)
 
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 set(INCLUDE_DIRS include ${ament_cmake_INCLUDE_DIRS} ${gazebo_dev_INCLUDE_DIRS})
@@ -122,6 +122,6 @@ ament_export_dependencies(ament_cmake)
 ament_export_dependencies(gazebo_dev)
 ament_export_include_directories(${INCLUDE_DIRS})
 ament_export_libraries(uuv_gazebo_plugins_msgs uuv_dynamics uuv_fin_plugin
-  uuv_underwater_object_plugin uuv_thruster_plugin umbilical_plugin ${LIBS})
+  uuv_underwater_object_plugin uuv_thruster_plugin umbilical_plugin)
 
 ament_package()
