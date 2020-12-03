@@ -10,7 +10,7 @@
 
   <group>
     <push-ros-namespace namespace="$(var uuv_name)"/>
-    <node node-name="set_scalar_parameter_$(var service_name)"
+    <node name="set_scalar_parameter_$(var service_name)"
       pkg="uuv_control_utils"
       exec="set_scalar_parameter.py"
       output="screen">

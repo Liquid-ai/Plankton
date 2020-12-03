@@ -5,7 +5,7 @@
     <arg name="angle" default="0"/>
     <arg name="use_sim_time" default="true"/>
 
-    <node node-name="plankton_global_sim_time"
+    <node name="plankton_global_sim_time"
         pkg="plankton_utils"
         exec="plankton_global_sim_time"
         output="screen">
@@ -15,7 +15,7 @@
     <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
     <include file="$(find-pkg-share uuv_gazebo_worlds)/launch/empty_underwater_world.launch"/>
 
-    <node node-name="sdf_spawner" pkg="gazebo_ros" exec="spawn_entity.py" output="screen"
+    <node name="sdf_spawner" pkg="gazebo_ros" exec="spawn_entity.py" output="screen"
           args="-gazebo_namespace /gazebo -x $(var x) -y $(var y) -z $(var z) -P 1.57 -Y $(var angle) -entity rov_bop_panel -database rov_bop_panel">
           <param name="use_sim_time" value="$(var use_sim_time)"/>
     </node>

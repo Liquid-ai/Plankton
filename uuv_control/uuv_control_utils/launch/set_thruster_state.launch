@@ -11,7 +11,7 @@
     <push-ros-namespace namespace="$(var uuv_name)"/>
     <node pkg="uuv_control_utils"
       exec="set_thruster_state.py"
-      node-name="set_thruster_state_$(var starting_time)_$(var thruster_id)"
+      name="set_thruster_state_$(var starting_time)_$(var thruster_id)"
       output="screen">
       <param name="starting_time" value="$(var starting_time)"/>
       <param name="thruster_id" value="$(var thruster_id)"/>

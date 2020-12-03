@@ -15,7 +15,7 @@
     <push-ros-namespace namespace="$(var uuv_name)"/>
     <node pkg="uuv_control_utils"
       exec="start_circular_trajectory.py"
-      node-name="start_circular_trajectory"
+      name="start_circular_trajectory"
       output="screen">
      
       <param name="start_time" value="$(var start_time)"/>

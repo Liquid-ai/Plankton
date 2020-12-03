@@ -5,13 +5,13 @@
   <arg name="efficiency" default="1.0"/>
   <arg name="duration" default="-1"/>
 
-  <!-- node-name="$(eval 'set_thruster_output_efficiency_' + str(int($(var starting_time))) + '_thruster_' + str($(var thruster_id)))" -->
+  <!-- name="$(eval 'set_thruster_output_efficiency_' + str(int($(var starting_time))) + '_thruster_' + str($(var thruster_id)))" -->
   <!-- FIXME node name is invalid in case starting_time is a float or negative -->
   <group>
     <push-ros-namespace namespace="$(var uuv_name)"/>
     <node pkg="uuv_control_utils"
       exec="set_thruster_output_efficiency.py"   
-      node-name="set_thruster_output_efficiency_$(var starting_time)_thruster_$(var thruster_id)"
+      name="set_thruster_output_efficiency_$(var starting_time)_thruster_$(var thruster_id)"
       output="screen">
       <param name="starting_time" value="$(var starting_time)"/>
       <param name="thruster_id" value="$(var thruster_id)"/>

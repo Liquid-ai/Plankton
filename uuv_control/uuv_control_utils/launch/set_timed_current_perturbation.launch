@@ -8,7 +8,7 @@
 
   <node pkg="uuv_control_utils"
     exec="set_timed_current_perturbation.py"
-    node-name="set_timed_current_perturbation"
+    name="set_timed_current_perturbation"
     output="screen">
     <param name="starting_time" value="$(var starting_time)"/>
     <param name="end_time" value="$(var end_time)"/>

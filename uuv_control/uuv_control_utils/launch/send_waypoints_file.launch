@@ -8,7 +8,7 @@
     <push-ros-namespace namespace="$(var uuv_name)"/>
     <node pkg="uuv_control_utils"
           exec="send_waypoint_file.py"
-          node-name="send_waypoint_file"
+          name="send_waypoint_file"
           output="screen">
       <param name="filename" value="$(var filename)"/>
       <param name="start_time" value="$(var start_time)"/>

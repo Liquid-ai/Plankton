@@ -3,7 +3,7 @@
   <arg name="gui" default="true"/>
   <arg name="use_sim_time" default="true"/>
 
-  <node node-name="plankton_global_sim_time"
+  <node name="plankton_global_sim_time"
         pkg="plankton_utils"
         exec="plankton_global_sim_time"
         output="screen">

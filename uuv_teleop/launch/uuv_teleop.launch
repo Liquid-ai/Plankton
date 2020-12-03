@@ -25,12 +25,12 @@
   <group>
     <push-ros-namespace namespace="$(var uuv_name)"/>
 
-    <node pkg="joy" exec="joy_node" node-name="joystick">
+    <node pkg="joy" exec="joy_node" name="joystick">
       <param name="autorepeat_rate" value="10.0"/>
       <param name="dev" value="/dev/input/js$(var joy_id)"/>
     </node>
     
-    <node pkg="uuv_teleop" exec="vehicle_teleop.py" node-name="joy_uuv_velocity_teleop" output="screen">
+    <node pkg="uuv_teleop" exec="vehicle_teleop.py" name="joy_uuv_velocity_teleop" output="screen">
       <remap from="output" to="/$(var uuv_name)/$(var output_topic)"/>
       <remap from="joy" to="/$(var uuv_name)/joy"/>
       <param name="type" value="$(var message_type)"/>

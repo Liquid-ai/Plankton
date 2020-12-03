@@ -31,7 +31,7 @@
     <group if="$(var use_file)">
         <node pkg="uuv_control_utils"
           exec="disturbance_manager.py"
-          node-name="disturbance_manager"
+          name="disturbance_manager"
           output="screen">
           <!-- Load  parameters -->
           <param from="$(var disturbance_file)"/>
@@ -41,7 +41,7 @@
     <group unless="$(var use_file)">
     <node pkg="uuv_control_utils"
         exec="disturbance_manager.py"
-        node-name="disturbance_manager"
+        name="disturbance_manager"
         output="screen">
       <param name="disturbances">
         <param name="d1">

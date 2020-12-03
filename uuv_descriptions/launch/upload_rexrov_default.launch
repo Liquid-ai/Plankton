@@ -49,16 +49,16 @@
     </group>
 
     <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
-    <!-- <node node-name="urdf_spawner" pkg="uuv_descriptions" exec="spawn_model" respawn="false" output="screen"
+    <!-- <node name="urdf_spawner" pkg="uuv_descriptions" exec="spawn_model" respawn="false" output="screen"
           args="-urdf -x $(var x) -y $(var y) -z $(var z) -R $(var roll) -P $(var pitch) -Y $(var yaw) -model $(var namespace) -file /home/jp/ros2_ws/install/uuv_descriptions/share/uuv_descriptions/robots/generated/rexrov/robot_description"/> -->
     
-    <node node-name="urdf_spawner" pkg="gazebo_ros" exec="spawn_entity.py" respawn="false" output="screen"
+    <node name="urdf_spawner" pkg="gazebo_ros" exec="spawn_entity.py" respawn="false" output="screen"
           args="-gazebo_namespace /gazebo -x $(var x) -y $(var y) -z $(var z) -R $(var roll) -P $(var pitch) -Y $(var yaw) -entity $(var namespace) -file $(var generated_urdf)"/>
 
     <!-- A joint state publisher plugin already is started with the model, no need to use the default joint state publisher -->
 
     <!-- Publish robot model for ROS -->
-    <node node-name="robot_state_publisher" pkg="robot_state_publisher" exec="robot_state_publisher" respawn="true" output="screen"
+    <node name="robot_state_publisher" pkg="robot_state_publisher" exec="robot_state_publisher" respawn="true" output="screen"
       args="$(var generated_urdf)">
       <param name="use_sim_time" value="$(var use_sim_time)"/>
       <!-- <param name="robot_description" value="/$(var namespace)/robot_description" />
