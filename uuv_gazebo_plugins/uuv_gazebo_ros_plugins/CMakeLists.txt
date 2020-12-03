@@ -83,7 +83,7 @@ endforeach()
 
 #MESSAGE(FATAL_ERROR ${EXPORT_MY_LIBS})
 
-ament_export_interfaces(${EXPORT_MY_LIBS})#${EXPORT_MY_LIBS} HAS_LIBRARY_TARGET)
+ament_export_targets(${EXPORT_MY_LIBS})#${EXPORT_MY_LIBS} HAS_LIBRARY_TARGET)
 ament_export_dependencies(${BASE_LIBS})
 ament_export_include_directories(include)
 ament_export_libraries(${UUV_GAZEBO_ROS_PLUGINS_LIST})
