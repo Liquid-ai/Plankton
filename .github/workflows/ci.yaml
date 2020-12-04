@@ -59,7 +59,7 @@ jobs:
           export LANG=en_US.UTF-8
           bash -c echo 'Etc/UTC' > /etc/timezone
           ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
-          apt install -y tzdata -y
+          DEBIAN_FRONTEND=noninteractive apt install tzdata -y
           apt install curl gnupg2 lsb-release -y
           curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
           sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
