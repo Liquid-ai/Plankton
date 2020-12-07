@@ -24,7 +24,6 @@ jobs:
           # Foxy Fitzroy (May 2020 - May 2023)
           - docker_image: ros:foxy
             ros_distribution: foxy
-            ros_version: 2
 
     container: ${{ matrix.docker_image }}
 
