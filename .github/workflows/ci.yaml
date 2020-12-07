@@ -3,6 +3,7 @@ name: CI
 
 on:  # NOLINT
   pull_request:
+  push:
   schedule:
     - cron: '0 0 */2 * *'  # Every 2 days at midnight
 
