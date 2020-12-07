@@ -11,7 +11,7 @@ on:
 
 jobs:
   test_docker:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         ros_distribution:
@@ -29,7 +29,7 @@ jobs:
         # https://ros.org/reps/rep-2000.html
         include:
           # Foxy Fitzroy (May 2020 - May 2023)
-          - docker_image: ubuntu:focal
+          - docker_image: ros:foxy
             ros_distribution: foxy
             ros_version: 2
 
@@ -37,56 +37,33 @@ jobs:
       image: ${{ matrix.docker_image }}
 
     steps:
-      - name: sudo
-        run: |
-          apt update
-          apt install --no-install-recommends --quiet --yes sudo
-
-      # Base packages + killall (for killing gazebo)
       - name: base
         run: |
-          apt update
-          apt install build-essential clang cmake git wget libasio-dev libtinyxml2-dev lcov -y
-          apt install psmisc
+          sudo apt update
+          sudo apt install -y build-essential clang cmake git wget libasio-dev libtinyxml2-dev lcov psmisc
 
-      # action/setup-ros is not used yet as it installs pytest > 6.0 which leads to syntax errors...
       - name: install ros
         run: |
-          apt update
-          apt install locales -y
-          locale-gen en_US en_US.UTF-8
-          update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-          export LANG=en_US.UTF-8
-          bash -c echo 'Etc/UTC' > /etc/timezone
-          ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
-          DEBIAN_FRONTEND=noninteractive apt install tzdata -y
-          apt install curl gnupg2 lsb-release -y
-          curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
-          sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
-          apt update
-          apt install ros-${{ matrix.ros_distribution }}-desktop -y
-          apt install python3-rosdep -y
-          rosdep init
+          sudo rosdep init
           rosdep update
-          apt install python3-colcon-common-extensions python3-colcon-coveragepy-result	python3-colcon-lcov-result python3-colcon-library-path python3-colcon-metadata python3-colcon-mixin -y
+          sudo apt install -y python3-colcon-common-extensions
+          sudo apt install -y python3-colcon-coveragepy-result
+          sudo apt install -y python3-colcon-lcov-result
+          sudo apt install -y python3-colcon-library-path
+          sudo apt install -y python3-colcon-metadata
+          sudo apt install -y python3-colcon-mixin
+          sudo apt install -y python3-rosdep
 
-      #- name: setup ROS environment
-      #  uses: ros-tooling/setup-ros@0.0.25
-      #  with:
-      #    required-ros-distributions: ${{ matrix.ros_distribution }}
-
-      #install Gazebo, install foxy specific packages, create src directory
       - name: prepare
         run: |
-          apt -qq update
-          apt -qq upgrade -y
           sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
           wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
-          apt install gazebo9 -y
-          apt install libgazebo9-dev -y
-          apt install ros-${{ matrix.ros_distribution }}-gazebo-ros-pkgs -y
-          apt install ros-foxy-launch-xml -y
-          apt install ros-foxy-launch-yaml -y
+          sudo apt update
+          sudo apt install -y gazebo9
+          sudo apt install -y libgazebo9-dev
+          sudo apt install -y ros-${{ matrix.ros_distribution }}-gazebo-ros-pkgs
+          sudo apt install -y ros-foxy-launch-xml
+          sudo apt install -y ros-foxy-launch-yaml
           mkdir -p ${{ matrix.build_path }}
 
       - name: checkout
@@ -105,7 +82,7 @@ jobs:
         run: . /opt/ros/${{ matrix.ros_distribution }}/setup.sh && colcon test --merge-install --packages-up-to plankton --event-handlers console_cohesion+
 
       - name: echo results
-        run: . /opt/ros/${{ matrix.ros_distribution }}/setup.sh  && colcon test-result --all --verbose
+        run: . /opt/ros/${{ matrix.ros_distribution }}/setup.sh && colcon test-result --all --verbose
 
       - name: upload Logs
         uses: actions/upload-artifact@v1
@@ -113,18 +90,3 @@ jobs:
           name: colcon-logs-linux
           path: log/
         if: always()
-
-  # This workflow contains a single job called "build"
-  #build:
-    # The type of runner that the job will run on
-  #  runs-on: ubuntu-18.04
-
-  #  steps:
-  #    - uses: actions/checkout@v2
-  #    - uses: ros-tooling/setup-ros@0.0.25
-  #      with:
-  #        required-ros-distributions: foxy
-  #    - uses: ros-tooling/action-ros-ci@0.0.19
-  #      with:
-  #        package-name: plankton
-  #        target-ros2-distro: foxy
