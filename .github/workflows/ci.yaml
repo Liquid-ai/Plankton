@@ -56,8 +56,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          DEBIAN_FRONTEND=noninteractive rosdep update
-          DEBIAN_FRONTEND=noninteractive rosdep install --from-paths src --ignore-src --rosdistro ${{ matrix.ros_distribution }} -y
+          rosdep update
+          rosdep install --from-paths src --ignore-src --rosdistro ${{ matrix.ros_distribution }} -y
 
       - name: Build Packages
         run: |
