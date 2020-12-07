@@ -12,11 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ros_distribution:
-          - foxy
-
-        build_path:
-          - ros_ws/src
         # Define the Docker image(s) associated with each ROS distribution.
         # The include syntax allows additional variables to be defined, like
         # docker_image in this case. See documentation:
@@ -31,8 +26,16 @@ jobs:
             ros_distribution: foxy
             ros_version: 2
 
-    container:
-      image: ${{ matrix.docker_image }}
+    container: ${{ matrix.docker_image }}
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: src/plankton
 
       - name: Install Tools
         run: |
@@ -50,17 +53,11 @@ jobs:
           sudo apt install -y gazebo9
           sudo apt install -y libgazebo9-dev
           sudo apt install -y ros-${{ matrix.ros_distribution }}-gazebo-ros-pkgs
-          mkdir -p ${{ matrix.build_path }}
-
-      - name: Create ROS Workspace
-        uses: actions/checkout@v2
-        with:
-          path: ${{ matrix.build_path }}
 
       - name: Install Dependencies
         run: |
           DEBIAN_FRONTEND=noninteractive rosdep update
-          DEBIAN_FRONTEND=noninteractive rosdep install --from-paths ${{ matrix.build_path }} --ignore-src --rosdistro ${{ matrix.ros_distribution }} -y
+          DEBIAN_FRONTEND=noninteractive rosdep install --from-paths src --ignore-src --rosdistro ${{ matrix.ros_distribution }} -y
 
       - name: Build Packages
         run: |
