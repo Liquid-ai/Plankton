@@ -44,7 +44,6 @@ jobs:
 
       - name: install ros
         run: |
-          sudo rosdep init
           rosdep update
           sudo apt install -y python3-colcon-common-extensions
           sudo apt install -y python3-colcon-coveragepy-result
