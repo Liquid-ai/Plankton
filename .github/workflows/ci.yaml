@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        ros_distribution:
+          - foxy
+
         build_path:
           - ros_ws/src
         # Define the Docker image(s) associated with each ROS distribution.
