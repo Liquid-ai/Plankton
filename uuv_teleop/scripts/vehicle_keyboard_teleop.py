@@ -32,8 +32,8 @@ from rclpy.node import Node
 from plankton_utils.time import is_sim_time
 
 class KeyBoardVehicleTeleop(Node):
-    def __init__(self, node_name, **kwargs):
-        super().__init__(node_name, 
+    def __init__(self, name, **kwargs):
+        super().__init__(name, 
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)
@@ -183,7 +183,7 @@ class KeyBoardVehicleTeleop(Node):
         # If ctrl+c kill node
         if (key_press == '\x03'):
             self.get_logger().info('Keyboard Interrupt Pressed')
-            self.get_logger().info('Shutting down [%s] node' % node_name)
+            self.get_logger().info('Shutting down [%s] node' % name)
 
             # Set twists to 0
             cmd.angular = Vector3(x=0, y=0, z=0)
@@ -200,17 +200,17 @@ def main(args=None):
     # Wait for 5 seconds, so the instructions are the last thing to print in terminal
     time.sleep(5)
     # Start the node
-    node_name = os.path.splitext(os.path.basename(__file__))[0]
+    name = os.path.splitext(os.path.basename(__file__))[0]
     rclpy.init()
     
     sim_time_param = is_sim_time()
-    teleop = KeyBoardVehicleTeleop(node_name, parameter_overrides=[sim_time_param])
-    teleop.get_logger().info('Starting [%s] node' % node_name)
+    teleop = KeyBoardVehicleTeleop(name, parameter_overrides=[sim_time_param])
+    teleop.get_logger().info('Starting [%s] node' % name)
 
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
 
     rclpy.spin(teleop)
-    teleop.get_logger().info('Shutting down [%s] node' % node_name)
+    teleop.get_logger().info('Shutting down [%s] node' % name)
     rclpy.shutdown()
 
 #==============================================================================

@@ -38,9 +38,9 @@ class ThrusterAllocatorNode(ThrusterManager):
     to command the thrusters.
     """
 
-    def __init__(self, node_name, **kwargs):
+    def __init__(self, name, **kwargs):
         """Class constructor."""
-        ThrusterManager.__init__(self, node_name, **kwargs)
+        ThrusterManager.__init__(self, name, **kwargs)
  
         self.last_update = time_in_float_sec(self.get_clock().now())
 

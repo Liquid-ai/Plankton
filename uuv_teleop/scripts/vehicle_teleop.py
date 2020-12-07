@@ -31,8 +31,8 @@ from plankton_utils.time import is_sim_time
 
 
 class VehicleTeleop(Node):
-    def __init__(self, node_name, **kwargs):
-        super().__init__(node_name,
+    def __init__(self, name, **kwargs):
+        super().__init__(name,
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)
@@ -209,19 +209,19 @@ class VehicleTeleop(Node):
 #==============================================================================
 def main(args=None):
     # Start the node
-    node_name = os.path.splitext(os.path.basename(__file__))[0]
+    name = os.path.splitext(os.path.basename(__file__))[0]
     rclpy.init()
     
     try:
         sim_time_param = is_sim_time()
-        teleop = VehicleTeleop(node_name, parameter_overrides=[sim_time_param])
-        teleop.get_logger().info('Starting [%s] node' % node_name)
+        teleop = VehicleTeleop(name, parameter_overrides=[sim_time_param])
+        teleop.get_logger().info('Starting [%s] node' % name)
 
         rclpy.spin(teleop)
     except Exception as e:
         print('Caught exception: ' + str(e))
 
-    teleop.get_logger().info('Shutting down [%s] node' % node_name)
+    teleop.get_logger().info('Shutting down [%s] node' % name)
     rclpy.shutdown()
 
 #==============================================================================

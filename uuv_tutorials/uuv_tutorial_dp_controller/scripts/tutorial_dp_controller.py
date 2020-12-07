@@ -50,10 +50,10 @@ class TutorialDPController(DPControllerBase):
     #
     # where e is the pose error vector, in this case defined as e = (x, y, z, roll, pitch, yaw)^T
 
-    def __init__(self, node_name):
+    def __init__(self, name):
         # Calling the constructor of the super-class DPControllerBase, which has the implementation of the error
         # computation update and to publish the resulting torque control vector.
-        super(TutorialDPController, self).__init__(self, node_name)
+        super(TutorialDPController, self).__init__(self, name)
 
         # The controller should read its parameters from the ROS parameter server for initial setup
         # One way to do this is to read the parameters from the node's private parameter namespace, which is done by

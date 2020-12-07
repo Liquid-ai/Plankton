@@ -52,9 +52,9 @@ class ThrusterManager(Node):
 
     MAX_THRUSTERS = 16
         
-    def __init__(self, node_name, **kwargs):
+    def __init__(self, name, **kwargs):
         """Class constructor."""
-        super().__init__(node_name,
+        super().__init__(name,
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)

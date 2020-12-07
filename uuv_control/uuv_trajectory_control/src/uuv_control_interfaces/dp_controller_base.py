@@ -103,10 +103,10 @@ class DPControllerBase(Node):
 
     _LABEL = ''
 
-    def __init__(self, node_name, is_model_based=False, list_odometry_callbacks=None,
+    def __init__(self, name, is_model_based=False, list_odometry_callbacks=None,
         planner_full_dof=False, world_ned_to_enu=None, **kwargs):
 
-        super().__init__(node_name,
+        super().__init__(name,
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)

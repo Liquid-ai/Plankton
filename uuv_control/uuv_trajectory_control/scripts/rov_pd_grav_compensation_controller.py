@@ -34,9 +34,9 @@ class ROV_PD_GComp_Controller(DPControllerBase):
     """
 
     _LABEL = 'PD controller with compensation of restoring forces'
-    def __init__(self, node_name, **kwargs):
+    def __init__(self, name, **kwargs):
         # Start the super class
-        DPControllerBase.__init__(self, node_name, is_model_based=True, **kwargs)
+        DPControllerBase.__init__(self, name, is_model_based=True, **kwargs)
         self._logger.info('Initializing: ' + self._LABEL)
         # Proportional gains
         self._Kp = np.zeros(shape=(6, 6))

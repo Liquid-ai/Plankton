@@ -41,8 +41,8 @@ from plankton_utils.time import time_in_float_sec_from_msg
 from plankton_utils.time import is_sim_time
 
 class PositionControllerNode(Node):
-    def __init__(self, node_name, **kwargs):
-        super().__init__(node_name, **kwargs)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
         self.get_logger().info('PositionControllerNode: initializing node')
 
         self.config = {}

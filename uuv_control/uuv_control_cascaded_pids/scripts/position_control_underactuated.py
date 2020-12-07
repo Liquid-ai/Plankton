@@ -39,10 +39,10 @@ from rclpy.node import Node
 #It seems that the file is not used...
 
 class PositionControllerNode(Node):
-    def __init__(self, node_name):
+    def __init__(self, name):
         print('PositionControllerNode: initializing node')
 
-        super().__init__(node_name)
+        super().__init__(name)
         self.config = {}
 
         self.pos_des = numpy.zeros(3)

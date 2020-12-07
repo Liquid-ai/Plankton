@@ -32,9 +32,9 @@ class ROV_PIDController(DPPIDControllerBase):
     """PID controller for the dynamic positioning of ROVs."""
 
     _LABEL = 'PID'
-    def __init__(self, node_name, **kwargs):
+    def __init__(self, name, **kwargs):
         self._tau = np.zeros(6)
-        DPPIDControllerBase.__init__(self, node_name, False, **kwargs)
+        DPPIDControllerBase.__init__(self, name, False, **kwargs)
         self._is_init = True
 
     # =========================================================================

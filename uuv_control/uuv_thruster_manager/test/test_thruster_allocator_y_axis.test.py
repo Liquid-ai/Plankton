@@ -204,10 +204,10 @@ def generate_test_description():
             AnyLaunchDescriptionSource(thruster_manager_launch), launch_arguments=launch_args)
 
     joint_state_publisher = launch_ros.actions.Node(
-        node_namespace = 'test_vehicle',
+        namespace = 'test_vehicle',
         package="joint_state_publisher",
-        node_executable="joint_state_publisher",
-        node_name="joint_state_publisher",
+        executable="joint_state_publisher",
+        name="joint_state_publisher",
         #parameters=[{'source_list':'test_vehicle/joint_states'}],
         #remappings=[('joint_states', '/test_vehicle/joint_states')],
         arguments=args,
@@ -216,9 +216,9 @@ def generate_test_description():
     )
 
     robot_state_description = launch_ros.actions.Node(
-        node_namespace = 'test_vehicle',
+        namespace = 'test_vehicle',
         package='robot_state_publisher',
-        node_executable='robot_state_publisher',
+        executable='robot_state_publisher',
         # TODO To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
         arguments=args,
         output='screen',

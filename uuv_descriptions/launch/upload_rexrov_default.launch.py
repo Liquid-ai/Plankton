@@ -110,9 +110,9 @@ def launch_setup(context, *args, **kwargs):
     # Urdf spawner. NB: node namespace does not prefix the topic, 
     # as using a leading /
     urdf_spawner = Node(
-        node_name = 'urdf_spawner',
+        name = 'urdf_spawner',
         package='gazebo_ros',
-        node_executable='spawn_entity.py',
+        executable='spawn_entity.py',
         output='screen',
         parameters=[{'use_sim_time': res}],
         # TODO To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
@@ -123,9 +123,9 @@ def launch_setup(context, *args, **kwargs):
 
     args = (output).split()
     robot_state_publisher = Node(
-        node_name = 'robot_state_publisher',
+        name = 'robot_state_publisher',
         package='robot_state_publisher',
-        node_executable='robot_state_publisher',
+        executable='robot_state_publisher',
         # TODO To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
         arguments=args,
         output = 'screen',
