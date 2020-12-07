@@ -1,13 +1,7 @@
+---
 name: CI
 
-on:
-  pull_request:
-  schedule:
-    - cron: '0 0 */2 * *' # Every 2 days at midnight
-#  push:
-#    branches: [ master ]
-#  pull_request:
-#    branches: [ master ]
+on: [pull_request, push]  # NOLINT
 
 jobs:
   test_docker:
@@ -36,24 +30,15 @@ jobs:
     container:
       image: ${{ matrix.docker_image }}
 
-    steps:
-      - name: base
+      - name: Install Tools
         run: |
           sudo apt update
           sudo apt install -y build-essential clang cmake git wget libasio-dev libtinyxml2-dev lcov psmisc
-
-      - name: install ros
-        run: |
           rosdep update
-          sudo apt install -y python3-colcon-common-extensions
           sudo apt install -y python3-colcon-coveragepy-result
           sudo apt install -y python3-colcon-lcov-result
-          sudo apt install -y python3-colcon-library-path
-          sudo apt install -y python3-colcon-metadata
-          sudo apt install -y python3-colcon-mixin
-          sudo apt install -y python3-rosdep
 
-      - name: prepare
+      - name: Install Gazebo
         run: |
           sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
           wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
@@ -61,29 +46,35 @@ jobs:
           sudo apt install -y gazebo9
           sudo apt install -y libgazebo9-dev
           sudo apt install -y ros-${{ matrix.ros_distribution }}-gazebo-ros-pkgs
-          sudo apt install -y ros-foxy-launch-xml
-          sudo apt install -y ros-foxy-launch-yaml
           mkdir -p ${{ matrix.build_path }}
 
-      - name: checkout
+      - name: Create ROS Workspace
         uses: actions/checkout@v2
         with:
           path: ${{ matrix.build_path }}
 
-      - name: rosdep
-        run: DEBIAN_FRONTEND=noninteractive rosdep update && rosdep install --from-paths ${{ matrix.build_path }} --ignore-src --rosdistro ${{ matrix.ros_distribution }} -y
+      - name: Install Dependencies
+        run: |
+          DEBIAN_FRONTEND=noninteractive rosdep update
+          DEBIAN_FRONTEND=noninteractive rosdep install --from-paths ${{ matrix.build_path }} --ignore-src --rosdistro ${{ matrix.ros_distribution }} -y
 
-      - name: build
-        run: . /opt/ros/${{ matrix.ros_distribution }}/setup.sh && colcon build --packages-up-to plankton --merge-install
+      - name: Build Packages
+        run: |
+          . /opt/ros/${{ matrix.ros_distribution }}/setup.sh
+          colcon build --packages-up-to plankton --merge-install
 
-      - name: run tests
+      - name: Run Unit Tests
         id: action_ros_ci_step
-        run: . /opt/ros/${{ matrix.ros_distribution }}/setup.sh && colcon test --merge-install --packages-up-to plankton --event-handlers console_cohesion+
+        run: |
+          . /opt/ros/${{ matrix.ros_distribution }}/setup.sh
+          colcon test --merge-install --packages-up-to plankton --event-handlers console_cohesion+
 
-      - name: echo results
-        run: . /opt/ros/${{ matrix.ros_distribution }}/setup.sh && colcon test-result --all --verbose
+      - name: Unit Test Results
+        run: |
+          . /opt/ros/${{ matrix.ros_distribution }}/setup.sh
+          colcon test-result --all --verbose
 
-      - name: upload Logs
+      - name: Upload Logs
         uses: actions/upload-artifact@v1
         with:
           name: colcon-logs-linux
