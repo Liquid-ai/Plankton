@@ -56,6 +56,7 @@ def ensure_path_exists(full_path):
 
 class TestThrusterManagerProportionalCorrect(unittest.TestCase):
     _manager = None
+    _thread = None
     
     @classmethod
     def setUpClass(cls):
@@ -69,25 +70,13 @@ class TestThrusterManagerProportionalCorrect(unittest.TestCase):
         str(parent_file_path),
         'test_vehicle_x_axis.urdf.xacro'
         )
-        
-        output = os.path.join(
-            str(parent_file_path),
-            'robot_description_x_axis.urdf'
-        )
-
-        #TODO Change in foxy
-        if not pathlib.Path(output).exists():
-            doc = xacro.process(xacro_file)
-            try:
-                with open(output, 'w') as file_out:
-                    file_out.write(doc)
-            except IOError as e:
-                print("Failed to open output:", exc=e)
-
+  
+        doc = xacro.process(xacro_file)
+           
         # Initialize the ROS context for the test node
         # FIXME Temp workaround TF for listener subscribing to relative topic
         rclpy.init(args=['--ros-args', '--params-file', thruster_manager_yaml, 
-            '-r', '__ns:=/test_vehicle', '-r', 'tf:=/tf', '-p', 'urdf_file:=%s' % output])
+            '-r', '__ns:=/test_vehicle', '-r', 'tf:=/tf', '-p', 'robot_description:=%s' % doc])
 
         # Name alias...why cls is not working ?
         _class = TestThrusterManagerProportionalCorrect
@@ -187,29 +176,13 @@ def generate_test_description():
         'test_vehicle_x_axis.urdf.xacro'
     )
 
-    output = os.path.join(
-        str(parent_file_path),
-        'robot_description_x_axis.urdf'
-    )
-
     doc = xacro.process(xacro_file)
-    ensure_path_exists(output)
-
-    try:
-        with open(output, 'w') as file_out:
-            file_out.write(doc)
-    except IOError as e:
-        print("Failed to open output:", exc=e)
-
-    args = output.split()
-
 
     joint_state_publisher = launch_ros.actions.Node(
         namespace = 'test_vehicle',
         package="joint_state_publisher",
         executable="joint_state_publisher",
         name="joint_state_publisher",
-        arguments=args,
         output='screen',
         parameters=[{'use_sim_time':False}, {'rate': 100}],
     )
@@ -218,10 +191,8 @@ def generate_test_description():
         namespace = 'test_vehicle',
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        # TODO To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
-        arguments=args,
         output='screen',
-        parameters=[{'use_sim_time':False}], # Use subst here
+        parameters=[{'use_sim_time':False}, {'robot_description': doc}], # Use subst here
     )
 
     return (
