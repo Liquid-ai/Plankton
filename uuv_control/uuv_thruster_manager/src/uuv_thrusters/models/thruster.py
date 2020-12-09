@@ -44,16 +44,21 @@ class Thruster(object):
     LABEL = ''
     DEFAULT_AXIS=numpy.array([1, 0, 0, 0])
 
-    def __init__(self, node: Node, index, topic, pos, orientation, axis=DEFAULT_AXIS):
+    def __init__(self, node: Node, index, topic, pos, orientation, axis=None):
         self.node = node
         self._index = index
         self._topic = topic
         self._pos = None
         self._orientation = None
         self._force_dist = None
+
         if pos is not None and orientation is not None:
             self._pos = pos
             self._orientation = orientation
+            
+            if axis is None:
+                axis = self.DEFAULT_AXIS
+                
             # compute contribution to configuration matrix of this thruster
             thrust_body = transformations.quaternion_matrix(orientation).dot(
                 axis.transpose())[0:3]
