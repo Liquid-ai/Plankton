@@ -55,6 +55,7 @@ def launch_setup(context, *args, **kwargs):
     yaw = Lc('yaw').perform(context)
     # use_sim_time = Lc('use_sim_time').perform(context)
     use_world_ned = Lc('use_ned_frame').perform(context)
+    is_write_on_disk = Lc('write_file_on_disk').perform(context)
 
     # Request sim time value to the global node
     res = is_sim_time(return_param=False, use_subprocess=True)
@@ -84,7 +85,7 @@ def launch_setup(context, *args, **kwargs):
     
     output = os.path.join(
         path,
-        'robot_description'
+        'robot_description.urdf'
     )
 
     if not pathlib.Path(xacro_file).exists():
@@ -99,37 +100,40 @@ def launch_setup(context, *args, **kwargs):
     
     doc = xacro.process(xacro_file, mappings=mappings)
          
-    with open(output, 'w') as file_out:
-        file_out.write(doc)
+    if is_write_on_disk:
+        with open(output, 'w') as file_out:
+            file_out.write(doc)
     
     # URDF spawner
     args=('-gazebo_namespace /gazebo '
-        '-x %s -y %s -z %s -R %s -P %s -Y %s -entity %s -file %s' 
-        %(x, y, z, roll, pitch, yaw, namespace, output)).split()
+        '-x %s -y %s -z %s -R %s -P %s -Y %s -entity %s -topic robot_description' 
+        %(x, y, z, roll, pitch, yaw, namespace)).split()
 
-    # Urdf spawner. NB: node namespace does not prefix the topic, 
+    # Urdf spawner. NB: node namespace does not prefix the spawning service, 
     # as using a leading /
+    # NB 2: node namespace prefixes the robot_description topic
     urdf_spawner = Node(
         name = 'urdf_spawner',
         package='gazebo_ros',
         executable='spawn_entity.py',
         output='screen',
         parameters=[{'use_sim_time': res}],
-        # TODO To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
         arguments=args
     )
 
     # A joint state publisher plugin already is started with the model, no need to use the default joint state publisher
 
-    args = (output).split()
+    # N.B.: alternative way to generate a robot_description string:
+    # string = str('ros2 run xacro xacro ' + xacro_file + ' debug:=false namespace:=' + namespace + ' inertial_reference_frame:=world')
+    # cmd = Command(string)
+    # but it currently yields yaml parsing error due to ":" in the comments of the xacro description files
+
     robot_state_publisher = Node(
         name = 'robot_state_publisher',
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        # TODO To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
-        arguments=args,
         output = 'screen',
-        parameters=[{'use_sim_time': res}] # Use subst here
+        parameters=[{'use_sim_time': res}, {'robot_description': doc}], # Use subst here
     )
 
     # Message to tf
@@ -174,6 +178,7 @@ def generate_launch_description():
         DeclareLaunchArgument('mode', default_value='default'),
         DeclareLaunchArgument('namespace', default_value='rexrov'),
         DeclareLaunchArgument('use_ned_frame', default_value='false'),
+        DeclareLaunchArgument('write_file_on_disk', default_value='false'),
 
         # DeclareLaunchArgument('use_sim_time', default_value='true'),
         OpaqueFunction(function = launch_setup)
