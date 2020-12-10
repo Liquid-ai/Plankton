@@ -11,7 +11,9 @@ jobs:
   test_docker:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
+        - gazebo-version: [9, 11]
         # Define the Docker image(s) associated with each ROS distribution.
         # The include syntax allows additional variables to be defined, like
         # docker_image in this case. See documentation:
@@ -46,11 +48,12 @@ jobs:
 
       - name: Install Gazebo
         run: |
+          echo Installing Gazebo ${{ matrix.gazebo-version }}
           sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
           wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
           sudo apt update
-          sudo apt install -y gazebo11
-          sudo apt install -y libgazebo11-dev
+          sudo apt install -y gazebo${{ matrix.gazebo-version }}
+          sudo apt install -y libgazebo${{ matrix.gazebo-version }}-dev
           sudo apt install -y ros-${{ matrix.ros_distribution }}-gazebo-ros-pkgs
 
       - name: Install Dependencies
@@ -71,6 +74,7 @@ jobs:
 
       - name: Unit Test Results
         run: |
+          echo Results for Gazebo ${{ matrix.gazebo-version }}
           . /opt/ros/${{ matrix.ros_distribution }}/setup.sh
           colcon test-result --all --verbose
 
