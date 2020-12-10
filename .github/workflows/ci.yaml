@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        - gazebo-version: [9, 11]
+        gazebo-version: [9, 11]
         # Define the Docker image(s) associated with each ROS distribution.
         # The include syntax allows additional variables to be defined, like
         # docker_image in this case. See documentation:
