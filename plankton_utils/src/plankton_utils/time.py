@@ -60,7 +60,7 @@ def __is_sim_time_subprocess(timeout_sec= 5, default_value=False, return_param=T
             from subprocess import TimeoutExpired
 
             output = subprocess.check_output(
-                ['ros2', 'param', 'get', '/plankton_global_sim_time', 'use_sim_time'], 
+                ['ros2 param get /plankton_global_sim_time use_sim_time'], 
                 timeout=max(timeout_sec - (time.time() - starting_time), 0),
                 shell=True
             )

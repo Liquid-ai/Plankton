@@ -148,7 +148,7 @@ def launch_setup(context, *args, **kwargs):
         raise Exception(exc)
 
     launch_args = [('namespace', namespace), ('world_frame', 'world'), 
-            ('child_frame_id', '/' + namespace + '/base_link')]
+            ('child_frame_id', '/' + namespace + '/base_link'), ('use_sim_time', str(res).lower()),]
     message_to_tf_launch = IncludeLaunchDescription(
             AnyLaunchDescriptionSource(message_to_tf_launch), launch_arguments=launch_args)
 
