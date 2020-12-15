@@ -8,7 +8,7 @@ It is a maritime environment simulator with an open source core, and a special f
 
 We intend to build a sustainable and open source core simulator for maritime robotics research. This core will support flexible specification of sensor suites and environmental conditions.
 
-This project benefits from great open source advances in the simulation domain, mainly ROS, gazebo and its plugin UUV Simulator. 
+This project benefits from great open source advances in the simulation domain, mainly ROS, Gazebo and its plugin UUV Simulator. 
 It is also built on data characterizing the needs of robotics researchers in terms of simulation. We gathered these data in our [wiki](https://github.com/Liquid-ai/Plankton/wiki), including the results of our [own survey](https://github.com/Liquid-ai/Plankton/blob/master/user_needs/Survey_about_simulators_for_robotics_research.pdf) on simulation needs.
 
 # Roadmap #
@@ -34,34 +34,38 @@ So you are considering making a code contribution, great! We love to have contri
 Before starting hands-on on coding, please check out our issue board to see if we are already working on that, it would be a pity putting an effort into something just to discover that someone else was already working on that. In case of doubt or to discuss how to proceed, please contact one of us (or send an email to info@liquid-tech.ai).
 
 # Installation #
-Plankton currently relies (and has only been tested with) on **Ubuntu 18.04**, **ROS 2 Eloquent** and **Gazebo 9**, even if the package should work with later versions, considering some adjustments.
+Plankton currently supports:
 
-### 1. Install ROS 2 Eloquent 
+- **ROS 2 Foxy** with **Gazebo 9** or **Gazebo 11** and **Ubuntu 20.04**
 
-If you don’t have ROS 2 eloquent installed, follow the instructions below and prefer to install the `ros-eloquent-desktop` package:
-<https://index.ros.org/doc/ros2/Installation/Eloquent/Linux-Install-Debians/>
+- **ROS 2 Eloquent**, **Ubuntu 18.04** and **Gazebo 9**
 
-### 2. Install Gazebo 9
+### 1. Install ROS 2 Foxy 
 
-If you don't have Gazebo 9 installed, open a terminal and follow the steps below:
+If you don’t have ROS 2 Foxy installed, follow the instructions below and prefer to install the `ros-foxy-desktop` package:
+<https://index.ros.org/doc/ros2/Installation/Foxy/Linux-Install-Debians/>
+
+### 2. Install Gazebo 11
+
+If you don't have Gazebo 11 installed, open a terminal and follow the steps below:
 
 ```
 sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
 wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 sudo apt-get update
-sudo apt-get install gazebo9
-sudo apt-get install libgazebo9-dev
+sudo apt-get install gazebo11
+sudo apt-get install libgazebo11-dev
 ```
 
-You can write `gazebo` in a terminal to make sure that gazebo runs correctly. Write `gazebo --version` to ensure that the version number is 9.X.
+You can write `gazebo` in a terminal to make sure that gazebo runs correctly. Write `gazebo --version` to ensure that the version number is 11.X.
 
->For more information about the installation of Gazebo, refer to the official installation documentation (beware that the default installation command will not install the version 9): 
+>For more information about the installation of Gazebo, refer to the official installation documentation (beware that the default installation command will not install the version 11): 
 ><http://gazebosim.org/tutorials?tut=install_ubuntu&cat=install>
 
 ### 3. Install the ros packages for gazebo
 
 Write in a terminal:  
-`sudo apt install ros-eloquent-gazebo-ros-pkgs`
+`sudo apt install ros-foxy-gazebo-ros-pkgs`
 
 >See <http://gazebosim.org/tutorials?tut=ros2_installing&cat=connect_ros> for more detailed information about gazebo and ROS 2 connection.
 
@@ -81,7 +85,7 @@ Now, clone the Plankton repository:
 
 At this point, you need to source 2 different files described below to configure ROS 2 and Gazebo environment variables: 
    - For ROS 2 variables  
-`source /opt/ros/eloquent/setup.bash`  
+`source /opt/ros/foxy/setup.bash`  
    - For Gazebo   
 `source /usr/share/gazebo/setup.sh`
 
@@ -95,7 +99,7 @@ rosdep update
 Browse to the root of your workspace and check for missing dependencies:  
 ```
 cd ~/ros2_ws/
-rosdep install -i --from-path src --rosdistro eloquent -y
+rosdep install -i --from-path src --rosdistro foxy -y
 ```
 
 Install Colcon, the build tool system:  
@@ -107,12 +111,6 @@ Build the Plankton repository:
 Source the file for your installation workspace (change the path accordingly)  
 `source $HOME/ros2_ws/install/setup.bash`  
 
-Now, install the XML / YAML frontend for launch files, which are missing in Eloquent:  
-```
-sudo apt install ros-eloquent-launch-xml    
-sudo apt install ros-eloquent-launch-yaml
-```
-
 Next step is… No next step, you are already done!
 If everything went well, you should be able to run example cases.
 
@@ -121,7 +119,7 @@ If everything went well, you should be able to run example cases.
 Note: Every time you open a new terminal, you need to source 3 different files described below to configure ROS 2 and Gazebo environment variables. Write the following each time you start a new terminal to deal with ROS 2 / Gazebo stuff, or prefer to add them at the end of your .bashrc file with `gedit ~/.bashrc`. For the latter, don’t forget to source your .bashrc to enforce the update after saving these changes, or open a fresh terminal.  
 
    - For ROS 2 variables  
-`source /opt/ros/eloquent/setup.bash`  
+`source /opt/ros/foxy/setup.bash`  
    - For your installation workspace (change the path accordingly)  
 `source $HOME/ros2_ws/install/setup.bash`  
    - For Gazebo   

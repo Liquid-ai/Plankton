@@ -1,3 +1,18 @@
+## 0.6.0
+### General
+
+- Migration to ROS 2 Foxy
+- Added support for Gazebo 11
+- Files parsed by Xacro are now directly output as a string and loaded as a node parameter in the various launch files
+- Known issue: teleop shows unexpected behaviour with the trajectory control package's controllers, as well as the rov_mb_sm controller / rov_nl_pid_controller
+- Known issue: the CPC sensor and the custom battery plugins crash when loaded
+- Known issue: DVL and camera sensor won't show in Rviz
+- Known issue: The subprocess based sim time request fails when the plankton sim time node is launched within the same launch file. A simple fix is to start the sim time node first and separately
+
+### uuv_thruster_manager
+
+- [**thruster_manager.py**] The thruster manager now gets and parse the urdf robot description from a topic instead of a file 
+
 ## 0.5.3
 
 ### General
