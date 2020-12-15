@@ -40,12 +40,12 @@
   <group if="$(var use_param_file)">
     <group>
       <push-ros-namespace namespace="$(var uuv_name)"/>
-      <node pkg="uuv_teleop" exec="finned_uuv_teleop.py" node-name="finned_uuv_teleop"
+      <node pkg="uuv_teleop" exec="finned_uuv_teleop.py" name="finned_uuv_teleop"
             output="screen">
         <param from="$(var filename)"/>
       </node>
 
-      <node pkg="joy" exec="joy_node" node-name="joystick">
+      <node pkg="joy" exec="joy_node" name="joystick">
         <param name="autorepeat_rate" value="10" />
         <param name="dev" value="/dev/input/js$(var joy_id)"/>
       </node>
@@ -55,7 +55,7 @@
   <group unless="$(var use_param_file)">
     <group>
       <push-ros-namespace namespace="$(var uuv_name)"/>
-      <node pkg="uuv_teleop" exec="finned_uuv_teleop.py" node-name="finned_uuv_teleop" output="screen">
+      <node pkg="uuv_teleop" exec="finned_uuv_teleop.py" name="finned_uuv_teleop" output="screen">
         <param name="axis_thruster" value="$(var axis_thruster)"/>
         <param name="axis_roll" value="$(var axis_roll)"/>
         <param name="axis_pitch" value="$(var axis_pitch)"/>
@@ -79,7 +79,7 @@
         <param name="fin_topic_suffix" value="$(var fin_topic_suffix)"/>
       </node>
 
-      <node pkg="joy" exec="joy_node" node-name="joystick">
+      <node pkg="joy" exec="joy_node" name="joystick">
         <param name="autorepeat_rate" value="10.0" />
         <param name="dev" value="/dev/input/js$(var joy_id)"/>
       </node>

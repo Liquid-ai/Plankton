@@ -20,17 +20,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-import unittest
+import os
+import pathlib
 import time
+import unittest
+
+import pytest
 
 import rclpy
+import xacro
 from geometry_msgs.msg import WrenchStamped
 
 from uuv_thruster_manager.srv import GetThrusterManagerConfig
 from uuv_thruster_manager.srv import ThrusterManagerInfo
 from uuv_thruster_manager.srv import GetThrusterCurve
 from uuv_thruster_manager.srv import SetThrusterManagerConfig
-
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 
 import launch
@@ -41,11 +45,7 @@ import launch_testing.actions
 import launch_ros
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
-import os
-import pathlib
-import xacro
 
-import pytest
 # Other imports
 
 
@@ -71,16 +71,6 @@ AXIS_Z_TAM = np.array([
     [0., 0., 1., 1., 0., 0.]
 ]).T
 
-
-def ensure_path_exists(full_path):
-    dir_name = os.path.dirname(full_path)
-    if dir_name:
-        try:
-            os.makedirs(dir_name)
-        except OSError:
-            print ("Creation of the directory %s failed" % dir_name)
-
-
 class TestThrusterAllocator(unittest.TestCase):
 
     @classmethod
@@ -96,7 +86,7 @@ class TestThrusterAllocator(unittest.TestCase):
 
     # =========================================================================
     def setUp(self):
-        # Create a ROS node for tests
+        # Create a ROS node for the tests
         # Creating a node for each test should be ok if tests are done 
         # sequentially
         self.node = rclpy.create_node('test_thrusters_allocator_x',
@@ -185,47 +175,31 @@ def generate_test_description():
         'test_vehicle_x_axis.urdf.xacro'
     )
 
-    output = os.path.join(
-        str(parent_file_path),
-        'robot_description_x_axis.urdf'
-    )
-
     doc = xacro.process(xacro_file)
-    ensure_path_exists(output)
-    try:
-        with open(output, 'w') as file_out:
-            file_out.write(doc)
-    except IOError as e:
-        print("Failed to open output: ", exc=e)
-
-    args = output.split()
 
     # ('axis', 'x')
     launch_args = [('model_name', 'test_vehicle'), 
-        ('output_dir', '/tmp'), ('config_file', thruster_manager_yaml), ('reset_tam', 'true'), ('urdf_file', output)]
+        ('output_dir', '/tmp'), ('config_file', thruster_manager_yaml), ('reset_tam', 'true'),]
     thruster_manager_launch_desc = IncludeLaunchDescription(
             AnyLaunchDescriptionSource(thruster_manager_launch), launch_arguments=launch_args)
 
     joint_state_publisher = launch_ros.actions.Node(
-        node_namespace = 'test_vehicle',
+        namespace = 'test_vehicle',
         package="joint_state_publisher",
-        node_executable="joint_state_publisher",
-        node_name="joint_state_publisher",
+        executable="joint_state_publisher",
+        name="joint_state_publisher",
         #parameters=[{'source_list':'test_vehicle/joint_states'}],
         #remappings=[('joint_states', '/test_vehicle/joint_states')],
-        arguments=args,
         output='screen',
         parameters=[{'use_sim_time':False}, {'rate': 100}],
     )
 
     robot_state_description = launch_ros.actions.Node(
-        node_namespace = 'test_vehicle',
+        namespace = 'test_vehicle',
         package='robot_state_publisher',
-        node_executable='robot_state_publisher',
-        # TODO To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
-        arguments=args,
+        executable='robot_state_publisher',
         output='screen',
-        parameters=[{'use_sim_time':False}], # Use subst here
+        parameters=[{'use_sim_time':False}, {'robot_description': doc}], # Use subst here
     )
 
     return (

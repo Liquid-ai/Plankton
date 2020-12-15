@@ -7,9 +7,9 @@
 
     <group>
         <push-ros-namespace namespace="$(arg uuv_name)"/>
-        <node node-name="publish_footprints" 
-              pkg="uuv_assistants" 
-              exec="publish_vehicle_footprint.py" 
+        <node name="publish_footprints"
+              pkg="uuv_assistants"
+              exec="publish_vehicle_footprint.py"
               output="screen">
               <remap from="odom" to="$(arg odom_topic)"/>
               <param name="scale_footprint" value="$(var scale_footprint)"/>

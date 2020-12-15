@@ -34,8 +34,8 @@ class VehicleFootprint(Node):
     MARKER = np.array([[0, 0.75], [-0.5, -0.25], [0.5, -0.25]])
     
     #==========================================================================
-    def __init__(self, node_name, **kwargs):
-        super().__init__(node_name,
+    def __init__(self, name, **kwargs):
+        super().__init__(name,
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)

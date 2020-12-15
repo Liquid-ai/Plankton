@@ -44,8 +44,8 @@ class ROV_NLPIDController(DPPIDControllerBase):
 
     _LABEL = 'MIMO Nonlinear PID Controller with Acceleration Feedback'
 
-    def __init__(self, node_name, **kwargs):
-        DPPIDControllerBase.__init__(self, node_name, True, **kwargs)
+    def __init__(self, name, **kwargs):
+        DPPIDControllerBase.__init__(self, name, True, **kwargs)
         self._logger.info('Initializing: ' + self._LABEL)
         # Feedback acceleration gain
         self._Hm = np.eye(6)

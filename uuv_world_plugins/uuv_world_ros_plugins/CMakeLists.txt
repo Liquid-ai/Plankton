@@ -37,8 +37,8 @@ add_library(uuv_sc_ros_interface_plugin SHARED src/SphericalCoordinatesROSInterf
 ament_target_dependencies(uuv_sc_ros_interface_plugin ${LIBS})
 
 install(
-  TARGETS uuv_underwater_current_ros_plugin 
-  EXPORT  export_uuv_underwater_current_ros_plugin 
+  TARGETS uuv_underwater_current_ros_plugin
+  EXPORT  export_uuv_underwater_current_ros_plugin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin/${PROJECT_NAME}
@@ -60,8 +60,8 @@ install(DIRECTORY include/${PROJECT_NAME}/
   EXCLUDE
 )
 
-ament_export_interfaces(export_uuv_underwater_current_ros_plugin) #To use the namespace way :: with target_link_lib
-ament_export_interfaces(export_uuv_sc_ros_interface_plugin)
+ament_export_targets(export_uuv_underwater_current_ros_plugin) #To use the namespace way :: with target_link_lib
+ament_export_targets(export_uuv_sc_ros_interface_plugin)
 ament_export_dependencies(uuv_world_plugins)
 ament_export_dependencies(uuv_world_ros_plugins_msgs)
 ament_export_dependencies(gazebo_msgs)

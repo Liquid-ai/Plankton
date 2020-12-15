@@ -44,8 +44,8 @@ class ROV_SFController(DPControllerBase):
 
     _LABEL = 'Singularity-free tracking controller'
 
-    def __init__(self, node_name, **kwargs):
-        DPControllerBase.__init__(self, node_name, True, **kwargs)
+    def __init__(self, name, **kwargs):
+        DPControllerBase.__init__(self, name, True, **kwargs)
         self._tau = np.zeros(6)
         self._logger.info('Initializing: ' + self._LABEL)
 

@@ -35,8 +35,8 @@ from plankton_utils.time import is_sim_time
 class ROV_MB_SMController(DPControllerBase):
     _LABEL = 'Model-based Sliding Mode Controller'
 
-    def __init__(self, node_name, **kwargs):
-        DPControllerBase.__init__(self, node_name, True, **kwargs)
+    def __init__(self, name, **kwargs):
+        DPControllerBase.__init__(self, name, True, **kwargs)
         self._logger.info('Initializing: ' + self._LABEL)
 
         # Lambda - Slope of the Sliding Surface

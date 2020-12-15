@@ -1,7 +1,7 @@
 <launch>
   <arg name="namespace" default="rexrov"/>
   <!-- publish state and tf for in relation to the world frame -->
-  <node node-name="ground_truth_to_tf_$(var namespace)" pkg="uuv_assistants" exec="uuv_message_to_tf" output="screen">
+  <node name="ground_truth_to_tf_$(var namespace)" pkg="uuv_assistants" exec="uuv_message_to_tf" output="screen">
     <param name="odometry_topic" value="/$(var namespace)/pose_gt" />
     <param name="frame_id" value="/world" />
     <param name="stabilized_frame_id" value="/$(var namespace)/base_stabilized" />

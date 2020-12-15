@@ -15,7 +15,7 @@
     <group if="$(var reset_tam)">
       <node pkg="uuv_thruster_manager"
             exec="thruster_allocator.py"
-            node-name="thruster_allocator"
+            name="thruster_allocator"
             output="screen">
         <!--FIXME Temp workaround for listener subscribing to relative topic -->
         <remap from="tf" to="/tf"/>
@@ -29,7 +29,7 @@
     <group unless="$(var reset_tam)">
       <node pkg="uuv_thruster_manager"
             exec="thruster_allocator.py"
-            node-name="thruster_allocator"
+            name="thruster_allocator"
             output="screen">
         <!--FIXME Temp workaround for listener subscribing to relative topic -->
         <remap from="tf" to="/tf"/>

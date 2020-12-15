@@ -45,8 +45,8 @@ class ROV_NMB_SMController(DPControllerBase):
 
     _LABEL = 'Model-free Sliding Mode Controller'
 
-    def __init__(self, node_name, **kwargs):
-        DPControllerBase.__init__(self, node_name, is_model_based=False, **kwargs)
+    def __init__(self, name, **kwargs):
+        DPControllerBase.__init__(self, name, is_model_based=False, **kwargs)
   
         self._logger.info('Initializing: ' + self._LABEL)
         self._first_pass = True

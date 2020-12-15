@@ -63,7 +63,7 @@
       <push-ros-namespace namespace="$(var uuv_name)"/>
       <node pkg="uuv_trajectory_control"
             exec="rov_nl_pid_controller.py"
-            node-name="rov_nl_pid_controller"
+            name="rov_nl_pid_controller"
             output="screen"
             if="$(var use_ned_frame)">
         <!-- Remap necessary topics -->
@@ -89,7 +89,7 @@
 
       <node pkg="uuv_trajectory_control"
             exec="rov_nl_pid_controller.py"
-            node-name="rov_nl_pid_controller"
+            name="rov_nl_pid_controller"
             output="screen"
             unless="$(var use_ned_frame)">
         <!-- Remap necessary topics -->
@@ -121,7 +121,7 @@
       <!-- Start controller wrt world_ned (NED) frame -->
       <node pkg="uuv_trajectory_control"
             exec="rov_nl_pid_controller.py"
-            node-name="rov_nl_pid_controller"
+            name="rov_nl_pid_controller"
             output="screen"
             if="$(var use_ned_frame)">
         <!-- Remap necessary topics -->
@@ -150,7 +150,7 @@
       <!-- Start controller wrt world (ENU) frame -->
       <node pkg="uuv_trajectory_control"
             exec="rov_nl_pid_controller.py"
-            node-name="rov_nl_pid_controller"
+            name="rov_nl_pid_controller"
             output="screen"
             unless="$(var use_ned_frame)">
         <!-- Remap necessary topics -->

@@ -21,7 +21,7 @@
     <push-ros-namespace namespace="$(var uuv_name)"/>
     <node pkg="uuv_control_utils"
       exec="apply_link_wrench.py"
-      node-name="apply_link_wrench_$(var starting_time)_$(var force_x)_$(var force_y)_$(var force_z)_$(var torque_x)_$(var torque_y)_$(var torque_z)"
+      name="apply_link_wrench_$(var starting_time)_$(var force_x)_$(var force_y)_$(var force_z)_$(var torque_x)_$(var torque_y)_$(var torque_z)"
       output="screen">
 
       <param name="starting_time" value="$(var starting_time)"/>

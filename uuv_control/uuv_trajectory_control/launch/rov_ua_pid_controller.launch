@@ -43,7 +43,7 @@
       <push-ros-namespace namespace="$(var uuv_name)"/>
       <node pkg="uuv_control_utils"
             exec="trajectory_marker_publisher.py"
-            node-name="trajectory_marker_publisher"
+            name="trajectory_marker_publisher"
             output="screen">
         <remap from="trajectory" to="dp_controller/trajectory"/>
         <remap from="waypoints" to="dp_controller/waypoints"/>
@@ -56,7 +56,7 @@
       <push-ros-namespace namespace="$(var uuv_name)"/>
       <node pkg="uuv_trajectory_control"
             exec="rov_ua_pid_controller.py"
-            node-name="rov_ua_pid_controller"
+            name="rov_ua_pid_controller"
             output="screen">
         <!-- Remap necessary topics -->
         <remap from="odom" to="pose_gt"/>
@@ -81,7 +81,7 @@
       <push-ros-namespace namespace="$(var uuv_name)"/>
       <node pkg="uuv_trajectory_control"
             exec="rov_ua_pid_controller.py"
-            node-name="rov_ua_pid_controller"
+            name="rov_ua_pid_controller"
             output="screen">
         <!-- Remap necessary topics -->
         <remap from="odom" to="pose_gt"/>

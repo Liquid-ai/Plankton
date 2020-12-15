@@ -35,7 +35,7 @@
         <push-ros-namespace namespace="$(var uuv_name)"/>
         <node pkg="uuv_auv_control_allocator"
               exec="control_allocator"
-              node-name="control_allocator"
+              name="control_allocator"
               output="screen">
             <param name="output_dir" value="$(var output_dir)"/>
             <param name="base_link" value="$(var base_link)"/>

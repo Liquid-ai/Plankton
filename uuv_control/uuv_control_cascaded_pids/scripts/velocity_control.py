@@ -35,9 +35,9 @@ from plankton_utils.time import is_sim_time
 
 
 class VelocityControllerNode(Node):
-    def __init__(self, node_name, **kwargs):
+    def __init__(self, name, **kwargs):
         print('VelocityControllerNode: initializing node')
-        super().__init__(node_name, **kwargs)
+        super().__init__(name, **kwargs)
 
         self.config = {}
 

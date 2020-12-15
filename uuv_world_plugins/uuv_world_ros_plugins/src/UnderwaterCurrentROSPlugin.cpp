@@ -61,7 +61,7 @@ void UnderwaterCurrentROSPlugin::Load(gazebo::physics::WorldPtr _world,
     return;
   }
 
-  if (!rclcpp::is_initialized())
+  if (!rclcpp::ok())
   {
     gzerr << "Not loading plugin since ROS has not been "
           << "properly initialized.  Try starting gazebo with ros plugin:\n"

@@ -38,7 +38,7 @@ CustomBatteryConsumerROSPlugin::~CustomBatteryConsumerROSPlugin()
 void CustomBatteryConsumerROSPlugin::Load(physics::ModelPtr _parent,
   sdf::ElementPtr _sdf)
 {
-  if (!rclcpp::is_initialized())
+  if (!rclcpp::ok())
   {
     gzerr << "Not loading plugin since ROS has not been "
           << "properly initialized.  Try starting gazebo with ros plugin:\n"

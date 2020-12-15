@@ -35,8 +35,8 @@ from plankton_utils.time import is_sim_time
 
 # TODO Needs a rework
 class FootprintsPublisher(Node):
-    def __init__(self, node_name, **kwargs):
-        super().__init__(node_name, **kwargs)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
 
         self.vehicle_pub = dict()
         self.odom_sub = dict()

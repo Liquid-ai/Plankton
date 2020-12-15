@@ -31,13 +31,13 @@ from plankton_utils.time import is_sim_time
 
 
 class WorldPublisher(Node):
-    def __init__(self, node_name, **kwargs):
-        super().__init__(node_name,
+    def __init__(self, name, **kwargs):
+        super().__init__(name,
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)
 
-        self.get_logger().info(node_name + ': start publishing vehicle footprints to RViz')
+        self.get_logger().info(name + ': start publishing vehicle footprints to RViz')
 
         self._model_paths = dict()
 

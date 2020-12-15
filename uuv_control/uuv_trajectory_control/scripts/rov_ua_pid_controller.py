@@ -34,9 +34,9 @@ class ROVUnderActuatedPIDController(DPControllerBase):
     update_controller must be overridden in other for a controller to work.
     """
 
-    def __init__(self, node_name, *args, **kwargs):
+    def __init__(self, name, *args, **kwargs):
         # Start the super class
-        DPControllerBase.__init__(self, node_name, *args, **kwargs)
+        DPControllerBase.__init__(self, name, *args, **kwargs)
         self._logger.info('Initializing: Underactuated PID controller')
         # Proportional gains
         self._Kp = np.zeros(shape=(4, 4))

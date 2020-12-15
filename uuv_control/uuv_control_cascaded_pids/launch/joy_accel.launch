@@ -11,7 +11,7 @@
   <group>
     <push-ros-namespace namespace="$(var uuv_name)"/>
     
-    <node pkg="uuv_control_cascaded_pid" exec="acceleration_control.py" node-name="acceleration_control"
+    <node pkg="uuv_control_cascaded_pid" exec="acceleration_control.py" name="acceleration_control"
           output="screen">
       <!-- <param name="tf_prefix" type="string" value="$(var uuv_name)/" /> -->
       <param from="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/inertial.yaml"/>

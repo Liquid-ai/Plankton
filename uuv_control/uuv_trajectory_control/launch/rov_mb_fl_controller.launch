@@ -50,7 +50,7 @@
       <push-ros-namespace namespace="$(var uuv_name)"/>
       <node pkg="uuv_control_utils"
             exec="trajectory_marker_publisher.py"
-            node-name="trajectory_marker_publisher"
+            name="trajectory_marker_publisher"
             output="screen">
         <remap from="trajectory" to="dp_controller/trajectory"/>
         <remap from="waypoints" to="dp_controller/waypoints"/>
@@ -63,7 +63,7 @@
       <push-ros-namespace namespace="$(var uuv_name)"/>
       <node pkg="uuv_trajectory_control"
             exec="rov_mb_fl_controller.py"
-            node-name="rov_mb_fl_controller"
+            name="rov_mb_fl_controller"
             output="screen"
             if="$(var use_ned_frame)">
         <!-- Remap necessary topics -->
@@ -90,7 +90,7 @@
 
       <node pkg="uuv_trajectory_control"
             exec="rov_mb_fl_controller.py"
-            node-name="rov_mb_fl_controller"
+            name="rov_mb_fl_controller"
             output="screen"
             unless="$(var use_ned_frame)">
         <!-- Remap necessary topics -->
@@ -122,7 +122,7 @@
       <push-ros-namespace namespace="$(var uuv_name)"/>
       <node pkg="uuv_trajectory_control"
             exec="rov_mb_fl_controller.py"
-            node-name="rov_mb_fl_controller"
+            name="rov_mb_fl_controller"
             output="screen"
             if="$(var use_ned_frame)">
         <!-- Remap necessary topics -->
@@ -152,7 +152,7 @@
 
       <node pkg="uuv_trajectory_control"
             exec="rov_mb_fl_controller.py"
-            node-name="rov_mb_fl_controller"
+            name="rov_mb_fl_controller"
             output="screen"
             unless="$(var use_ned_frame)">
         <!-- Remap necessary topics -->

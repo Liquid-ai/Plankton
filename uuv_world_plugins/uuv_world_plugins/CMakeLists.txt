@@ -41,7 +41,6 @@ install(
   FILES_MATCHING PATTERN "*.h"
 )
 
-ament_export_interfaces(export_uuv_underwater_current_plugin) #To use the namespace way :: with target_link_lib
 ament_export_dependencies(gazebo_dev)
 ament_export_dependencies(gazebo_msgs)
 ament_export_dependencies(ament_cmake)

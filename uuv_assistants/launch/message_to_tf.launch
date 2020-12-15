@@ -3,16 +3,19 @@
   <arg name="world_frame" default="world"/>
   <arg name="child_frame_id" default="/$(var namespace)/base_link"/>
   <arg name="odometry_topic" default="/$(var namespace)/pose_gt"/>
+  <arg name="use_sim_time" default="true"/>
 
   <group>
     <push-ros-namespace namespace="$(var namespace)"/>
     <!-- publish state and tf for in relation to the world frame -->
-    <node node-name="ground_truth_to_tf_$(var namespace)" pkg="uuv_assistants" exec="uuv_message_to_tf" output="screen">
+    <node name="ground_truth_to_tf_$(var namespace)" pkg="uuv_assistants" exec="uuv_message_to_tf" output="screen">
       <param name="odometry_topic" value="$(var odometry_topic)" />
       <param name="frame_id" value="$(var world_frame)" />
       <param name="stabilized_frame_id" value="/$(var namespace)/base_stabilized" />
       <param name="footprint_frame_id" value="/$(var namespace)/base_footprint" />
       <param name="child_frame_id" value="$(var child_frame_id)" />
+      <!-- FIXME Directy test sim time value in the node -->
+      <param name="use_sim_time" value="$(var use_sim_time)" />
     </node>
   </group>
 </launch>

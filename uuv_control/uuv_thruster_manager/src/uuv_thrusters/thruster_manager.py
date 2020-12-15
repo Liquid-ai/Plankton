@@ -21,17 +21,22 @@
 
 import numpy
 from os.path import isdir, join
+import time
 from time import sleep
 import xml.etree.ElementTree as etree
 import yaml
 
 from geometry_msgs.msg import Wrench
+from std_msgs.msg import String
 import tf2_ros
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSDurabilityPolicy
+from rclpy.qos import QoSProfile
 
 from .models import Thruster
 from plankton_utils.param_helper import parse_nested_params_to_dict
+from plankton_utils.param_helper import get_parameter_or_helper
 from tf_quaternion import transformations
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 
@@ -52,9 +57,9 @@ class ThrusterManager(Node):
 
     MAX_THRUSTERS = 16
         
-    def __init__(self, node_name, **kwargs):
+    def __init__(self, name, **kwargs):
         """Class constructor."""
-        super().__init__(node_name,
+        super().__init__(name,
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)
@@ -82,17 +87,11 @@ class ThrusterManager(Node):
 
         self.config = parse_nested_params_to_dict(self.config, '.')
         
-        #TODO To change in foxy
-        # robot_description_param = self.namespace + 'robot_description'
-        robot_description_param = 'urdf_file'
+        # Indicates whether we could get the robot description for the thrust axes
         self.use_robot_descr = False
         self.axes = {}
-        if self.has_parameter(robot_description_param):
-            urdf_file = self.get_parameter(robot_description_param).value
-            if urdf_file != "":                
-                self.use_robot_descr = True
-                self.parse_urdf(urdf_file)
-
+        self.robot_description_subscription = None
+        
         if self.config['update_rate'].value < 0:
             self.config['update_rate'].value = 50.0
 
@@ -125,6 +124,11 @@ class ThrusterManager(Node):
 
     # =========================================================================
     def _init_async_impl(self):
+        # try to retrieve the thrust axes from the robot description
+        timeout_robot_desc = get_parameter_or_helper(self, 'timeout_robot_description', 5).value
+        self.get_axis_from_robot_description(timeout_robot_desc)
+
+        # try to retrieve some tf transforms
         tf_trans_ned_to_enu = None
         
         try:
@@ -251,16 +255,14 @@ class ThrusterManager(Node):
         self.get_logger().info('ThrusterManager: ready')
 
     #==============================================================================
-    # TODO Change in foxy
-    def parse_urdf(self, urdf_file):
-        root = etree.parse(urdf_file)
-        # root = etree.fromstring(urdf_str)
+    def parse_urdf(self, urdf_str):
+        root = etree.fromstring(urdf_str)
         for joint in root.findall('joint'):
             if joint.get('type') == 'fixed':
                 continue
             axis_str_list = joint.find('axis').get('xyz').split()
             child = joint.find('child').get('link')
-            #FIXME Just nb: removed for tf
+            # nb: the following was removed for tf
             # if child[0]!='/':
             #     child = '/'+child
 
@@ -341,7 +343,7 @@ class ThrusterManager(Node):
                     params = {key: val.value for key, val in params.items()}
                     thruster = Thruster.create_thruster(
                         self, self.config['conversion_fcn'].value,
-                        i, topic, pos, quat, self.axes[frame], **params)
+                        i, topic, pos, quat, thrust_axis, **params)
                 else:
                     if idx_thruster_model >= len(self.config['conversion_fcn'].value):
                         raise RuntimeError('Number of thrusters found and '
@@ -353,7 +355,7 @@ class ThrusterManager(Node):
                     thruster = Thruster.create_thruster(
                         self,
                         conv_fcn,
-                        i, topic, pos, quat, self.axes[frame],
+                        i, topic, pos, quat, thrust_axis,
                         **params)
                     idx_thruster_model += 1
                 if thruster is None:
@@ -476,3 +478,36 @@ class ThrusterManager(Node):
     def build_topic_name(self, prefix, id, suffix):
         return prefix + 'id_' + str(id) + suffix
 
+    # =========================================================================
+    def get_axis_from_robot_description(self, timeout=5):
+        '''Must be called in a separate thread. Waits until the robot 
+        description has been received or the timeout has expired
+        '''
+
+        robot_description_content = ''
+
+        def robot_desc_cb(msg):
+            nonlocal robot_description_content
+            robot_description_content = msg.data
+
+        latched_qos = QoSProfile(
+                depth=1,
+                durability=QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL)
+        self.robot_description_subscription = self.create_subscription(
+                String, 'robot_description', robot_desc_cb, latched_qos)
+
+        self.get_logger().info(
+            'Waiting for the robot_description in topic: {}...'.format(self.robot_description_subscription.topic_name))
+
+        current = time.time()
+        while time.time() < current + timeout and robot_description_content == '':
+            sleep(0.1)
+
+        self.use_robot_descr = False
+        self.axes = {}
+        if robot_description_content != '':  
+                self.get_logger().info('Initializing thrust axis with the robot description')  
+                self.use_robot_descr = True
+                self.parse_urdf(robot_description_content)
+        else:
+            self.get_logger().info('No robot description provided, defaulting thrust axis')  

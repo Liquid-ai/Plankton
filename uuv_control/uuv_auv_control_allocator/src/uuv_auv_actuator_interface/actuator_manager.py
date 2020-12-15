@@ -40,8 +40,8 @@ from plankton_utils.params_helper import parse_nested_params_to_dict
 class ActuatorManager(Node):
     MAX_FINS = 4
 
-    def __init__(self, node_name, **kwargs):
-        super().__init__(node_name,
+    def __init__(self, name, **kwargs):
+        super().__init__(name,
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)

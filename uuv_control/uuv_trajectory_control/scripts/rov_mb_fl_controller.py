@@ -40,8 +40,8 @@ class ROV_MBFLController(DPPIDControllerBase):
     """
     _LABEL = 'Model-based Feedback Linearization Controller'
 
-    def __init__(self, node_name, **kwargs):
-        DPPIDControllerBase.__init__(self, node_name, True, **kwargs)
+    def __init__(self, name, **kwargs):
+        DPPIDControllerBase.__init__(self, name, True, **kwargs)
         self._logger.info('Initializing: ' + self._LABEL)
 
         # Control forces and torques

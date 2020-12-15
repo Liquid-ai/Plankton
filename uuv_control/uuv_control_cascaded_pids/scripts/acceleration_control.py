@@ -30,9 +30,9 @@ from plankton_utils.time import is_sim_time
 
 
 class AccelerationControllerNode(Node):
-    def __init__(self, node_name, **kwargs):
+    def __init__(self, name, **kwargs):
 
-        super().__init__(node_name,
+        super().__init__(name,
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)

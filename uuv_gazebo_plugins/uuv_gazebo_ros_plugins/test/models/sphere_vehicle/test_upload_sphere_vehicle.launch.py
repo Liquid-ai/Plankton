@@ -22,25 +22,36 @@ def generate_launch_description():
     )
 
     doc = xacro.process(xacro_file)
-    with open(output, 'w') as file_out:
-        file_out.write(doc)
     
-    args = ('-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0 -entity vehicle -file ' + output).split()
+    args = ('-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0 -spawn_service_timeout 30 -entity vehicle -topic robot_description').split()
     #args='-gazebo_namespace /gazebo -x 0 -y 0 -z 0 -R 0 -P 0 -Y 0 -entity $(var namespace) -file ' + output
+
+    # There are currently no ways to pass the robot_description as a parameter 
+    # to the urdf_spawner, see:
+    # https://github.com/ros-simulation/gazebo_ros_pkgs/pull/1039 
+    # We should use the robot state publisher to publish the robot description
+    # (or pass a file from the disk to the urdf spawner)
+    robot_state_description = Node(
+        namespace = 'vehicle',
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        output='screen',
+        parameters=[{'use_sim_time':False}, {'robot_description': doc}], # Use subst here
+    )
 
     # Urdf spawner. NB: node namespace does not prefix the topic, 
     # as using a leading /
     urdf_spawner = Node(
-        node_name = 'urdf_spawner_sphere',
-        node_namespace = 'vehicle',
+        name = 'urdf_spawner_sphere',
+        namespace = 'vehicle',
         package='gazebo_ros',
-        node_executable='spawn_entity.py',
-        # To replace in foxy with parameters=[{'robot_description', Command('ros2 run xacro...')}]
-        arguments=args
+        executable='spawn_entity.py',
+        arguments=args,
     )
 
     return (
         LaunchDescription([
+            robot_state_description,
             urdf_spawner,
         ])
     )

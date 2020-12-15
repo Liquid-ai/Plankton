@@ -5,7 +5,7 @@
 
   <group>
     <push-ros-namespace namespace="$(var uuv_name)"/>
-    <node pkg="tf2_ros" exec="static_transform_publisher" node-name="sname_frame_publisher"
+    <node pkg="tf2_ros" exec="static_transform_publisher" name="sname_frame_publisher"
           args="0 0 0 0 0 3.141592653589793 /$(var uuv_name)/base_link /$(var uuv_name)/base_link_ned" />
         <param name="use_sim_time" value="$(var use_sim_time)"/>
   </group>

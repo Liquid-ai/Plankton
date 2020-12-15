@@ -8,7 +8,7 @@
 
   <node pkg="uuv_control_utils"
     exec="set_gm_current_perturbation.py"
-    node-name="set_gm_current_perturbation"
+    name="set_gm_current_perturbation"
     output="screen">
     <param name="component" value="$(var component)"/>
     <param name="mean" value="$(var mean)"/>
