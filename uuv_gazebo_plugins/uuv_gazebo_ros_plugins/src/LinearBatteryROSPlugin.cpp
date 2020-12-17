@@ -32,14 +32,11 @@ namespace gazebo
 /////////////////////////////////////////////////
 LinearBatteryROSPlugin::LinearBatteryROSPlugin()
 {
-  myRobotNamespace = "";
 }
 
 /////////////////////////////////////////////////
 LinearBatteryROSPlugin::~LinearBatteryROSPlugin()
 {
-  //rclcpp::shutdown();
-  //this->rosNode->shutdown();
 }
 
 /////////////////////////////////////////////////
@@ -66,9 +63,8 @@ void LinearBatteryROSPlugin::Load(physics::ModelPtr _parent,
     return;
   }
 
-  //TODO Remove ?
-  if (_sdf->HasElement("namespace"))
-    myRobotNamespace = _sdf->Get<std::string>("namespace");
+  // if (_sdf->HasElement("namespace"))
+  //   myRobotNamespace = _sdf->Get<std::string>("namespace");
 
   double updateRate = 2;
   if (_sdf->HasElement("update_rate"))
