@@ -51,10 +51,10 @@ void CustomBatteryConsumerROSPlugin::Load(physics::ModelPtr _parent,
   myRosNode = gazebo_ros::Node::CreateWithArgs(_sdf->Get<std::string>("name"));  //gazebo_ros::Node::Get(_sdf);
   // new ros::NodeHandle(""));
 
-  GZ_ASSERT(_sdf->HasElement("link_name"), "Consumer link name is missing");
+  GZ_ASSERT(_sdf->HasElement("link_name"), "Battery link name (link_name) is missing");
   this->linkName = _sdf->Get<std::string>("link_name");
   physics::LinkPtr link = _parent->GetLink(this->linkName);
-  GZ_ASSERT(link, "Link was NULL");
+  GZ_ASSERT(link, "Consumer plugin: battery link was NULL");
 
   GZ_ASSERT(_sdf->HasElement("battery_name"), "Battery name is missing");
   this->batteryName = _sdf->Get<std::string>("battery_name");
@@ -85,7 +85,9 @@ void CustomBatteryConsumerROSPlugin::Load(physics::ModelPtr _parent,
   }
 
   gzmsg << "CustomBatteryConsumerROSPlugin::Device <"
-    << this->linkName << "> added as battery consumer" << std::endl
+    << _sdf->Get<std::string>("name") 
+    << "> added as battery consumer for the battery <" 
+    << this->linkName << ">" << std::endl
     << "\t- ID=" << this->consumerID << std::endl
     << "\t- Power load [W]=" << this->powerLoad
     << std::endl;

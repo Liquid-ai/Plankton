@@ -1,4 +1,11 @@
+## 0.6.1
+
+### General
+
+- Fixed the issue affecting the CPC sensor and the custom battery plugin when loaded
+
 ## 0.6.0
+
 ### General
 
 - Migration to ROS 2 Foxy

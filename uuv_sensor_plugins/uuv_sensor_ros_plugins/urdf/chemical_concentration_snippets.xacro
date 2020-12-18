@@ -112,7 +112,7 @@
 
    <gazebo>
      <plugin filename="libuuv_gazebo_ros_cpc_plugin.so"
-      name="particle_concentration{suffix}_sensor">
+      name="particle_concentration${suffix}_sensor">
       <ros>
         <namespace>${namespace}</namespace>
       </ros>
