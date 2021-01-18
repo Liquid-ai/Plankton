@@ -24,9 +24,10 @@
     </node>
   </group>
 
-  <include file="$(find-pkg_share uuv_teleop)/launch/uuv_keyboard_teleop.launch">
+  <include file="$(find-pkg-share uuv_teleop)/launch/uuv_keyboard_teleop.launch">
     <arg name="uuv_name" value="$(var uuv_name)"/>
     <arg name="output_topic" value="cmd_vel"/>
     <arg name="message_type" value="twist"/>
   </include>
+
 </launch>
