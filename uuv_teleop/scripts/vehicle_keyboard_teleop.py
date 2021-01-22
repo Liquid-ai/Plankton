@@ -37,16 +37,17 @@ class KeyBoardVehicleTeleop(Node):
                         allow_undeclared_parameters=True, 
                         automatically_declare_parameters_from_overrides=True,
                         **kwargs)
-                        
+        
         # Class Variables
         self.settings = termios.tcgetattr(sys.stdin)
+        self.name = name
 
         # Speed setting
         self.speed = 1 # 1 = Slow, 2 = Fast
-        self.l = Vector3(0, 0, 0) # Linear Velocity for Publish
-        self.a = Vector3(0, 0, 0) # Angular Velocity for publishing
+        self.l = Vector3(x=0., y=0., z=0.) # Linear Velocity for Publish
+        self.a = Vector3(x=0., y=0., z=0.) # Angular Velocity for publishing
         self.linear_increment = 0.05 # How much to increment linear velocities by, to avoid jerkyness
-        self.linear_limit = 1 # Linear velocity limit = self.linear_limit * self.speed
+        self.linear_limit = 1. # Linear velocity limit = self.linear_limit * self.speed
         self.angular_increment = 0.05
         self.angular_limit = 0.5
         # User Interface
@@ -119,9 +120,9 @@ class KeyBoardVehicleTeleop(Node):
 
         # Set Vehicle Speed #
         if key_press == "1":
-            self.speed = 1
+            self.speed = 1.
         if key_press == "2":
-            self.speed = 2
+            self.speed = 2.
 
         # Choose ros message accordingly
         if self._msg_type == 'twist':
@@ -173,8 +174,8 @@ class KeyBoardVehicleTeleop(Node):
 
         else:
             # If no button is pressed reset velocities to 0
-            self.l = Vector3(x=0, y=0, z=0)
-            self.a = Vector3(x=0, y=0, z=0)
+            self.l = Vector3(x=0., y=0., z=0.)
+            self.a = Vector3(x=0., y=0., z=0.)
 
         # Store velocity message into Twist format
         cmd.angular = self.a
@@ -183,11 +184,11 @@ class KeyBoardVehicleTeleop(Node):
         # If ctrl+c kill node
         if (key_press == '\x03'):
             self.get_logger().info('Keyboard Interrupt Pressed')
-            self.get_logger().info('Shutting down [%s] node' % name)
+            self.get_logger().info('Shutting down [%s] node' % self.name)
 
             # Set twists to 0
-            cmd.angular = Vector3(x=0, y=0, z=0)
-            cmd.linear  = Vector3(x=0, y=0, z=0)
+            cmd.angular = Vector3(x=0., y=0., z=0.)
+            cmd.linear  = Vector3(x=0., y=0., z=0.)
             self._output_pub.publish(cmd)
 
             exit(-1)
@@ -207,7 +208,7 @@ def main(args=None):
     teleop = KeyBoardVehicleTeleop(name, parameter_overrides=[sim_time_param])
     teleop.get_logger().info('Starting [%s] node' % name)
 
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, teleop.settings)
 
     rclpy.spin(teleop)
     teleop.get_logger().info('Shutting down [%s] node' % name)
