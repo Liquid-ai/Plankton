@@ -155,5 +155,9 @@ Node(
 Try to add the following line to your ~/.bashrc file     
 `export LIBGL_ALWAYS_SOFTWARE=1`
 
+## External contributions
+
+   - Port of the ECA A9 AUV, initially developed for UUV Simulator, to Plankton: https://github.com/GSO-soslab/eca_a9_plankton
+
 # License #
 Plankton is distributed under Apache License version 2.0 
