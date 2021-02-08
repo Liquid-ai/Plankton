@@ -13,7 +13,7 @@
     <node pkg="uuv_control_cascaded_pid" exec="acceleration_control.py" name="acceleration_control"
           output="screen">
       <param name="tf_prefix" type="string" value="$(var uuv_name)/" />
-      <param from="$(find-pk-share uuv_control_cascaded_pid)/config/$(var model_name)/inertial.yaml"/>
+      <param from="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/inertial.yaml"/>
     </node>
 
     <node pkg="uuv_control_cascaded_pid" exec="velocity_control.py" name="velocity_control"
@@ -23,7 +23,7 @@
       <param from="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/vel_pid_control.yaml"/>
     </node>
 
-    <node pkg="uuv_control_cascaded_pid" exec="PositionControl.py" name="position_control"
+    <node pkg="uuv_control_cascaded_pid" exec="position_control.py" name="position_control"
           output="screen">
       <remap from="odom" to="/$(var uuv_name)/pose_gt"/>
       <param from="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/pos_pid_control.yaml"/>
