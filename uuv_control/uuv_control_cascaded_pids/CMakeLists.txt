@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(uuv_control_cascaded_pid)
+project(uuv_control_cascaded_pids)
 
 find_package(ament_cmake REQUIRED)
 
