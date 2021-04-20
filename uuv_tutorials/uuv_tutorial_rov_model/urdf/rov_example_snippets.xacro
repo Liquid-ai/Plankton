@@ -24,7 +24,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <!-- Provide the propeller mesh in a separate file with the rotation axis
-  over propeller's frame X-axis in DAE (Collada) or STL format.
+  over propeller frame X-axis in DAE (Collada) or STL format.
   -->
   <xacro:property name="prop_mesh_file" value="file://$(find uuv_tutorial_rov_model)/mesh/propeller.dae"/>
 
@@ -116,7 +116,7 @@
           <timeConstant>0.0</timeConstant>
         </dynamics>
 
-        <!-- Yoerger's nonlinear dynamic model
+        <!-- Yoerger nonlinear dynamic model
         For information on the model description:
         [1] D. R. Yoerger, J. G. Cooke, and J.-J. E. Slotine, "The influence of
             thruster dynamics on underwater vehicle behavior and their incorporation
@@ -129,7 +129,7 @@
           <beta>0.0</beta>
         </dynamics>
 
-        <!-- Bessa's nonlinear dynamic model
+        <!-- Bessa nonlinear dynamic model
         For information on the model description:
         [2] Bessa, Wallace Moreira, Max Suell Dutra, and Edwin Kreuzer. "Thruster
             dynamics compensation for the positioning of underwater robotic vehicles
@@ -180,8 +180,8 @@
         </conversion>
 
         <!-- Linear interpolation
-        If you have access to the thruster's data sheet, for example,
-        you can enter samples of the curve's input and output values
+        If you have access to the thruster data sheet, for example,
+        you can enter samples of the curve input and output values
         and the thruster output will be found through linear interpolation
         of the given samples.
         -->

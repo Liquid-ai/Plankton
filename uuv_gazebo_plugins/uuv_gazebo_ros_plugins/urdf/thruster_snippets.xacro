@@ -13,7 +13,7 @@
   </xacro:macro>
 
   <!--
-    MACROS FOR CONVERSION FUNCTIONS BETWEEN ROTOR'S ANG. VELOCITY AND
+    MACROS FOR CONVERSION FUNCTIONS BETWEEN ROTORS ANG. VELOCITY AND
     THRUSTER FORCE
   -->
 
@@ -60,8 +60,8 @@
 
   <!--
     3) Linear interpolation
-      If you have access to the thruster's data sheet, for example,
-      you can enter samples of the curve's input and output values
+      If you have access to the thruster data sheet, for example,
+      you can enter samples of the curve input and output values
       and the thruster output will be found through linear interpolation
       of the given samples.
   -->
@@ -128,7 +128,7 @@
 
   <!--
     Thruster model with first order dynamic model for the rotor dynamics
-    and a proportional non-linear steady-state conversion from the rotor's
+    and a proportional non-linear steady-state conversion from the rotor
     angular velocity to output thrust force
   -->
 

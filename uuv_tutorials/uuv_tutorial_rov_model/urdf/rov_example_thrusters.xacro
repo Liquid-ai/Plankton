@@ -26,7 +26,7 @@
     <!--
     Important:
         - The thruster IDs must be given as integers and must be unique to each thruster unit
-        - The thruster pose in the <origin> block is relative to the body's center of mass. Be
+        - The thruster pose in the <origin> block is relative to the body center of mass. Be
           aware that Gazebo does not use the SNAME convention per default.
     -->
 

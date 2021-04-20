@@ -26,7 +26,7 @@
   <!-- Input debug flag -->
   <xacro:arg name="debug" default="0"/>
 
-  <!-- Vehicle's namespace -->
+  <!-- Vehicle namespace -->
   <xacro:arg name="namespace" default="rov_example"/>
 
   <!-- Include the ROV macro file -->
