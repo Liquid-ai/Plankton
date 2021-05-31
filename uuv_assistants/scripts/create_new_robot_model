@@ -47,13 +47,12 @@ if __name__ == '__main__':
     print('\tRobot name = ' + args.robot_name)
     print('\tColcon package name = ' + colcon_pkg)
 
-
     if colcon_pkg is not None:
         if os.path.exists(colcon_pkg):
             print('Colcon package already exists!')
             sys.exit(1)
         print('Creating the colcon package...')
-        os.system('colcon_create_pkg ' + colcon_pkg)
+        os.system('ros2 pkg create --build-type ament_cmake ' + colcon_pkg)
         if not os.path.isdir(colcon_pkg):
             print('Colcon package could not be created')
             sys.exit(-1)

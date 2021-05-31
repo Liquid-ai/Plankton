@@ -26,11 +26,11 @@
   <xacro:include filename="$(find uuv_descriptions)/urdf/common.urdf.xacro"/>
   <!-- Loading file with sensor macros -->
   <xacro:include filename="$(find uuv_sensor_ros_plugins)/urdf/sensor_snippets.xacro"/>
-  <!-- Loading vehicle's specific macros -->
+  <!-- Loading vehicle specific macros -->
   <xacro:include filename="$(find uuv_tutorial_rov_model)/urdf/rov_example_snippets.xacro"/>
 
   <!--
-    Vehicle's parameters (remember to enter the model parameters below)
+    Vehicle parameters (remember to enter the model parameters below)
   -->
 
   <xacro:property name="mass" value="0"/>
@@ -42,7 +42,7 @@
   <!-- Fluid density -->
   <xacro:property name="rho" value="1028"/>
 
-  <!-- Describing the dimensions of the vehicle's bounding box -->
+  <!-- Describing the dimensions of the vehicle bounding box -->
   <xacro:property name="length" value="0"/>
   <xacro:property name="width"  value="0"/>
   <xacro:property name="height" value="0"/>
@@ -118,15 +118,15 @@
         forces and moments will be published in separate topics -->
         <debug>${debug}</debug>
 
-        <!-- List of hydrodynamic models this robot's links -->
+        <!-- List of hydrodynamic models this robot links -->
         <link name="${namespace}/base_link">
           <!-- This flag will make the link neutrally buoyant -->
           <neutrally_buoyant>0</neutrally_buoyant>
 
-          <!-- Link's volume -->
+          <!-- Link volume -->
           <volume>${volume}</volume>
 
-          <!-- Link's bounding box, it is used to recalculate the immersed
+          <!-- Link bounding box, it is used to recalculate the immersed
           volume when close to the surface.
           This is a workaround the invalid bounding box given by Gazebo-->
           <box>
@@ -142,7 +142,7 @@
           ----------------------------------------------------
           ----------------------------------------------------
           Choose one of the hydrodynamic models below, all are based on
-          Fossen's equation of motion for underwater vehicles
+          Fossen equation of motion for underwater vehicles
 
           Reference:
           [1] Fossen, Thor I. Handbook of marine craft hydrodynamics and motion
@@ -150,7 +150,7 @@
           ----------------------------------------------------
           ---------------------------------------------------->
 
-          <!-- Fossen's equation of motion -->
+          <!-- Fossen equation of motion -->
           <hydrodynamic_model>
             <type>fossen</type>
             <added_mass>

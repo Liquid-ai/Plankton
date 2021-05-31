@@ -85,7 +85,7 @@
     <!-- Set up hydrodynamic plugin given as input parameter -->
     <xacro:insert_block name="gazebo"/>
 
-    <!-- optional: plugin to test compare Gazebo's returned accelerations
+    <!-- optional: plugin to test compare Gazebo returned accelerations
     <gazebo>
       <plugin name="${namespace}_test_plugin" filename="libuuv_accelerations_test_plugin.so">
         <link_name>${namespace}/base_link</link_name>
