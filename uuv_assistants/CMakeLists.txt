@@ -35,7 +35,7 @@ ament_target_dependencies(
 
 ament_python_install_package(tf_quaternion PACKAGE_DIR src/tf_quaternion)
 
-install(DIRECTORY launch
+install(DIRECTORY launch templates
   DESTINATION share/${PROJECT_NAME}
   PATTERN "*~" EXCLUDE)
 

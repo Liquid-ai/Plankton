@@ -4,24 +4,24 @@
     <!-- Center of buoyancy -->
     <xacro:property name="$ROBOT_NAME_cob" value="0 0 0"/>
 
-    <!-- Vehicle's actual volume (Gazebo cannot compute the volume out of the mesh) -->
+    <!-- Vehicle actual volume (Gazebo cannot compute the volume out of the mesh) -->
     <xacro:property name="$ROBOT_NAME_volume" value="0"/>
 
-    <!-- Describing the dimensions of the vehicle's bounding box -->
+    <!-- Describing the dimensions of the vehicle bounding box -->
     <xacro:property name="$ROBOT_NAME_length" value="0"/>
     <xacro:property name="$ROBOT_NAME_width"  value="0"/>
     <xacro:property name="$ROBOT_NAME_height" value="0"/>
 
     <xacro:macro name="$ROBOT_NAME_hydro_model" params="namespace">
-      <!-- List of hydrodynamic models this robot's links -->
+      <!-- List of hydrodynamic models this robot links -->
       <link name="${namespace}/base_link">
         <!-- This flag will make the link neutrally buoyant -->
         <neutrally_buoyant>0</neutrally_buoyant>
 
-        <!-- Link's volume -->
+        <!-- Link volume -->
         <volume>${$ROBOT_NAME_volume}</volume>
 
-        <!-- Link's bounding box, it is used to recalculate the immersed
+        <!-- Link bounding box, it is used to recalculate the immersed
         volume when close to the surface.
         This is a workaround the invalid bounding box given by Gazebo-->
         <box>
@@ -35,14 +35,14 @@
 
         <!--
         Choose one of the hydrodynamic models below, all are based on
-        Fossen's equation of motion for underwater vehicles
+        Fossen equation of motion for underwater vehicles
 
         Reference:
         [1] Fossen, Thor I. Handbook of marine craft hydrodynamics and motion
             control. John Wiley & Sons, 2011.
         -->
 
-        <!-- 1) Fossen's equation of motion -->
+        <!-- 1) Fossen equation of motion -->
         <hydrodynamic_model>
           <type>fossen</type>
           <added_mass>
