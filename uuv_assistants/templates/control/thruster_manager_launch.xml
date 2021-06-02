@@ -1,0 +1,20 @@
+<launch>
+  <arg name="model_name" default="$ROBOT"/>
+  <arg name="uuv_name" default="$(var model_name)"/>
+  
+  <arg name="control_pkg" default="$(var model_name)_control"/>
+  
+  <arg name="output_dir" default="$(find-pkg-share $(var control_pkg))/config"/>
+  <arg name="config_file" default="$(find-pkg-share $(var control_pkg))/config/thruster_manager.yaml"/>
+  <arg name="tam_file" default="$(find-pkg-share $(var control_pkg))/config/TAM.yaml"/>
+  
+  <!-- Start Plankton thruster allocation manager -->
+  <include file="$(find-pkg-share uuv_thruster_manager)/launch/thruster_manager.launch">
+     <arg name="uuv_name" value="$(var uuv_name)" />
+     <arg name="model_name" value="$(var model_name)" />
+     <arg name="output_dir" value="$(var output_dir)" />
+     <arg name="config_file" value="$(var config_file)" />
+     <arg name="tam_file" value="$(var tam_file)" />
+   </include>
+
+</launch>

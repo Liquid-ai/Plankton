@@ -1,0 +1,13 @@
+/**:
+  ros__parameters:
+    linear_d: 0.0
+    linear_i: 2.0
+    linear_p: 10.0
+    linear_sat: 20.0
+
+    angular_d: 1.0
+    angular_i: 2.0
+    angular_p: 10.0
+    angular_sat: 5.0
+
+    odom_vel_in_world: True

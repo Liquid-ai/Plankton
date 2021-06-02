@@ -51,6 +51,7 @@ install(
           scripts/unpause_simulation.py
           scripts/create_new_robot_model 
           scripts/create_thruster_manager_configuration
+          scripts/create_control_package
   DESTINATION lib/${PROJECT_NAME})
 
 ament_package()

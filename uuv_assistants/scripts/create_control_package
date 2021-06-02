@@ -1,0 +1,213 @@
+#!/usr/bin/env python3
+# Copyright (c) 2021 Olivier Kermorgant
+# All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import argparse
+import os, sys, yaml
+import shutil
+from ament_index_python import get_package_share_directory
+import rclpy
+from subprocess import run
+import xacro
+from urdf_parser_py.urdf import URDF
+from transforms3d.euler import euler2mat
+import numpy as np
+
+def exit_msg(s):
+    print(s)
+    sys.exit(0)
+    
+def get_paths(xacro_file,package):
+    
+    if xacro_file is None:
+        exit_msg('Give a robot description file (-f file.xacro)')
+        
+    if package is None:
+        if not os.path.exists(xacro_file):
+            exit_msg('Give a package name (-p package)')
+            
+        if os.path.splitext(xacro_file)[-1] not in ('.urdf','.xacro'):
+            exit_msg(f'{xacro_file} does not seem to be a robot description')
+            
+        # identify root, parent folder of package
+        root = os.path.dirname(os.path.abspath(xacro_file))
+        while 'package.xml' not in os.listdir(root):
+            root = os.path.dirname(root)
+        root = os.path.dirname(root)
+        
+    else:
+        # look for this file
+        try:
+            share = get_package_share_directory(package)
+        except:
+            exit_msg('Could not find package ' + package)
+        # look for the xacro file
+        for root, dirs, files in os.walk(share, topdown=False):
+            if xacro_file in files:
+                xacro_file = os.path.join(share, root, xacro_file)
+                break
+        if '/' not in xacro_file:
+            exit_msg(f'Could not find {xacro_file} in package {des_pkg}')
+            
+        # assume current dir is root
+        root = os.path.abspath('.')
+        
+    model = URDF.from_xml_string(xacro.process_file(xacro_file).toxml())
+    
+    return model.name, model, root
+
+def create_package(root, name):
+    
+    dest = name + '_control'
+    
+    if not os.path.exists(os.path.join(root, dest)):
+        r = input(f'Will create {dest} at {root} [Y/n] ')
+        if r in ('n','N'):
+            sys.exit(0)
+        run(['ros2','pkg','create','--build-type', 'ament_cmake', dest], cwd=root)
+        # cleanup
+        shutil.rmtree(f'{root}/{dest}/include')
+        shutil.rmtree(f'{root}/{dest}/src')            
+    else:
+        r = input(f'Package {dest} already exists, will update files from description [Y/n] ')
+        if r in ('n','N'):
+            sys.exit(0)
+            
+    dest = f'{root}/{dest}'
+            
+    # copy templates
+    for folder in ('config','launch'):
+        if not os.path.exists(f'{dest}/{folder}'):
+            os.mkdir(f'{dest}/{folder}')
+            
+    tmp_dir = get_package_share_directory('uuv_assistants') + '/templates/control'
+    for tmp in os.listdir(tmp_dir):
+        if tmp.endswith('.yaml'):
+            # param files are adapted later on
+            shutil.copy(f'{tmp_dir}/{tmp}', f'{dest}/config')
+        elif tmp.endswith('_launch.xml'):
+            # launch files are just updated their default value
+            with open(f'{tmp_dir}/{tmp}') as f:
+                content = f.read()
+            with open(f'{dest}/launch/{tmp}', 'w') as f:
+                f.write(content.replace('$ROBOT', name))
+        else:
+            print(f'Unknown template file {tmp}')
+            
+    # install config / launch in CMakeLists.txt
+    with open(f'{dest}/CMakeLists.txt') as f:
+        cmake = f.read()
+    if 'install' not in cmake:
+        with open(f'{dest}/CMakeLists.txt', 'w') as f:
+            f.write(cmake.replace('ament_package', 
+                                  '''install(DIRECTORY launch config
+  DESTINATION share/${PROJECT_NAME})\n\nament_package'''))
+            
+    return dest
+
+class Thruster:
+    def __init__(self, model, n):
+        name = model.name
+        link = model.link_map[f'{name}/thruster_{n}']
+        
+        # get pose and TAM column
+        joint = model.get_chain(model.get_root(), link.name)[1]
+        joint = model.joint_map[joint]
+        t = joint.origin.position
+        R = euler2mat(*joint.origin.rpy)
+        tsk = np.array([[0,-t[2],t[1]],[t[2],0,-t[0]],[-t[1],t[0],0]])
+        self.col = np.dot(np.concatenate((R, np.dot(tsk,R)),0),joint.axis).reshape(6,1)
+        
+        # get thruster params
+        plugin = None
+        for gz in model.gazebos:
+            pl = gz.find('plugin')
+            try:
+                plugin_name = pl.attrib['name']                
+            except:
+                continue
+            if 'thruster' in plugin_name and f'_{n}' in plugin_name:
+                print(f'Found thruster {n} definition')
+                plugin = pl
+                break
+        if plugin is None:
+            exit_msg(f'Could not find plugin for thruster {n}')
+        if plugin.find('conversion').find('type').text == 'Basic':
+            self.conv = 'proportional'
+            self.conv_param = {'gain': float(plugin.find('conversion').find('rotorConstant').text)}                       
+        else:
+            self.conv = 'custom'
+            self.conv_param = {}
+            for key in ('input', 'output'):
+                self.conv_param[key] = [float(v) for v in plugin.find('conversion').find(f'{key}Values').text.split()]
+        
+        
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Create new colcon package to control a UUV robot")
+    parser.add_argument('-p', '--package', type=str, default=None)
+    parser.add_argument('-f', '--file', type=str, default=None)
+
+    args = parser.parse_args(rclpy.utilities.remove_ros_args(sys.argv)[1:])    
+    name, model, root = get_paths(args.file, args.package)
+    
+    dest = create_package(root, name)
+    
+    def get_file(name):
+        if name.endswith('.yaml'):
+            return f'{dest}/config/{name}'
+        elif tmp.endswith('_launch.xml'):
+            return f'{dest}/launch/{name}'
+        
+    def read_config(name):
+        with open(get_file(name)) as f:        
+            return yaml.safe_load(f)['/**']['ros__parameters']
+        
+    def write_config(name, config):
+        with open(get_file(name), 'w') as f:
+            yaml.safe_dump({'/**': {'ros__parameters': config}}, f)        
+    
+    # parse model to adapt config files
+    
+    # inertia is assumed to be in root link
+    inertia = model.link_map[model.get_root()].inertial    
+    inertia_yaml = read_config('inertial.yaml')['pid']
+    inertia_yaml['mass'] = inertia.mass
+    inertia_yaml['inertial'] = inertia.inertia.__dict__
+    write_config('inertial.yaml', {'pid': inertia_yaml})
+        
+    # get thrusters
+    n_thr = len([link for link in model.link_map.keys() if 'thruster' in link])    
+    thrusters = [Thruster(model,n) for n in range(n_thr)]
+    
+    # allocation matrix
+    tam = np.concatenate([t.col for t in thrusters],1).flatten()
+    tam[np.where(abs(tam) < 1e-5)] = 0
+    write_config('TAM.yaml', {'tam': tam.tolist()})
+    
+    # thruster params
+    thr = read_config('thruster_manager.yaml')['thruster_manager']
+    thr['tf_prefix'] = name
+    if all([t.conv == thrusters[0].conv and t.conv_param == thrusters[0].conv_param  for t in thrusters]):
+        thr['conversion_fcn'] = thrusters[0].conv
+        thr['conversion_fcn_params'] = thrusters[0].conv_param
+    else:
+        thr['conversion_fcn'] = [t.conv for t in thrusters]
+        thr['conversion_fcn_params'] = [t.conv_param for t in thrusters]
+    write_config('thruster_manager.yaml', {'thruster_manager': thr})
+    
+    
+    
+
+    print('Control package created for ' + name)

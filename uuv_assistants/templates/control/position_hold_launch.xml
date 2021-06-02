@@ -1,8 +1,10 @@
 <launch>
-  <arg name="model_name" />
+  <arg name="model_name" default="$ROBOT"/>
   <arg name="uuv_name" default="$(var model_name)"/>
+  
+  <arg name="control_pkg" default="$(var model_name)_control"/>
 
- <include file="$(find-pkg-share uuv_thruster_manager)/launch/thruster_manager.launch">
+ <include file="$(find-pkg-share $(var control_pkg)/launch/thruster_manager_launch.xml">
     <arg name="uuv_name" value="$(var uuv_name)" />
     <arg name="model_name" value="$(var model_name)" />
   </include>
@@ -13,20 +15,20 @@
     <node pkg="uuv_control_cascaded_pid" exec="acceleration_control.py" name="acceleration_control"
           output="screen">
       <param name="tf_prefix" type="string" value="$(var uuv_name)/" />
-      <param from="$(find-pk-share uuv_control_cascaded_pid)/config/$(var model_name)/inertial.yaml"/>
+      <param from="$(find-pkg-share $(var control_pkg))/config/inertial.yaml"/>
     </node>
 
     <node pkg="uuv_control_cascaded_pid" exec="velocity_control.py" name="velocity_control"
           output="screen">
       <remap from="odom" to="/$(var uuv_name)/pose_gt"/>
       <remap from="cmd_accel" to="/$(var uuv_name)/cmd_accel"/>
-      <param from="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/vel_pid_control.yaml"/>
+      <param from="$(find-pkg-share $(var control_pkg))/config/vel_pid_control.yaml"/>
     </node>
 
     <node pkg="uuv_control_cascaded_pid" exec="position_control.py" name="position_control"
           output="screen">
       <remap from="odom" to="/$(var uuv_name)/pose_gt"/>
-      <param from="$(find-pkg-share uuv_control_cascaded_pid)/config/$(var model_name)/pos_pid_control.yaml"/>
+      <param from="$(find-pkg-share $(var control_pkg))/config/pos_pid_control.yaml"/>
     </node>
   </group>
 </launch>
