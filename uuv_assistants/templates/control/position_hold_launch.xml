@@ -4,7 +4,7 @@
   
   <arg name="control_pkg" default="$(var model_name)_control"/>
 
- <include file="$(find-pkg-share $(var control_pkg)/launch/thruster_manager_launch.xml">
+ <include file="$(find-pkg-share $(var control_pkg))/launch/thruster_manager_launch.xml">
     <arg name="uuv_name" value="$(var uuv_name)" />
     <arg name="model_name" value="$(var model_name)" />
   </include>
