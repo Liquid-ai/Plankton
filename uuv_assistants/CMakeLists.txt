@@ -35,7 +35,7 @@ ament_target_dependencies(
 
 ament_python_install_package(tf_quaternion PACKAGE_DIR src/tf_quaternion)
 
-install(DIRECTORY launch
+install(DIRECTORY launch templates
   DESTINATION share/${PROJECT_NAME}
   PATTERN "*~" EXCLUDE)
 
@@ -51,6 +51,7 @@ install(
           scripts/unpause_simulation.py
           scripts/create_new_robot_model 
           scripts/create_thruster_manager_configuration
+          scripts/create_control_package
   DESTINATION lib/${PROJECT_NAME})
 
 ament_package()

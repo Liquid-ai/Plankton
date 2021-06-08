@@ -26,7 +26,7 @@ import rclpy
 
 from rcl_interfaces.msg import ParameterDescriptor
 
-from PID import PIDRegulator
+from uuv_PID import PIDRegulator
 
 import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
@@ -66,7 +66,7 @@ class PositionControllerNode(Node):
         self._declare_and_fill_map("rot_d", 0.0, "d component of pid for orientation.", self.config)
         self._declare_and_fill_map("rot_sat", 3.0, "saturation of pid for orientation.", self.config)
 
-        self.set_parameters_callback(self.callback_params)
+        self.add_on_set_parameters_callback(self.callback_params)
 
         self.create_pids(self.config)
 
@@ -110,17 +110,17 @@ class PositionControllerNode(Node):
         e_pos_body = transf.quaternion_matrix(q).transpose()[0:3,0:3].dot(e_pos_world)
 
         # Error quaternion wrt body frame
-        e_rot_quat = transf.quaternion_multiply(trans.quaternion_conjugate(q), self.quat_des)
+        e_rot_quat = transf.quaternion_multiply(transf.quaternion_conjugate(q), self.quat_des)
 
         if numpy.linalg.norm(e_pos_world[0:2]) > 5.0:
             # special case if we are far away from goal:
             # ignore desired heading, look towards goal position
             heading = math.atan2(e_pos_world[1],e_pos_world[0])
             quat_des = numpy.array([0, 0, math.sin(0.5*heading), math.cos(0.5*heading)])
-            e_rot_quat = transf.quaternion_multiply(trans.quaternion_conjugate(q), quat_des)
+            e_rot_quat = transf.quaternion_multiply(transf.quaternion_conjugate(q), quat_des)
             
         # Error angles
-        e_rot = numpy.array(trans.euler_from_quaternion(e_rot_quat))
+        e_rot = numpy.array(transf.euler_from_quaternion(e_rot_quat))
 
         v_linear = self.pid_pos.regulate(e_pos_body, t)
         v_angular = self.pid_rot.regulate(e_rot, t)
@@ -133,20 +133,20 @@ class PositionControllerNode(Node):
 
     #==============================================================================
     def callback_params(self, data):
-       """Handle updated configuration values."""
+        """Handle updated configuration values."""
         for parameter in data:
             #if parameter.name == "name":
             #if parameter.type_ == Parameter.Type.DOUBLE:
             self.config[parameter.name] = parameter.value
 
         # Config has changed, reset PID controllers
-        create_pids(self.config)
+        self.create_pids(self.config)
 
         self.get_logger().warn("Parameters dynamically changed...")
         return SetParametersResult(successful=True)
 
     #==============================================================================
-    def create_pids(config):
+    def create_pids(self, config):
         self.pid_pos = PIDRegulator(config['pos_p'], config['pos_i'], config['pos_d'], config['pos_sat'])
         self.pid_rot = PIDRegulator(config['rot_p'], config['rot_i'], config['rot_d'], config['rot_sat'])
 
@@ -157,20 +157,21 @@ class PositionControllerNode(Node):
 
 #==============================================================================
 def main():
-    print('Starting PositionControl.py')
+    print('Starting position_control.py')
     rclpy.init()
 
-    try:
+    #try:
+    if 1:
         sim_time_param = is_sim_time()
 
         node = PositionControllerNode('position_control', parameter_overrides=[sim_time_param])
         rclpy.spin(node)
-    except Exception as e:
-        print('Caught exception: ' + str(e))
-    finally:
-        if rclpy.ok():
-            rclpy.shutdown()
-        print('Exiting')
+    #except Exception as e:
+    #    print('Caught exception: ' + str(e))
+    #finally:
+        #if rclpy.ok():
+            #rclpy.shutdown()
+        #print('Exiting')
 
 #==============================================================================
 if __name__ == '__main__':
