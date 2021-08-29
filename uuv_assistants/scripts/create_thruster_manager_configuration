@@ -20,17 +20,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import roslib
 import os
 import rclpy
 import argparse
 import sys
 import shutil
-from rospkg import RosPack
 
 from ament_index_python.packages import get_package_share_directory
 
-ROSPACK_INST = RosPack()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Create new colcon package for a UUV robot description")
