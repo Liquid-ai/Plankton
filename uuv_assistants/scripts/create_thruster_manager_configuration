@@ -30,7 +30,7 @@ from ament_index_python.packages import get_package_share_directory
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Create new colcon package for a UUV robot description")
+    parser = argparse.ArgumentParser(description="Create new colcon package for a UUV control configuration")
     parser.add_argument('--robot_name', type=str)
     parser.add_argument('--output_dir', type=str, default=None)
 
@@ -43,22 +43,22 @@ if __name__ == '__main__':
 
     if args.output_dir is None:
         output_dir = args.robot_name + '_control'
-        print('Creating colcon package %s for the thruster manager configuration' % output_dir)
-        if os.path.exists(output_dir):
-            print('Colcon package already exists!')
-            sys.exit(-1)
-        print('Creating the colcon package...')
-        os.system('ros2 pkg create --build-type ament_cmake ' + output_dir)
-        if not os.path.isdir(output_dir):
-            print('Colcon package could not be created')
-            sys.exit(-1)
-        print('Done!')
     else:
         output_dir = args.output_dir
 
     print('Create new colcon package for a UUV control configuration')
     print('\tRobot name = ' + args.robot_name)
     print('\tOutput directory = ' + output_dir)
+
+    if os.path.exists(output_dir):
+        print('Colcon package already exists!')
+        sys.exit(-1)
+    print('Creating the colcon package...')
+    os.system('ros2 pkg create --build-type ament_cmake ' + output_dir)
+    if not os.path.isdir(output_dir):
+        print('Colcon package could not be created')
+        sys.exit(-1)
+    print('Done!')
 
     template_path = os.path.join(get_package_share_directory('uuv_assistants'), 'templates', 'thruster_manager_config')
 
