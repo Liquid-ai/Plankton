@@ -24,18 +24,18 @@
     improve the initialization of the thruster manager.
     To generate the TAM.yaml, start the simulation with the vehicle and run:
 
-    >> roslaunch $CATKIN_PACKAGE start_thruster_manager.launch reset_tam:=true
+    >> ros2 launch $COLCON_PACKAGE start_thruster_manager.launch reset_tam:=true
 
     The TAM.yaml file will be store in the folder defined by the following
     argument output_dir
   -->
   <arg name="reset_tam" default="false"/>
   <!-- Output folder to store the TAM.yaml and thruster_manager.yaml files -->
-  <arg name="output_dir" default="$(find $CATKIN_PACKAGE)/config"/>
+  <arg name="output_dir" default="$(find $COLCON_PACKAGE)/config"/>
   <!-- Thruster manager configuration file path -->
-  <arg name="config_file" default="$(find $CATKIN_PACKAGE)/config/thruster_manager.yaml"/>
+  <arg name="config_file" default="$(find $COLCON_PACKAGE)/config/thruster_manager.yaml"/>
   <!-- Thruster allocation matrix file path -->
-  <arg name="tam_file" default="$(find $CATKIN_PACKAGE)/config/TAM.yaml"/>
+  <arg name="tam_file" default="$(find $COLCON_PACKAGE)/config/TAM.yaml"/>
 
   <include file="$(find uuv_thruster_manager)/launch/thruster_manager.launch">
     <arg name="model_name" value="$(arg model_name)"/>
