@@ -49,7 +49,7 @@ def launch_setup(context, *args, **kwargs):
     is_write_on_disk = Lc('write_file_on_disk').perform(context)
 
     # Request sim time value to the global node
-    res = is_sim_time(return_param=False, use_subprocess=True)
+    res = is_sim_time(timeout=2, return_param=False, use_subprocess=True)
 
     # Generate robot description xacro path
     xacro_file = os.path.join(
