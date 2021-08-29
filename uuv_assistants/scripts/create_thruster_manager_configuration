@@ -48,7 +48,7 @@ if __name__ == '__main__':
             print('Colcon package already exists!')
             sys.exit(-1)
         print('Creating the colcon package...')
-        os.system('colcon_create_pkg ' + output_dir)
+        os.system('ros2 pkg create --build-type ament_cmake ' + output_dir)
         if not os.path.isdir(output_dir):
             print('Colcon package could not be created')
             sys.exit(-1)
