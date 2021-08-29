@@ -57,6 +57,20 @@ if __name__ == '__main__':
             sys.exit(-1)
         print('Done!')
 
+    # Add installation directory for robot model into CMakeLists.txt of package
+    pkg_cmake_path = colcon_pkg + "/CMakeLists.txt"
+    with open(pkg_cmake_path, 'r') as f:
+        contents = f.readlines()
+
+    contents.insert(22, '\n')
+    contents.insert(23, "install(DIRECTORY launch meshes robots urdf\nDESTINATION share/${PROJECT_NAME}\n  PATTERN \"*~\"\n  EXCLUDE)")
+    contents.insert(24, '\n')
+
+    with open(pkg_cmake_path, "w") as f:
+        contents = "".join(contents)
+        f.write(contents)
+
+    # Copy templates for robot model
     template_path = os.path.join(get_package_share_directory('uuv_assistants'), 'templates', 'robot_model')
 
     for d in os.listdir(template_path):

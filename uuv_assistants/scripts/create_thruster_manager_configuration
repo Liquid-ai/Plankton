@@ -60,6 +60,20 @@ if __name__ == '__main__':
         sys.exit(-1)
     print('Done!')
 
+    # Add installation directory for launch and configuration into CMakeLists.txt of package
+    pkg_cmake_path = output_dir + "/CMakeLists.txt"
+    with open(pkg_cmake_path, 'r') as f:
+        contents = f.readlines()
+
+    contents.insert(22, '\n')
+    contents.insert(23, "install(DIRECTORY launch config\nDESTINATION share/${PROJECT_NAME}\n  PATTERN \"*~\"\n  EXCLUDE)")
+    contents.insert(24, '\n')
+
+    with open(pkg_cmake_path, "w") as f:
+        contents = "".join(contents)
+        f.write(contents)
+
+    # Copy templates for thruster manager config
     template_path = os.path.join(get_package_share_directory('uuv_assistants'), 'templates', 'thruster_manager_config')
 
     for d in os.listdir(template_path):
