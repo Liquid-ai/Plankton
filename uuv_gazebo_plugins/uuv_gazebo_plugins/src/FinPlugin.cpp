@@ -75,15 +75,18 @@ void FinPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   // Input/output topics
   std::string inputTopic, outputTopic;
-  if (_sdf->HasElement("input_topic"))
-    std::string inputTopic = _sdf->Get<std::string>("input_topic");
-  else
+  if (_sdf->HasElement("input_topic")){
+    inputTopic = _sdf->Get<std::string>("input_topic");
+  }
+  else{
     inputTopic = myTopicPrefix + "/input";
-
-  if (_sdf->HasElement("output_topic"))
+  }
+  if (_sdf->HasElement("output_topic")){
     outputTopic = _sdf->Get<std::string>("output_topic");
-  else
+  }
+  else{
     outputTopic = myTopicPrefix + "/output";
+  }
 
   GZ_ASSERT(_sdf->HasElement("link_name"), "Could not find link_name.");
   std::string link_name = _sdf->Get<std::string>("link_name");
