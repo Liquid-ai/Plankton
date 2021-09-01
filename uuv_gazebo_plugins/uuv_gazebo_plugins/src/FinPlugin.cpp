@@ -74,20 +74,11 @@ void FinPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   myTopicPrefix = BuildTopicPrefix(_model->GetName(), this->finID);
 
   // Input/output topics
-  std::string inputTopic, outputTopic;
-  if (_sdf->HasElement("input_topic")){
-    inputTopic = _sdf->Get<std::string>("input_topic");
-  }
-  else{
-    inputTopic = myTopicPrefix + "/input";
-  }
-  if (_sdf->HasElement("output_topic")){
-    outputTopic = _sdf->Get<std::string>("output_topic");
-  }
-  else{
-    outputTopic = myTopicPrefix + "/output";
-  }
-
+  std::string inputTopic, outputTopic, currentVelocityTopic;
+  inputTopic = myTopicPrefix + "/input";
+  outputTopic = myTopicPrefix + "/output";
+  currentVelocityTopic = myTopicPrefix + "/wrench_topic";
+  
   GZ_ASSERT(_sdf->HasElement("link_name"), "Could not find link_name.");
   std::string link_name = _sdf->Get<std::string>("link_name");
   this->link = _model->GetLink(link_name);
@@ -112,8 +103,6 @@ void FinPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   // Subscribe to current velocity topic
   GZ_ASSERT(_sdf->HasElement("current_velocity_topic"),
     "Could not find current_velocity_topic.");
-  std::string currentVelocityTopic =
-    _sdf->Get<std::string>("current_velocity_topic");
 
   GZ_ASSERT(!currentVelocityTopic.empty(),
             "Fluid velocity topic tag cannot be empty");
@@ -132,6 +121,9 @@ void FinPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   this->commandSubscriber = this->node->Subscribe(inputTopic,
                                                 &FinPlugin::UpdateInput,
                                                 this);
+
+  gzmsg << "Input Topic: " << inputTopic << std::endl;
+  gzmsg << "GetTopic(): " << this->commandSubscriber->GetTopic() << std::endl;
 
   // Connect the update event
   this->updateConnection = event::Events::ConnectWorldUpdateBegin(
