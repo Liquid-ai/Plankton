@@ -21,6 +21,7 @@
 import numpy as np
 import os
 import yaml
+import time
 
 from geometry_msgs.msg import Wrench, WrenchStamped
 import rclpy
@@ -34,7 +35,9 @@ from uuv_thrusters.models import Thruster
 from uuv_auv_control_allocator.msg import AUVCommand
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 from .fin_model import FinModel
-from plankton_utils.params_helper import parse_nested_params_to_dict
+from plankton_utils.param_helper import parse_nested_params_to_dict
+
+import threading
 
 #TODO Refactor
 class ActuatorManager(Node):
@@ -52,40 +55,13 @@ class ActuatorManager(Node):
 
         self.tf_buffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.tf_buffer, self)
-        tf_trans_ned_to_enu = None
-
-        try:
-            if self.namespace != '':
-                target = '{}/base_link'.format(self.namespace)
-                source = '{}/base_link_ned'.format(self.namespace)
-            else:
-                target = 'base_link'
-                source = 'base_link_ned'
-            self.get_logger().info('Lookup transfrom from %s to %s' % (source, target))
-            tf_trans_ned_to_enu = self.tf_buffer.lookup_transform().lookup_transform(
-                target, source, rclpy.time.Time(), rclpy.time.Duration(seconds=1))
-        except Exception as e:
-            self.get_logger().warning('No transform found between base_link and base_link_ned'
-                  ' for vehicle {}, message={}'.format(self.namespace, e))
-            self.base_link_ned_to_enu = None
-
-        if tf_trans_ned_to_enu is not None:
-            self.base_link_ned_to_enu = quaternion_matrix(
-                (tf_trans_ned_to_enu.transform.rotation.x,
-                 tf_trans_ned_to_enu.transform.rotation.y,
-                 tf_trans_ned_to_enu.transform.rotation.z,
-                 tf_trans_ned_to_enu.transform.rotation.w))[0:3, 0:3]
-
-            self.get_logger().warning('base_link transform NED to ENU=\n{}'.format(
-                self.base_link_ned_to_enu))
-        
-        self.base_link = self.get_parameter('base_link', 'base_link').get_parameter_value().string_value
+        self.base_link = self.get_parameter('base_link').get_parameter_value().string_value
 
         # Retrieve the thruster configuration parameters if available
         thruster_config = self.get_parameters_by_prefix('thruster_config')
         if len(thruster_config) == 0:
             raise RuntimeError('Thruster configuration not available') 
-        self.thruster_config = parse_nested_params_to_dict(self.thruster_config, '.', True)
+        self.thruster_config = parse_nested_params_to_dict(thruster_config, '.', True)
 
 
         # Check if all necessary thruster model parameter are available
@@ -97,9 +73,9 @@ class ActuatorManager(Node):
                     'Parameter <%s> for thruster conversion function is missing' % p)
 
         # Setting up the thruster topic name
-        self.thruster_topic = build_topic_name(self.namespace, 
-            self.thruster_config['topic_prefix'], 0, 
-            self.thruster_config['topic_suffix'])
+        self.thruster_topic = self.build_topic_name(self.thruster_config['topic_prefix'],
+                                                    0, 
+                                                    self.thruster_config['topic_suffix'])
         
         self.thruster = None
 
@@ -109,7 +85,7 @@ class ActuatorManager(Node):
             raise RuntimeError('Fin configuration is not available')
         
         
-        self.fin_config = parse_nested_params_to_dict(self.fin_config, '.', True)
+        self.fin_config = parse_nested_params_to_dict(fin_config, '.', True)
 
         # Check if all necessary fin parameters are available
         fin_params = ['fluid_density', 'lift_coefficient', 'fin_area', 
@@ -134,23 +110,78 @@ class ActuatorManager(Node):
         self.fins = dict()
                 
         self.n_fins = 0
+        
+        self.init_future = rclpy.Future()
+        self.init_thread = threading.Thread(target=self._init_async, daemon=True)
+        self.init_thread.start()
+####
+    # =========================================================================
+    def _init_async(self):
+        try:
+            self._init_async_impl()
+        except Exception as e:
+            self.get_logger().warn('Caught exception: ' + repr(e))
+    # =========================================================================
+    def _init_async_impl(self):
+        #current = time.time()
+        #timeout = 5
+        #while time.time() < current + timeout:
+        #    time.sleep(0.1)
 
+        # If an output directory was provided, store matrix for further use
+        """ if self.output_dir is not None:
+            with open(join(self.output_dir, 'TAM.yaml'), 'w') as yaml_file:
+                yaml_file.write(
+                    yaml.safe_dump(
+                        dict(tam=self.configuration_matrix.tolist())))
+ """
+
+        tf_trans_ned_to_enu = None
+
+        try:
+            if self.namespace != '':
+                target = '{}/base_link'.format(self.namespace)
+                source = '{}/base_link_ned'.format(self.namespace)
+            else:
+                target = 'base_link'
+                source = 'base_link_ned'
+
+            self.get_logger().info('Lookup transform from %s to %s' % (source, target))
+            tf_trans_ned_to_enu = self.tf_buffer.lookup_transform(
+                target, source, rclpy.time.Time(), rclpy.time.Duration(seconds=10))  
+        except Exception as e:
+            self.get_logger().warning('No transform found between base_link and base_link_ned'
+                  ' for vehicle {}, message={}'.format(self.namespace, e))
+            self.base_link_ned_to_enu = None
+
+        if tf_trans_ned_to_enu is not None:
+            self.base_link_ned_to_enu = quaternion_matrix(
+                (tf_trans_ned_to_enu.transform.rotation.x,
+                 tf_trans_ned_to_enu.transform.rotation.y,
+                 tf_trans_ned_to_enu.transform.rotation.z,
+                 tf_trans_ned_to_enu.transform.rotation.w))[0:3, 0:3]
+
+            self.get_logger().warning('base_link transform NED to ENU=\n{}'.format(
+                self.base_link_ned_to_enu))
         if not self.find_actuators():
             raise RuntimeError('No thruster and/or fins found')
 
+        self._ready = True
+        self.init_future.set_result(True)
+        self.get_logger().info('ActuatorManager: ready')
     # =========================================================================
     def find_actuators(self):
         """Calculate the control allocation matrix, if one is not given."""
         
         self.ready = False
-        self.get_logger().infos('ControlAllocator: updating thruster poses')
+        self.get_logger().info('ControlAllocator: updating thruster poses')
 
         base = '%s/%s' % (self.namespace, self.base_link)
 
         frame = '%s/%s%d' % (self.namespace, self.thruster_config['frame_base'], 0)
 
         self.get_logger().info('Lookup: Thruster transform found %s -> %s' % (base, frame))
-        trans = self.tf_buffer.lookup_transform(base, frame, rclpy.time.Time(), rclpy.time.Duration(seconds=1))
+        trans = self.tf_buffer.lookup_transform(base, frame, rclpy.time.Time(), rclpy.time.Duration(seconds=10))
         pos = np.array([trans.transform.translation.x,
                            trans.transform.translation.y,
                            trans.transform.translation.z])
@@ -165,6 +196,7 @@ class ActuatorManager(Node):
         # Read transformation from thruster
         #params = {key: val.value for key, val in params.items()}
         self.thruster = Thruster.create_thruster(
+            self,
             self.thruster_config['conversion_fcn'], 0, 
             self.thruster_topic, pos, quat, 
             **self.thruster_config['conversion_fcn_params'])
@@ -174,7 +206,7 @@ class ActuatorManager(Node):
                 frame = '%s/%s%d' % (self.namespace, self.fin_config['frame_base'], i)
                 
                 self.get_logger().info('Lookup: Fin transform found %s -> %s' % (base, frame))
-                trans = self.tf_buffer.lookup_transform(base, frame, rclpy.time.Time(), rclpy.time.Duration(seconds=1))
+                trans = self.tf_buffer.lookup_transform(base, frame, rclpy.time.Time(), rclpy.time.Duration(seconds=10))
                 pos = np.array([trans.transform.translation.x,
                                    trans.transform.translation.y,
                                    trans.transform.translation.z])
@@ -186,8 +218,9 @@ class ActuatorManager(Node):
                 self.get_logger().info('pos=' + str(pos))
                 self.get_logger().info('quat=' + str(quat))
 
-                fin_topic = build_topic_name(self.namespace, 
-                    self.fin_config['topic_prefix'], i, self.fin_config['topic_suffix'])
+                fin_topic = self.build_topic_name(self.fin_config['topic_prefix'],
+                                                  i,
+                                                  self.fin_config['topic_suffix'])
 
                 self.fins[i] = FinModel(
                     i,
@@ -204,9 +237,9 @@ class ActuatorManager(Node):
         self.get_logger().info('# fins found: %d' % len(self.fins.keys()))
         
         for i in range(self.n_fins):
-            self.get_logger().info(i)
-            self.get_logger().info(self.fins[i].pos)
-            self.get_logger().info(self.fins[i].rot)
+            self.get_logger().info(str(i))
+            self.get_logger().info('pos=' + str(self.fins[i].pos))
+            self.get_logger().info('quat=' + str(self.fins[i].rot))
 
         self.ready = True
         return True
@@ -234,5 +267,5 @@ class ActuatorManager(Node):
             self.fins[i].publish_command(command[i + 1])
 
     # =========================================================================
-    def build_topic_name(self, namespace, topic_prefix, id, topic_prefix):
-        return '/%s/%s/id_%d/%s' %  (namespace, topic_prefix, 0, topic_suffix)
+    def build_topic_name(self, prefix, id, suffix):
+        return prefix + 'id_' + str(id) + suffix

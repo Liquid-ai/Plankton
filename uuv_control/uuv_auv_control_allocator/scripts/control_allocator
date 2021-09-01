@@ -36,13 +36,8 @@ from plankton_utils.time import is_sim_time
 
 # TODO Probably refactor
 class AUVControlAllocator(ActuatorManager):
-    def __init__(self, node_name, **kwargs):
-        #super(AUVControlAllocator, self).__init__()
-        ActuatorManager.__init__(
-            node_name, 
-            **kwargs
-        )
-        
+    def __init__(self, name, **kwargs):
+        ActuatorManager.__init__(self, name, **kwargs) 
         # Retrieve the output file path to store the CAM
         # matrix for future use
         self.output_dir = None
@@ -53,11 +48,14 @@ class AUVControlAllocator(ActuatorManager):
                     'Invalid output directory, output_dir=' + self.output_dir)
             self.get_logger().info('output_dir=' + str(self.output_dir))
 
-        self.update_rate = self.get_parameter('update_rate', 10).value
+        self.last_update = time_in_float_sec(self.get_clock().now())
+
+        self.update_rate = self.get_parameter('update_rate').value
+
         if self.update_rate <= 0:
             raise RuntimeError('Update rate must be a positive number')
 
-        self.timeout = self.get_parameter('timeout', -1).value       
+        self.timeout = self.get_parameter('timeout').value       
 
         # Control allocation matrix for thruster and fin lift forces
         self.u = casadi.SX.sym('u')
@@ -69,29 +67,40 @@ class AUVControlAllocator(ActuatorManager):
         self.input_surge_speed = 0.0
         self.input_tau = np.zeros(6)        
 
-        if not self.init():
+        self.init_future.add_done_callback(self._init_class)
+    # =========================================================================
+    def _init_class(self, future):
+        """ 
+        Initializes the class. Called as a callback when the parent class 
+        is initialized
+        """
+        try:
+            self._init_class_impl()
+        except Exception as e:
+            self.get_logger().info('Caught exception: ' + repr(e))
+    # =========================================================================
+    def _init_class_impl(self):
+        if not self.update_cam():
             raise RuntimeError('No thruster and/or fins found')
       
-        self.sub = self.create_subscription(AUVCommand, 'control_input', self.control_callback, 10)
+        self.sub = self.create_subscription(AUVCommand, self.namespace + '/control_input', self.control_callback, 10)
 
         # NB : no spin before, the sim time clock() is automatically 0
         self.last_update = time_in_float_sec(self.get_clock().now())
 
-        rate = self.create_rate(self.update_rate)
-        thread = threading.Thread(target=rclpy.spin, args=(self,), daemon=True)
-        thread.start()
-        while rclpy.ok():
-            #rclpy.spin_once(self)
-            if self.timeout > -1:
-                if time_in_float_sec(self.get_clock().now()) - self.last_update > self.timeout:
-                    self.input_surge_speed = 0.0
-                    self.input_tau = np.zeros(6)            
-            output = self.allocate(self.input_tau, self.input_surge_speed)            
-            self.publish_commands(output)
-            rate.sleep()
+        self.timer_function = self.create_timer(1.0 / self.update_rate, self.spin_function)
 
+        self.get_logger().info('ControlAllocator: ready')
     # =========================================================================
-    def init(self):
+    def spin_function(self):
+        if self.timeout > -1:
+            if time_in_float_sec(self.get_clock().now()) - self.last_update > self.timeout:
+                self.input_surge_speed = 0.0
+                self.input_tau = np.zeros(6)          
+        output = self.allocate(self.input_tau, self.input_surge_speed)          
+        self.publish_commands(output)
+    # =========================================================================
+    def update_cam(self):
         """Calculate the control allocation matrix, if one is not given."""
                 
         # Build the casadi model
@@ -155,7 +164,7 @@ class AUVControlAllocator(ActuatorManager):
             self.input_tau[0:3] = np.dot(self.base_link_ned_to_enu, self.input_tau[0:3])
             self.input_tau[4::] = np.dot(self.base_link_ned_to_enu, self.input_tau[4::])
         
-        self.last_update = self.get_clock().now()
+        self.last_update = time_in_float_sec(self.get_clock().now())
 
       
 # =============================================================================
@@ -166,15 +175,14 @@ def main():
         sim_time_param = is_sim_time()
 
         node = AUVControlAllocator('auv_control_allocator', parameter_overrides=[sim_time_param])
-        
-    except rclpy.ROSInterruptException:
-        print('AUVControlAllocator::ROSInterruptException Exception')
+        rclpy.spin(node)
+
     except Exception as e:
-        print('Caught exception: ' + str(e))
+        print('AUVControlAllocatoreNode::Exception: ' + str(e))
     finally:
         if rclpy.ok():
             rclpy.shutdown()
-    print('Leaving AUVControlAllocator')
+    print('Leaving AUVControlAllocatorNode')
 
 
 # =============================================================================
