@@ -48,8 +48,6 @@ class AUVControlAllocator(ActuatorManager):
                     'Invalid output directory, output_dir=' + self.output_dir)
             self.get_logger().info('output_dir=' + str(self.output_dir))
 
-        self.last_update = time_in_float_sec(self.get_clock().now())
-
         self.update_rate = self.get_parameter('update_rate').value
 
         if self.update_rate <= 0:
@@ -83,7 +81,7 @@ class AUVControlAllocator(ActuatorManager):
         if not self.update_cam():
             raise RuntimeError('No thruster and/or fins found')
       
-        self.sub = self.create_subscription(AUVCommand, self.namespace + '/control_input', self.control_callback, 10)
+        self.sub = self.create_subscription(AUVCommand, "/" + self.namespace + '/control_input', self.control_callback, 10)
 
         # NB : no spin before, the sim time clock() is automatically 0
         self.last_update = time_in_float_sec(self.get_clock().now())
