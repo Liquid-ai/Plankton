@@ -38,8 +38,6 @@ from .fin_model import FinModel
 from plankton_utils.param_helper import parse_nested_params_to_dict
 
 import threading
-
-#TODO Refactor
 class ActuatorManager(Node):
     MAX_FINS = 4
 
@@ -114,7 +112,6 @@ class ActuatorManager(Node):
         self.init_future = rclpy.Future()
         self.init_thread = threading.Thread(target=self._init_async, daemon=True)
         self.init_thread.start()
-####
     # =========================================================================
     def _init_async(self):
         try:
@@ -123,19 +120,6 @@ class ActuatorManager(Node):
             self.get_logger().warn('Caught exception: ' + repr(e))
     # =========================================================================
     def _init_async_impl(self):
-        #current = time.time()
-        #timeout = 5
-        #while time.time() < current + timeout:
-        #    time.sleep(0.1)
-
-        # If an output directory was provided, store matrix for further use
-        """ if self.output_dir is not None:
-            with open(join(self.output_dir, 'TAM.yaml'), 'w') as yaml_file:
-                yaml_file.write(
-                    yaml.safe_dump(
-                        dict(tam=self.configuration_matrix.tolist())))
- """
-
         tf_trans_ned_to_enu = None
 
         try:

@@ -33,8 +33,6 @@ from uuv_auv_actuator_interface import ActuatorManager
 from plankton_utils.time import time_in_float_sec
 from plankton_utils.time import is_sim_time
 
-
-# TODO Probably refactor
 class AUVControlAllocator(ActuatorManager):
     def __init__(self, name, **kwargs):
         ActuatorManager.__init__(self, name, **kwargs) 
