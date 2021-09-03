@@ -157,7 +157,8 @@
           <stddev>${range_stddev}</stddev>
         </noise>
       </ray>
-      <plugin name="sonar${suffix}_controller" filename="libgazebo_ros_gpu_laser.so">
+      <plugin name="sonar${suffix}_controller" filename="libgazebo_ros_ray_sensor.so">
+        <namespace>${namespace}</namespace>
         <topicName>${topic}</topicName>
         <frameName>sonar${suffix}_link</frameName>
       </plugin>
