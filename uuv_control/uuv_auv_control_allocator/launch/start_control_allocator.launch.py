@@ -35,9 +35,9 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     
     ld = launch.LaunchDescription([
-        DeclareLaunchArgument("namespace", default_value=""),
+        DeclareLaunchArgument("namespace", default_value="ROBOT_NAME"), # Add your robot name here
         DeclareLaunchArgument("reset_tam", default_value="True"), # TODO: Fix TAM Matrix Storage and Loading, need TAM?
-        DeclareLaunchArgument("config_file", default_value=os.path.join(get_package_share_directory("uuv_auv_control_allocator"), "config", "fin_manager.yaml")),
+        DeclareLaunchArgument("config_file", default_value=os.path.join(get_package_share_directory("uuv_auv_control_allocator"), "config", "actuator_manager.yaml")),
         #DeclareLaunchArgument("tam_config", default_value=os.path.join(get_package_share_directory("uuv_auv_control_allocator"), "config", "TAM.yaml")),
         DeclareLaunchArgument("output_dir", default_value=os.path.join(get_package_share_directory("uuv_auv_control_allocator"), "config")),
         OpaqueFunction(function=launch_setup)
