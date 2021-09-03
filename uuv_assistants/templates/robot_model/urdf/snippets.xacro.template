@@ -281,6 +281,7 @@
           <!-- Name of the correspodent fin link and joint  -->
           <link_name>${namespace}/fin_${fin_id}</link_name>
           <joint_name>${namespace}/fin_${fin_id}_joint</joint_name>
+          <fin_id>${fin_id}</fin_id>
 
           <!-- Output topic to publish the current angle of the fin joint -->
           <output_topic>${namespace}/fins/${fin_id}/output</output_topic>
