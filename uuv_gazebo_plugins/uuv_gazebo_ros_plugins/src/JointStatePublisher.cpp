@@ -77,42 +77,71 @@ void JointStatePublisher::Load(gazebo::physics::ModelPtr _parent,
   else
     gzmsg << "JointStatePublisher::robot namespace = " << myRosNode->get_namespace() << std::endl;
 
+  auto only_actuators{false};
+  if (_sdf->HasElement("only_actuators"))
+    only_actuators = _sdf->Get<bool>("only_actuators");
+
   if (_sdf->HasElement("updateRate"))
     this->updateRate = _sdf->Get<double>("updateRate");
   else
     this->updateRate = 50;
 
   const auto FIXED_JOINT{gazebo::physics::Base::EntityType::FIXED_JOINT
-                        + gazebo::physics::Base::EntityType::JOINT};
+        + gazebo::physics::Base::EntityType::JOINT};
 
   std::set<std::string> moving_joint_names;
 
+  const std::array<std::string, 2> actuators{"fin", "thruster"};
+
   for (auto &joint : myModel->GetJoints())
   {
+    const auto name{joint->GetName()};
+
     // do not consider fixed joints
     if (joint->GetType() == FIXED_JOINT)
       continue;
-
-    jointState.name.push_back(joint->GetName());
     
-
 #if GAZEBO_MAJOR_VERSION >= 8
-      const auto lowerLimit{joint->LowerLimit(0)};
-      const auto upperLimit{joint->UpperLimit(0)};
+    const auto lowerLimit{joint->LowerLimit(0)};
+    const auto upperLimit{joint->UpperLimit(0)};
 #else
-      const auto lowerLimit{joint->GetLowerLimit(0).Radian()};
-      const auto upperLimit{joint->GetUpperLimit(0).Radian()};
+    const auto lowerLimit{joint->GetLowerLimit(0).Radian()};
+    const auto upperLimit{joint->GetUpperLimit(0).Radian()};
 #endif
 
-      if (lowerLimit == 0. && upperLimit == 0.)
-      {
-        gzmsg << "\t- " << joint->GetName() << " (0-bounded)" << std::endl;
-        continue;
-      }
+    if (lowerLimit == 0. && upperLimit == 0.)
+    {
+      jointState.name.push_back(name);
+      gzmsg << "\t- " << name << " (0-bounded)" << std::endl;
+      continue;
+    }
 
-    moving_joint_names.insert(joint->GetName());
-    moving_joints++;
-    gzmsg << "\t- " << joint->GetName() << std::endl;
+    // moving joint: test only_actuators
+    auto to_consider{true};
+    if(only_actuators)
+    {
+      to_consider = false;
+      for(const auto &actuator: actuators)
+      {
+        if(name.find(actuator) != name.npos)
+        {
+          to_consider = true;
+          break;
+        }
+      }
+    }
+
+    if(to_consider)
+    {
+      jointState.name.push_back(name);
+      moving_joint_names.insert(name);
+      moving_joints++;
+      gzmsg << "\t- " << name << std::endl;
+    }
+    else
+    {
+      gzmsg << "\t- " << name << " (ignored, not an actuator)" << std::endl;
+    }
   }
 
   const auto nJoints{jointState.name.size()};
@@ -171,14 +200,14 @@ void JointStatePublisher::PublishJointStates()
     const auto & joint{myModel->GetJoint(jointState.name[i])};
 
 #if GAZEBO_MAJOR_VERSION >= 8
-      jointState.position[i] = joint->Position(0);
+    jointState.position[i] = joint->Position(0);
 #else
-      jointState.position[i] = joint->GetAngle(0).Radian();
+    jointState.position[i] = joint->GetAngle(0).Radian();
 #endif
-      jointState.velocity[i] = joint->GetVelocity(0);
-      // not implemented anyway
-      // jointState.effort[i] = joint.GetForce(0);
-    }
+    jointState.velocity[i] = joint->GetVelocity(0);
+    // not implemented anyway
+    // jointState.effort[i] = joint.GetForce(0);
+  }
 
   myJointStatePub->publish(jointState);
 }
