@@ -8,6 +8,7 @@
 .idea
 .ropeproject
 .imdone
+CMakeLists.txt.user
 
 # Misc
 .clang_complete
