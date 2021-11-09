@@ -27,7 +27,7 @@ Please check first the list of feature requests. If it is not there and you thin
 If you feel something is missing in the documentation, please don't hesitate to open an issue to let us know. Even better, if you think you can improve it yourself, it would be a great contribution to the community!
 ### Contributing to code ###
 So you are considering making a code contribution, great! We love to have contributions from the community.
-Before starting hands-on on coding, please check out our issue board to see if we are already working on that, it would be a pity putting an effort into something just to discover that someone else was already working on that. In case of doubt or to discuss how to proceed, please contact one of us (or send an email to info@liquid-tech.ai).
+Before starting hands-on on coding, please check out our issue board to see if we are already working on that, it would be a pity putting an effort into something just to discover that someone else was already working on that. In case of doubt or to discuss how to proceed, please contact one of us (or send an email to loic.mougeolle@naval-group.com).
 
 # Installation #
 Plankton currently supports:
