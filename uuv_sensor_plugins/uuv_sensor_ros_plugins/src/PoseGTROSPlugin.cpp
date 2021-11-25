@@ -130,54 +130,18 @@ bool PoseGTROSPlugin::OnUpdate(const common::UpdateInfo& _info)
   if (dt <= 0)
     return false;
 
-  ignition::math::Pose3d linkPose, refLinkPose;
-  ignition::math::Vector3d refLinVel, refAngVel;
-  ignition::math::Vector3d linkLinVel, linkAngVel;
-
   this->UpdateNEDTransform();
   // Read sensor link's current pose and velocity
 #if GAZEBO_MAJOR_VERSION >= 8
-  linkLinVel = this->link->WorldLinearVel();
-  linkAngVel = this->link->WorldAngularVel();
+  auto linkLinVel = this->link->RelativeLinearVel();
+  auto linkAngVel = this->link->RelativeAngularVel();
 
-  linkPose = this->link->WorldPose();
+  const auto linkPose = this->link->WorldPose();
 #else
-  linkLinVel = this->link->GetWorldLinearVel().Ign();
-  linkAngVel = this->link->GetWorldAngularVel().Ign();
-
-  linkPose = this->link->GetWorldPose().Ign();
+  auto linkLinVel = this->link->GetRelativeLinearVel().Ign();
+  auto linkAngVel = this->link->GetRelativeAngularVel().Ign();
+  const auto linkPose = this->link->GetWorldPose().Ign();
 #endif
-
-  this->UpdateReferenceFramePose();
-
-  // Update the reference frame in case it is given as a Gazebo link and
-  // read the reference link's linear and angular velocity vectors
-  if (this->referenceLink)
-  {
-#if GAZEBO_MAJOR_VERSION >= 8
-    refLinVel = this->referenceLink->WorldLinearVel();
-    refAngVel = this->referenceLink->WorldAngularVel();
-
-    this->referenceFrame = this->referenceLink->WorldPose();
-#else
-    refLinVel = this->referenceLink->GetWorldLinearVel().Ign();
-    refAngVel = this->referenceLink->GetWorldAngularVel().Ign();
-
-    this->referenceFrame = this->referenceLink->GetWorldPose().Ign();
-#endif
-  }
-  else
-  {
-    // If no Gazebo link is given as a reference, the linear and angular
-    // velocity vectors are set to zero
-    refLinVel = ignition::math::Vector3d::Zero;
-    refAngVel = ignition::math::Vector3d::Zero;
-  }
-
-  // Transform pose and velocity vectors to be represented wrt the
-  // reference link provided
-  linkLinVel -= refLinVel;
-  linkAngVel -= refAngVel;
 
   // Add noise to the link's linear velocity
   linkLinVel += ignition::math::Vector3d(
