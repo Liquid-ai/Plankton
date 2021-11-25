@@ -57,8 +57,6 @@ class JointStatePublisher : public gazebo::ModelPlugin
 
   public: void PublishJointStates();
 
-  private: bool IsIgnoredJoint(std::string _jointName);
-
   private: gazebo::physics::WorldPtr world;
 
   private: gazebo::physics::ModelPtr myModel;
@@ -69,8 +67,6 @@ class JointStatePublisher : public gazebo::ModelPlugin
 
   private: std::string myRobotNamespace;
 
-  private: std::vector<std::string> movingJoints;
-
   private: double updateRate;
 
   private: double updatePeriod;
@@ -78,6 +74,9 @@ class JointStatePublisher : public gazebo::ModelPlugin
   private: gazebo::common::Time lastUpdate;
 
   private: rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr myJointStatePub;
+
+  private: sensor_msgs::msg::JointState jointState;
+  private: size_t moving_joints{0};
 };
 }
 

@@ -2,7 +2,7 @@ publish_world_models:
   ros__parameters:
     meshes:
       sea_surface:
-        mesh: package://uuv_gazebo_worlds/Media/models/sea_surface_1000m_x_1000m.dae
+        mesh: package://uuv_gazebo_worlds/media/models/sea_surface_1000m_x_1000m.dae
         model: sea_surface
         scale: [2., 2., 1.]
       sea_bottom:
