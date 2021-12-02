@@ -14,7 +14,7 @@ It is also built on data characterizing the needs of robotics researchers in ter
 # Roadmap #
 The first iteration of the projet is built from UUV Simulator and gazebo 9. We made UUV Simulator compatible with ROS2. In the following months, we intend to improve the performance (speed) of the simulator, and to test different alternatives to gazebo 9 or 11. We will choose the best simulation framework according to our users present and future needs.
 
-We released a beta version of UUV Simulator for ROS 2 in September. The last release in December 2020 made our simulator Plankton compatible with ROS 2 Foxy Fitzroy.
+We released a beta version of UUV Simulator for ROS 2 in September. The last release in December 2020 made our simulator Plankton compatible with ROS 2 Galactic Geochelone.
 
 
 # Contributing #
@@ -32,14 +32,19 @@ Before starting hands-on on coding, please check out our issue board to see if w
 # Installation #
 Plankton currently supports:
 
+- **ROS 2 Galactic** with **Gazebo 9** or **Gazebo 11** and **Ubuntu 20.04**
+
 - **ROS 2 Foxy** with **Gazebo 9** or **Gazebo 11** and **Ubuntu 20.04**
 
 - **ROS 2 Eloquent**, **Ubuntu 18.04** and **Gazebo 9**
 
-### 1. Install ROS 2 Foxy 
+### 1. Install ROS 2 Foxy or Galactic
 
-If you don’t have ROS 2 Foxy installed, follow the instructions below and prefer to install the `ros-foxy-desktop` package:
+If you don’t have ROS 2 Foxy or installed, follow the instructions below and prefer to install the `ros-foxy-desktop` package:
 <https://index.ros.org/doc/ros2/Installation/Foxy/Linux-Install-Debians/>
+
+For ROS 2 Galactic the instructions for installing the `ros-galactic-desktop` package can be found here:
+<https://index.ros.org/doc/ros2/Installation/Galactic/Linux-Install-Debians/>
 
 ### 2. Install Gazebo 11
 
@@ -60,8 +65,11 @@ You can write `gazebo` in a terminal to make sure that gazebo runs correctly. Wr
 
 ### 3. Install the ros packages for gazebo
 
-Write in a terminal:  
+For Foxy, write in a terminal:  
 `sudo apt install ros-foxy-gazebo-ros-pkgs`
+
+For Galactic:
+`sudo apt install ros-galactic-gazebo-ros-pkgs`
 
 >See <http://gazebosim.org/tutorials?tut=ros2_installing&cat=connect_ros> for more detailed information about gazebo and ROS 2 connection.
 
@@ -80,8 +88,10 @@ Now, clone the Plankton repository:
 `git clone https://www.github.com/Liquid-ai/Plankton.git`
 
 At this point, you need to source 2 different files described below to configure ROS 2 and Gazebo environment variables: 
-   - For ROS 2 variables  
+   - For ROS 2 variables (for Foxy)
 `source /opt/ros/foxy/setup.bash`  
+   - For ROS 2 variables (for Galactic)
+`source /opt/ros/galactic/setup.bash`  
    - For Gazebo   
 `source /usr/share/gazebo/setup.sh`
 
@@ -96,6 +106,11 @@ Browse to the root of your workspace and check for missing dependencies:
 ```
 cd ~/ros2_ws/
 rosdep install -i --from-path src --rosdistro foxy -y
+```
+If using Galactic, run instead:
+```
+cd ~/ros2_ws/
+rosdep install -i --from-path src --rosdistro galactic -y
 ```
 
 Install Colcon, the build tool system:  
@@ -114,8 +129,10 @@ If everything went well, you should be able to run example cases.
 
 Note: Every time you open a new terminal, you need to source 3 different files described below to configure ROS 2 and Gazebo environment variables. Write the following each time you start a new terminal to deal with ROS 2 / Gazebo stuff, or prefer to add them at the end of your .bashrc file with `gedit ~/.bashrc`. For the latter, don’t forget to source your .bashrc to enforce the update after saving these changes, or open a fresh terminal.  
 
-   - For ROS 2 variables  
+   - For ROS 2 variables (for Foxy)
 `source /opt/ros/foxy/setup.bash`  
+   - For ROS 2 variables (for Galactic)
+`source /opt/ros/galactic/setup.bash`  
    - For your installation workspace (change the path accordingly)  
 `source $HOME/ros2_ws/install/setup.bash`  
    - For Gazebo   
