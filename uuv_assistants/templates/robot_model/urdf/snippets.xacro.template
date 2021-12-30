@@ -8,7 +8,7 @@
   <!-- Provide the propeller mesh in a separate file with the rotation axis
   over propeller's frame X-axis in DAE (Collada) or STL format.
   -->
-  <xacro:property name="prop_mesh_file" value="file://$(find $CATKIN_PACKAGE)/meshes/propeller.dae"/>
+  <xacro:property name="prop_mesh_file" value="file://$(find $COLCON_PACKAGE)/meshes/propeller.dae"/>
 
   <!--
     Thruster macro with integration of joint and link. The thrusters should
@@ -194,7 +194,7 @@
   -->
 
   <!-- A separate mesh for the fin should be stored in the meshes folder -->
-  <xacro:property name="fin_mesh_file" value="file://$(find $CATKIN_PACKAGE)/meshes/fin.dae"/>
+  <xacro:property name="fin_mesh_file" value="file://$(find $COLCON_PACKAGE)/meshes/fin.dae"/>
 
   <!-- Fin joint limits  -->
   <xacro:property name="fin_min_joint_limit" value="${0.0 * d2r}"/>

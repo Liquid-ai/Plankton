@@ -1,0 +1,180 @@
+
+from launch import LaunchDescription
+from launch.launch_description_sources import AnyLaunchDescriptionSource
+from launch_ros.actions import Node, PushRosNamespace
+from launch.actions import DeclareLaunchArgument
+from launch.actions import GroupAction
+from launch.actions import OpaqueFunction
+from launch.actions import IncludeLaunchDescription
+from launch.substitutions import LaunchConfiguration as Lc
+
+import launch_testing.actions
+
+from ament_index_python.packages import get_package_share_directory
+
+import os
+import pathlib
+import xacro
+
+from plankton_utils.time import is_sim_time
+
+
+def to_bool(value: str):
+    if isinstance(value, bool):
+        return value
+    if not isinstance(value, str):
+        raise ValueError('String to bool, invalid type ' + str(value))
+
+    valid = {'true':True, '1':True,
+             'false':False, '0':False}
+    
+    if value.lower() in valid:
+        return valid[value]
+    
+    raise ValueError('String to bool, invalid value: %s' % value)
+
+
+# =============================================================================
+def launch_setup(context, *args, **kwargs): 
+    # Perform substitutions
+    debug = Lc('debug').perform(context)
+    namespace = Lc('namespace').perform(context)
+    x = Lc('x').perform(context)
+    y = Lc('y').perform(context)
+    z = Lc('z').perform(context)
+    roll = Lc('roll').perform(context)
+    pitch = Lc('pitch').perform(context)
+    yaw = Lc('yaw').perform(context)
+    use_world_ned = Lc('use_ned_frame').perform(context)
+    is_write_on_disk = Lc('write_file_on_disk').perform(context)
+
+    # Request sim time value to the global node
+    res = is_sim_time(timeout_sec=2, return_param=False, use_subprocess=True)
+
+    # Generate robot description xacro path
+    xacro_file = os.path.join(
+        get_package_share_directory('$COLCON_PACKAGE'),
+        'robots',
+        '$ROBOT_NAME' + '_' + (Lc('mode')).perform(context) + '.xacro'
+    )
+
+    # Check for robot description xacro existence
+    if not pathlib.Path(xacro_file).exists():
+        exc = 'Launch file ' + xacro_file + ' does not exist'
+        raise Exception(exc)
+
+    # Build directory for generated robot URDF
+    path = os.path.join(
+        get_package_share_directory('$COLCON_PACKAGE'),
+        'robots',
+        'generated',
+        namespace,
+    )
+
+    # If there is no generated robot URDF directory, create it
+    if not pathlib.Path(path).exists():
+        try:
+            # Create directory if required and sub-directory
+            os.makedirs(path)
+        except OSError:
+            print ("Creation of the directory %s failed" % path)
+    
+    # Generate URDF output path
+    output = os.path.join(
+        path,
+        'robot_description.urdf'
+    )
+
+    # Parse coordinate frame parameter from string and set namespace
+    mapping = {}
+    if to_bool(use_world_ned):
+        mappings={'debug': debug, 'namespace': namespace, 'inertial_reference_frame':'world_ned'}
+    else:
+        mappings={'debug': debug, 'namespace': namespace, 'inertial_reference_frame':'world'}
+    
+    doc = xacro.process(xacro_file, mappings=mappings)
+         
+    # Save generated robot URDF
+    if is_write_on_disk:
+        with open(output, 'w') as file_out:
+            file_out.write(doc)
+    
+    # URDF spawner
+    args=('-gazebo_namespace /gazebo '
+        '-x %s -y %s -z %s -R %s -P %s -Y %s -entity %s -topic robot_description' 
+        %(x, y, z, roll, pitch, yaw, namespace)).split()
+
+    # Urdf spawner. NB: node namespace does not prefix the spawning service, 
+    # as using a leading /
+    # NB 2: node namespace prefixes the robot_description topic
+    urdf_spawner = Node(
+        name = 'urdf_spawner',
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        output='screen',
+        parameters=[{'use_sim_time': res}],
+        arguments=args
+    )
+
+    # A joint state publisher plugin already is started with the model, no need to use the default joint state publisher
+
+    # N.B.: alternative way to generate a robot_description string:
+    # string = str('ros2 run xacro xacro ' + xacro_file + ' debug:=false namespace:=' + namespace + ' inertial_reference_frame:=world')
+    # cmd = Command(string)
+    # but it currently yields yaml parsing error due to ":" in the comments of the xacro description files
+
+    robot_state_publisher = Node(
+        name = 'robot_state_publisher',
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        output = 'screen',
+        parameters=[{'use_sim_time': res}, {'robot_description': doc}], # Use subst here
+    )
+
+    # Message to tf
+    message_to_tf_launch = os.path.join(
+        get_package_share_directory('uuv_assistants'),
+        'launch',
+        'message_to_tf.launch'
+    )
+
+    if not pathlib.Path(message_to_tf_launch).exists():
+        exc = 'Launch file ' + message_to_tf_launch + ' does not exist'
+        raise Exception(exc)
+
+    launch_args = [('namespace', namespace), ('world_frame', 'world'), 
+            ('child_frame_id', '/' + namespace + '/base_link'), ('use_sim_time', str(res).lower()),]
+    message_to_tf_launch = IncludeLaunchDescription(
+            AnyLaunchDescriptionSource(message_to_tf_launch), launch_arguments=launch_args)
+
+   
+    group = GroupAction([
+        PushRosNamespace(namespace), 
+        urdf_spawner, 
+        robot_state_publisher,
+    ])
+    
+
+    return [group, message_to_tf_launch]
+
+# =============================================================================
+def generate_launch_description():
+    return LaunchDescription([
+        DeclareLaunchArgument('debug', default_value='0'),
+
+        DeclareLaunchArgument('x', default_value='0'),
+        DeclareLaunchArgument('y', default_value='0'),
+        DeclareLaunchArgument('z', default_value='-20'),
+        DeclareLaunchArgument('roll', default_value='0.0'),
+        DeclareLaunchArgument('pitch', default_value='0.0'),
+        DeclareLaunchArgument('yaw', default_value='0.0'),
+
+        DeclareLaunchArgument('mode', default_value='default'),
+        DeclareLaunchArgument('namespace', default_value='$ROBOT_NAME'),
+        DeclareLaunchArgument('use_ned_frame', default_value='false'),
+        DeclareLaunchArgument('write_file_on_disk', default_value='false'),
+
+        # DeclareLaunchArgument('use_sim_time', default_value='true'),
+        OpaqueFunction(function = launch_setup)
+    ])
+    

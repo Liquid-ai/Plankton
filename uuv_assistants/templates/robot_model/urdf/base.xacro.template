@@ -7,7 +7,7 @@
   <!-- Loading the UUV simulator ROS plugin macros -->
   <xacro:include filename="$(find uuv_gazebo_ros_plugins)/urdf/snippets.xacro"/>  
   <!-- Loading vehicle's specific macros -->
-  <xacro:include filename="$(find $CATKIN_PACKAGE)/urdf/snippets.xacro"/>
+  <xacro:include filename="$(find $COLCON_PACKAGE)/urdf/snippets.xacro"/>
 
   <!--
     Vehicle's parameters (remember to enter the model parameters below)
@@ -25,12 +25,12 @@
     the mesh pose will have to be corrected below in the <visual> block.
     Open the meshes for the RexROV vehicle in Blender to see an example on the mesh placement.
   -->
-  <xacro:property name="visual_mesh_file" value="file://$(find $CATKIN_PACKAGE)/meshes/vehicle.dae"/>
+  <xacro:property name="visual_mesh_file" value="file://$(find $COLCON_PACKAGE)/meshes/vehicle.dae"/>
 
   <!-- Collision geometry mesh, usually in STL format (it is recommended to keep
   this geometry as simple as possible to improve the performance the physics engine
   regarding the computation of collision forces) -->
-  <xacro:property name="collision_mesh_file" value="file://$(find $CATKIN_PACKAGE)/meshes/vehicle.stl"/>
+  <xacro:property name="collision_mesh_file" value="file://$(find $COLCON_PACKAGE)/meshes/vehicle.stl"/>
 
   <!-- Vehicle macro -->
   <xacro:macro name="$ROBOT_NAME_base" params="namespace *gazebo">
@@ -72,10 +72,10 @@
     <xacro:insert_block name="gazebo"/>
 
     <!-- Include the thruster modules -->
-    <xacro:include filename="$(find $CATKIN_PACKAGE)/urdf/actuators.xacro"/>
+    <xacro:include filename="$(find $COLCON_PACKAGE)/urdf/actuators.xacro"/>
 
     <!-- Include the sensor modules -->
-    <xacro:include filename="$(find $CATKIN_PACKAGE)/urdf/sensors.xacro"/>
+    <xacro:include filename="$(find $COLCON_PACKAGE)/urdf/sensors.xacro"/>
 
   </xacro:macro>
 

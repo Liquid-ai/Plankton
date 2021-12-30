@@ -20,20 +20,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import roslib
 import os
 import rclpy
 import argparse
 import sys
 import shutil
-from rospkg import RosPack
 
 from ament_index_python.packages import get_package_share_directory
 
-ROSPACK_INST = RosPack()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Create new colcon package for a UUV robot description")
+    parser = argparse.ArgumentParser(description="Create new colcon package for a UUV control configuration")
     parser.add_argument('--robot_name', type=str)
     parser.add_argument('--output_dir', type=str, default=None)
 
@@ -46,16 +43,6 @@ if __name__ == '__main__':
 
     if args.output_dir is None:
         output_dir = args.robot_name + '_control'
-        print('Creating colcon package %s for the thruster manager configuration' % output_dir)
-        if os.path.exists(output_dir):
-            print('Colcon package already exists!')
-            sys.exit(-1)
-        print('Creating the colcon package...')
-        os.system('colcon_create_pkg ' + output_dir)
-        if not os.path.isdir(output_dir):
-            print('Colcon package could not be created')
-            sys.exit(-1)
-        print('Done!')
     else:
         output_dir = args.output_dir
 
@@ -63,6 +50,30 @@ if __name__ == '__main__':
     print('\tRobot name = ' + args.robot_name)
     print('\tOutput directory = ' + output_dir)
 
+    if os.path.exists(output_dir):
+        print('Colcon package already exists!')
+        sys.exit(-1)
+    print('Creating the colcon package...')
+    os.system('ros2 pkg create --build-type ament_cmake ' + output_dir)
+    if not os.path.isdir(output_dir):
+        print('Colcon package could not be created')
+        sys.exit(-1)
+    print('Done!')
+
+    # Add installation directory for launch and configuration into CMakeLists.txt of package
+    pkg_cmake_path = output_dir + "/CMakeLists.txt"
+    with open(pkg_cmake_path, 'r') as f:
+        contents = f.readlines()
+
+    contents.insert(22, '\n')
+    contents.insert(23, "install(DIRECTORY launch config\nDESTINATION share/${PROJECT_NAME}\n  PATTERN \"*~\"\n  EXCLUDE)")
+    contents.insert(24, '\n')
+
+    with open(pkg_cmake_path, "w") as f:
+        contents = "".join(contents)
+        f.write(contents)
+
+    # Copy templates for thruster manager config
     template_path = os.path.join(get_package_share_directory('uuv_assistants'), 'templates', 'thruster_manager_config')
 
     for d in os.listdir(template_path):

@@ -3,8 +3,8 @@
   <xacro:arg name="debug" default="0"/>
   <xacro:arg name="namespace" default="$ROBOT_NAME"/>
   <!-- Include the ROV macro file -->
-  <xacro:include filename="$(find $CATKIN_PACKAGE)/urdf/base.xacro"/>
-  <xacro:include filename="$(find $CATKIN_PACKAGE)/urdf/gazebo.xacro"/>
+  <xacro:include filename="$(find $COLCON_PACKAGE)/urdf/base.xacro"/>
+  <xacro:include filename="$(find $COLCON_PACKAGE)/urdf/gazebo.xacro"/>
 
   <!-- Create the $ROBOT_NAME -->
   <xacro:$ROBOT_NAME_base namespace="$(arg namespace)">
