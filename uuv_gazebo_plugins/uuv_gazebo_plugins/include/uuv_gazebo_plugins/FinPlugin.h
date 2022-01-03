@@ -90,8 +90,11 @@ class FinPlugin : public ModelPlugin
     /// \brief Subscriber to the reference signal topic.
     protected: transport::SubscriberPtr commandSubscriber;
 
-    /// \brief Publisher to the output thrust topic
+    /// \brief Publisher to the output angle topic
     protected: transport::PublisherPtr anglePublisher;
+
+    /// \brief Publisher to the output wrench topic
+    protected: transport::PublisherPtr wrenchPublisher;
 
     /// \brief Force component calculated from the lift and drag module
     protected: ignition::math::Vector3d finForce;

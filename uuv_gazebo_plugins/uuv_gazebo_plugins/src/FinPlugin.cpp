@@ -74,10 +74,11 @@ void FinPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   myTopicPrefix = BuildTopicPrefix(_model->GetName(), this->finID);
 
   // Input/output topics
-  std::string inputTopic, outputTopic, currentVelocityTopic;
-  inputTopic = myTopicPrefix + "/input";
-  outputTopic = myTopicPrefix + "/output";
-  currentVelocityTopic = myTopicPrefix + "/wrench_topic";
+  std::string inputTopic, outputTopic, wrenchTopic, currentVelocityTopic;
+  inputTopic = _sdf->Get<std::string>("input_topic");
+  outputTopic = _sdf->Get<std::string>("output_topic");
+  wrenchTopic = _sdf->Get<std::string>("wrench_topic");
+  currentVelocityTopic = _sdf->Get<std::string>("current_velocity_topic");
   
   GZ_ASSERT(_sdf->HasElement("link_name"), "Could not find link_name.");
   std::string link_name = _sdf->Get<std::string>("link_name");
@@ -116,14 +117,14 @@ void FinPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   this->anglePublisher = this->node->Advertise<
       uuv_gazebo_plugins_msgs::msgs::Double>(outputTopic);
 
+  // Advertise the output topic
+  this->wrenchPublisher = this->node->Advertise<
+      uuv_gazebo_plugins_msgs::msgs::Double>(wrenchTopic);
 
   // Subscribe to the input signal topic
   this->commandSubscriber = this->node->Subscribe(inputTopic,
                                                 &FinPlugin::UpdateInput,
                                                 this);
-
-  gzmsg << "Input Topic: " << inputTopic << std::endl;
-  gzmsg << "GetTopic(): " << this->commandSubscriber->GetTopic() << std::endl;
 
   // Connect the update event
   this->updateConnection = event::Events::ConnectWorldUpdateBegin(

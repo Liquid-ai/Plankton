@@ -132,10 +132,10 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
     uuv_gazebo_ros_plugins_msgs::msg::FloatStamped
     >(this->anglePublisher->GetTopic(), 10);
   
-  std::string wrenchTopic = myTopicPrefix + "/wrench_topic";
-
   myPubFinForce =
-    myRosNode->create_publisher<geometry_msgs::msg::WrenchStamped>(wrenchTopic, 10);
+    myRosNode->create_publisher<
+    geometry_msgs::msg::WrenchStamped
+    >(this->wrenchPublisher->GetTopic(), 10);
 
   // std::stringstream stream;
   // stream << _parent->GetName() << "/fins/" << this->finID <<
