@@ -201,15 +201,15 @@
   <xacro:property name="fin_max_joint_limit" value="${0.0 * d2r}"/>
 
   <xacro:macro name="fin_macro" params="namespace fin_id *origin">
-      <joint name="${namespace}/fin${fin_id}_joint" type="revolute">
+      <joint name="${namespace}/fin_${fin_id}_joint" type="revolute">
           <limit effort="0" lower="${fin_min_joint_limit}" upper="${fin_max_joint_limit}" velocity="0"/>
           <xacro:insert_block name="origin"/>
           <axis xyz="0 0 1"/>
           <parent link="${namespace}/base_link" />
-          <child link="${namespace}/fin${fin_id}" />
+          <child link="${namespace}/fin_${fin_id}" />
       </joint>
 
-      <link name="${namespace}/fin${fin_id}">
+      <link name="${namespace}/fin_${fin_id}">
         <inertial>
           <mass value="0.001" />
           <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -279,8 +279,9 @@
           <current_velocity_topic>/hydrodynamics/current_velocity</current_velocity_topic>
 
           <!-- Name of the correspodent fin link and joint  -->
-          <link_name>${namespace}/fin${fin_id}</link_name>
-          <joint_name>${namespace}/fin${fin_id}_joint</joint_name>
+          <link_name>${namespace}/fin_${fin_id}</link_name>
+          <joint_name>${namespace}/fin_${fin_id}_joint</joint_name>
+          <fin_id>${fin_id}</fin_id>
 
           <!-- Output topic to publish the current angle of the fin joint -->
           <output_topic>${namespace}/fins/${fin_id}/output</output_topic>

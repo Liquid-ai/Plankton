@@ -46,6 +46,6 @@ class FinModel:
     # =========================================================================
     def publish_command(self, delta):
         msg = FloatStamped()
-        msg.header.stamp = self.node.get_clock().now()
+        msg.header.stamp = self.node.get_clock().now().to_msg()
         msg.data = delta
         self.pub.publish(msg)

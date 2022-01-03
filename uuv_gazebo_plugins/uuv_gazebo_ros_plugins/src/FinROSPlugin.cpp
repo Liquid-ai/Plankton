@@ -116,7 +116,8 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
           << "  gazebo -s libgazebo_ros_api_plugin.so\n";
     return;
   }
-
+  
+  try {
   myRosNode = gazebo_ros::Node::CreateWithArgs(_sdf->Get<std::string>("name"));// gazebo_ros::Node::Get(_sdf);
   //Change the buildtopicprefix function ("/") if creating a namespaced node here
   RCLCPP_INFO(myRosNode->get_logger(), "[FinROSPlugin] Namespace: " + std::string(myRosNode->get_namespace()));
@@ -130,15 +131,11 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
   myPubState = myRosNode->create_publisher<
     uuv_gazebo_ros_plugins_msgs::msg::FloatStamped
     >(this->anglePublisher->GetTopic(), 10);
-
-  std::string wrenchTopic;
-  if (_sdf->HasElement("wrench_topic"))
-    wrenchTopic = _sdf->Get<std::string>("wrench_topic");
-  else
-    wrenchTopic = myTopicPrefix + "/wrench_topic";
-
+  
   myPubFinForce =
-    myRosNode->create_publisher<geometry_msgs::msg::WrenchStamped>(wrenchTopic, 10);
+    myRosNode->create_publisher<
+    geometry_msgs::msg::WrenchStamped
+    >(this->wrenchPublisher->GetTopic(), 10);
 
   // std::stringstream stream;
   // stream << _parent->GetName() << "/fins/" << this->finID <<
@@ -157,6 +154,12 @@ void FinROSPlugin::Load(gazebo::physics::ModelPtr _parent, sdf::ElementPtr _sdf)
 
   this->rosPublishConnection = gazebo::event::Events::ConnectWorldUpdateBegin(
         std::bind(&FinROSPlugin::RosPublishStates, this));
+
+  }
+  catch(std::exception& e) 
+  {
+    gzerr << "Exception when loading plugin: " << e.what() << "\n";
+  }
 }
 
 /////////////////////////////////////////////////
