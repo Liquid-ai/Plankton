@@ -12,6 +12,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(gazebo_dev REQUIRED)
+find_package(gazebo_ros REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -25,6 +26,7 @@ find_package(visualization_msgs REQUIRED)
 set(BASE_LIBS  
   ament_cmake 
   gazebo_dev
+  gazebo_ros
   geometry_msgs 
   rclcpp 
   sensor_msgs 
