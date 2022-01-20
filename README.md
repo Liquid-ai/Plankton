@@ -14,7 +14,7 @@ It is also built on data characterizing the needs of robotics researchers in ter
 # Roadmap #
 The first iteration of the projet is built from UUV Simulator and gazebo 9. We made UUV Simulator compatible with ROS2. In the following months, we intend to improve the performance (speed) of the simulator, and to test different alternatives to gazebo 9 or 11. We will choose the best simulation framework according to our users present and future needs.
 
-We released a beta version of UUV Simulator for ROS 2 in September. The last release in December 2020 made our simulator Plankton compatible with ROS 2 Galactic Geochelone.
+We released a beta version of UUV Simulator for ROS 2 in September. The last release in December 2020 made our simulator Plankton compatible with ROS 2 Foxy Fitzroy.
 
 
 # Contributing #
