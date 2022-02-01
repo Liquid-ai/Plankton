@@ -136,33 +136,28 @@ bool PoseGTROSPlugin::OnUpdate(const common::UpdateInfo& _info)
 
   this->UpdateNEDTransform();
   // Read sensor link's current pose and velocity
+  // Note: as per specifications of the Odometry message, the twist is relative
+  // to the child_frame_id (not to the world frame)
 #if GAZEBO_MAJOR_VERSION >= 8
-  linkLinVel = this->link->WorldLinearVel();
-  linkAngVel = this->link->WorldAngularVel();
+  linkLinVel = this->link->RelativeLinearVel();
+  linkAngVel = this->link->RelativeAngularVel();
 
   linkPose = this->link->WorldPose();
 #else
-  linkLinVel = this->link->GetWorldLinearVel().Ign();
-  linkAngVel = this->link->GetWorldAngularVel().Ign();
+  linkLinVel = this->link->GetRelativeLinearVel().Ign();
+  linkAngVel = this->link->GetRelativeAngularVel().Ign();
 
   linkPose = this->link->GetWorldPose().Ign();
 #endif
 
   this->UpdateReferenceFramePose();
 
-  // Update the reference frame in case it is given as a Gazebo link and
-  // read the reference link's linear and angular velocity vectors
+  // Update the reference frame in case it is given as a Gazebo link.
   if (this->referenceLink)
   {
 #if GAZEBO_MAJOR_VERSION >= 8
-    refLinVel = this->referenceLink->WorldLinearVel();
-    refAngVel = this->referenceLink->WorldAngularVel();
-
     this->referenceFrame = this->referenceLink->WorldPose();
 #else
-    refLinVel = this->referenceLink->GetWorldLinearVel().Ign();
-    refAngVel = this->referenceLink->GetWorldAngularVel().Ign();
-
     this->referenceFrame = this->referenceLink->GetWorldPose().Ign();
 #endif
   }
@@ -285,9 +280,6 @@ void PoseGTROSPlugin::PublishNEDOdomMessage(common::Time _time,
   q = _pose.Rot() * q;
   q =  this->referenceFrame.Rot() * q;
   _pose.Rot() = q;
-
-  _linVel = this->referenceFrame.Rot().RotateVector(_linVel);
-  _angVel = this->referenceFrame.Rot().RotateVector(_angVel);
 
   // Apply pose offset
   _pose += this->offset;
