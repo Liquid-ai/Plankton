@@ -51,7 +51,7 @@
     <xacro:default_dvl_macro
       namespace="${namespace}"
       parent_link="${parent_link}"
-      reference_frame="world">
+      inertial_reference_frame="world">
       <xacro:insert_block name="origin" />
     </xacro:default_dvl_macro>
   </xacro:macro>
@@ -60,7 +60,7 @@
     <xacro:default_dvl_macro
       namespace="${namespace}"
       parent_link="${parent_link}"
-      reference_frame="world_ned">
+      inertial_reference_frame="world_ned">
       <xacro:insert_block name="origin" />
     </xacro:default_dvl_macro>
   </xacro:macro>
