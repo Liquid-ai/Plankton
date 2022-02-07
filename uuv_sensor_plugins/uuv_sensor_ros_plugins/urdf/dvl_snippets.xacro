@@ -133,6 +133,7 @@
 
         <plugin filename="libgazebo_ros_ray_sensor.so" name="dvl${suffix}_sonar${index}">
           <ros>
+            <namespace>${namespace}</namespace>
             <remapping>~/out:=${topic}_sonar${index}</remapping>
           </ros>
           <!-- <gaussianNoise>0.005</gaussianNoise> -->
