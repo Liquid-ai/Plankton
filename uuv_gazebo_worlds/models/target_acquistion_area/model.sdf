@@ -1,0 +1,50 @@
+<?xml version="1.0" ?>
+
+<sdf version="1.5">
+  <model name="target_acquistion_area">
+    <static>true</static>
+    <link name="link">
+
+      <visual name="target_acquistion_area">
+        <cast_shadows>false</cast_shadows>
+        <pose>0 0 .005 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>8 2 .01</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/colors.material</uri>
+            <name>SAUVC/Green</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+
+    <include>
+      <name>left_red_drum</name>
+      <uri>model://red_drum</uri>
+      <pose>-2.4 0 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://blue_drum</uri>
+      <pose>-0.8 0 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <name>middle_red_drum</name>
+      <uri>model://red_drum</uri>
+      <pose>0.8 0 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <name>right_red_drum</name>
+      <uri>model://red_drum</uri>
+      <pose>2.4 0 0 0 0 0</pose>
+    </include>
+
+  </model>
+</sdf>
+

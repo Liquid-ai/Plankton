@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+
+<sdf version="1.5">
+  <model name="red_flare">
+    <static>false</static>
+    <link name="link">
+
+      <collision name="flare">
+        <pose>0 0 0.75 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.075</radius>
+            <length>1.5</length>
+          </cylinder>
+        </geometry>
+      </collision>
+
+
+      <visual name="flare">
+        <cast_shadows>false</cast_shadows>
+        <pose>0 0 0.75 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.075</radius>
+            <length>1.5</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/colors.material</uri>
+            <name>SAUVC/Red</name>
+          </script>
+        </material>
+      </visual>
+
+    </link>
+  </model>
+</sdf>

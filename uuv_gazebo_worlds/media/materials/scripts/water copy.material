@@ -1,0 +1,21 @@
+material SAUVC2019/StaticWater
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.5 0.5 0.5 0.8
+      diffuse 0.5 0.5 0.5 0.8
+
+      scene_blend alpha_blend
+
+      texture_unit
+      {
+        texture ../textures/static_water.jpg
+        filtering bilinear
+        max_anisotropy 16
+        scale 0.1 0.1
+      }
+    }
+  }
+}

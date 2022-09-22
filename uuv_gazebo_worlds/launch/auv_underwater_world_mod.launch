@@ -1,0 +1,51 @@
+<!-- 
+Underwater environment with the ODE physics engine configured for vehicles using the 
+[fin plugin](https://github.com/uuvsimulator/uuv_simulator/blob/master/uuv_gazebo_plugins/uuv_gazebo_ros_plugins/src/FinROSPlugin.cc)
+-->
+<launch>
+    <!-- <env name="GAZEBO_RESOURCE_PATH" value="$(find uuv_gazebo_worlds)/media:$(optenv GAZEBO_RESOURCE_PATH)" />
+    <env name="GAZEBO_MODEL_PATH" value="$(find uuv_gazebo_worlds)/models:$(optenv GAZEBO_MODEL_PATH)" /> -->
+
+    <arg name="gui" default="false"/>
+    <arg name="paused" default="false"/>
+    <arg name="set_timeout" default="false"/>
+    <arg name="timeout" default="0.0"/>
+    <arg name="use_sim_time" default="true"/>
+
+    <node name="plankton_global_sim_time"
+        pkg="plankton_utils"
+        exec="plankton_global_sim_time"
+        output="screen">
+        <param name="use_sim_time" value="$(var use_sim_time)"/>
+    </node>
+
+    <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
+    <include file="$(find-pkg-share gazebo_ros)/launch/gazebo.launch.py">
+        <arg name="world" value="worlds/auv_underwater_world_mod.world"/>
+        <arg name="pause" value="$(var paused)"/>
+        <arg name="use_sim_time" value="$(var use_sim_time)"/>
+        <arg name="gui" value="$(var gui)"/>
+        <arg name="headless" value="false"/>
+        <arg name="debug" value="false"/>
+        <arg name="verbose" value="true"/>
+        <!-- TODO Remove force_system in foxy, as it will be loaded by default -->
+        <arg name="extra_gazebo_args" value="-s libgazebo_ros_force_system.so --ros-args -r gazebo:__ns:=/gazebo"/>
+    </include>
+
+    <include file="$(find-pkg-share uuv_assistants)/launch/publish_world_ned_frame.launch">
+        <arg name="use_sim_time" value="$(var use_sim_time)"/>
+    </include>
+
+    <!-- <node name="publish_world_models"
+        pkg="uuv_assistants"
+        exec="publish_world_models.py"
+        output="screen">
+        <param from="$(find-pkg-share uuv_gazebo_worlds)/config/auv_underwater.yaml"/>
+    </node> -->
+
+    <group if="$(var set_timeout)">
+        <include file="$(find-pkg-share uuv_assistants)/launch/set_simulation_timer.launch">
+            <arg name="timeout" value="$(var timeout)"/>
+        </include>
+    </group>
+</launch>

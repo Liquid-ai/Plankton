@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+
+<sdf version="1.5">
+  <model name="swimming_pool">
+    <static>true</static>
+    <link name="link">
+
+      <visual name="ground1">
+        <cast_shadows>false</cast_shadows>
+        <pose>-24.1 -0 -1.64 0 0 0</pose>
+        <!-- <pose>0 0 -2 0 0 0</pose> -->
+        <geometry>
+          <box>
+            <size>1.8 25 .72</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/ground_1.material</uri>
+            <name>SAUVC2019/FloorTiles1</name>
+          </script>
+        </material>
+      </visual>
+
+      <collision name="ground1">
+        <pose>-24.1 -0 -1.64 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>1.8 25 .72</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <visual name="ground2">
+        <cast_shadows>false</cast_shadows>
+        <pose>-14.465 0 -1.9997  0 0.041119666044899805 0</pose>
+        <geometry>
+          <box>
+            <size>17.514805165916062 25 .72</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/ground_2.material</uri>
+            <name>SAUVC2019/FloorTiles2</name>
+          </script>
+        </material>
+      </visual>
+
+      <collision name="ground2">
+        <pose>-14.465 0 -1.9997  0 0.041119666044899805 0</pose>
+        <geometry>
+          <box>
+            <size>17.514805165916062 25 .72</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <visual name="ground3">
+        <cast_shadows>false</cast_shadows>
+        <!-- <pose>-25 -12.5 -2 0 0 0</pose> -->
+        <pose>9.65 0 -2.01 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>30.7 25 0.005</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/ground_3.material</uri>
+            <name>SAUVC2019/FloorTiles3</name>
+          </script>
+        </material>
+      </visual>
+
+
+      <collision name="ground3">
+        <pose>9.65 0 -2.01 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>30.7 25 0.005</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <visual name="surface">
+        <cast_shadows>false</cast_shadows>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>50 25 .1</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/water.material</uri>
+            <name>SAUVC2019/StaticWater</name>
+          </script>
+        </material>
+      </visual>
+
+      <visual name="north">
+        <cast_shadows>false</cast_shadows>
+        <pose>25 0 -1 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>.1 25 2</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/short_wall_tiles.material</uri>
+            <name>SAUVC2019/ShortWallTiles</name>
+          </script>
+        </material>
+      </visual>
+
+      <visual name="south">
+        <cast_shadows>false</cast_shadows>
+        <pose>-25 0 -1 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>.1 25 2</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/short_wall_tiles.material</uri>
+            <name>SAUVC2019/ShortWallTiles</name>
+          </script>
+        </material>
+      </visual>
+
+      <visual name="east">
+        <cast_shadows>false</cast_shadows>
+        <pose>0 -12.5 -1 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>50 .1 2</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/long_wall_tiles.material</uri>
+            <name>SAUVC2019/LongWallTiles</name>
+          </script>
+        </material>
+      </visual>
+
+      <visual name="west">
+        <cast_shadows>false</cast_shadows>
+        <pose>0 12.5 -1 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>50 .1 2</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/long_wall_tiles.material</uri>
+            <name>SAUVC2019/LongWallTiles</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

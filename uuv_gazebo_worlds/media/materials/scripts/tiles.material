@@ -1,0 +1,21 @@
+material SAUVC2019/Tiles
+{
+  receive_shadows on
+  technique
+  {
+    pass
+    {
+      ambient 0.7 0.7 0.7 1.0
+      diffuse 0.7 0.7 0.7 1.0
+      specular 0.2 0.2 0.2 1.0 12.5
+
+      texture_unit
+      {
+        texture ../textures/swimming_pool_tile.jpg
+        filtering bilinear
+        max_anisotropy 16
+        scale 0.05 0.05
+      }
+    }
+  }
+}

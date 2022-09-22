@@ -1,0 +1,214 @@
+<?xml version="1.0" ?>
+<!-- 
+  Copyright (c) 2020 The Plankton Authors.
+  All rights reserved.
+
+  This source code is derived from UUV Simulator
+  (https://github.com/uuvsimulator/uuv_simulator)
+  Copyright (c) 2016-2019 The UUV Simulator Authors
+  licensed under the Apache license, Version 2.0
+  cf. 3rd-party-licenses.txt file in the root directory of this source tree.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<sdf version="1.5">
+  <world name="default">
+    <physics name="default_physics" default="true" type="ode">
+      <max_step_size>0.01</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>100</real_time_update_rate>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>50</iters>
+          <sor>1.2</sor>
+        </solver>
+      </ode>
+    </physics>
+    <scene>
+      <ambient>0.2 0.2 0.2 1.0</ambient>
+      <sky>
+        <time>12</time>
+        <clouds>
+          <speed>12</speed>
+        </clouds>
+      </sky>
+      <shadows>false</shadows>
+      <fog>
+        <color>0.1 0.2 0.3 1.0</color>
+        <type>linear</type>
+        <density>0.003</density>
+        <start>10</start>
+        <end>25</end>
+      </fog>
+      <grid>0</grid>
+    </scene>
+
+    <!-- Origin placed at Singapore Poly Swimming Pool  -->
+    <spherical_coordinates>
+      <latitude_deg>1.309562</latitude_deg>
+      <longitude_deg>103.7745783</longitude_deg>
+    </spherical_coordinates>
+
+    <!-- Global light source -->
+    <light type="directional" name="sun1">
+      <cast_shadows>true</cast_shadows>
+      <pose>-20 -20 20 0 0 0</pose>
+      <diffuse>0.5 0.5 0.5 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>40</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <!-- Global light source -->
+    <light type="directional" name="sun2">
+      <cast_shadows>true</cast_shadows>
+      <pose>20 -20 20 0 0 0</pose>
+      <diffuse>0.5 0.5 0.5 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>40</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <light type="directional" name="sun3">
+      <cast_shadows>true</cast_shadows>
+      <pose>-20 20 20 0 0 0</pose>
+      <diffuse>0.5 0.5 0.5 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>40</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <light type="directional" name="sun4">
+      <cast_shadows>true</cast_shadows>
+      <pose>20 20 20 0 0 0</pose>
+      <diffuse>0.5 0.5 0.5 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>40</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+
+    <!-- Bounding box with sea surface -->
+    <include>
+      <uri>model://swimming_pool</uri>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://red_flare</uri>
+      <pose>6 -4 -2 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://gate</uri>
+      <pose>6 -.6 -2 0 0 0</pose>
+    </include>
+
+    <include>
+      <name>yellow_flare_1</name>
+      <uri>model://yellow_flare</uri>
+      <pose>12 6 -2 0 0 0</pose>
+    </include>
+
+    <include>
+      <name>yellow_flare_2</name>
+      <uri>model://yellow_flare</uri>
+      <pose>12 4.5 -2 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://target_acquistion_area</uri>
+      <pose>6  9 -1.95 0 0 0</pose>
+    </include>
+
+    <include>
+      <name>qualification_gate_1</name>
+      <uri>model://qualification_gate</uri>
+      <pose>-15 8.5 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>qualification_gate_2</name>
+      <uri>model://qualification_gate</uri>
+      <pose>-15 -8.5 0 0 0 0</pose>
+    </include>
+
+    <plugin name="gazebo_ros" filename="libgazebo_ros_state.so">
+      <!-- NB: omitting <ros> element, the namespace is still correctly read,
+       but is it an intended behaviour ?-->
+      <ros>
+        <namespace>/gazebo</namespace>
+      </ros>
+    </plugin>
+
+    <plugin name="underwater_current_plugin" filename="libuuv_underwater_current_ros_plugin.so">
+      <namespace>hydrodynamics</namespace>
+      <constant_current>
+        <topic>current_velocity</topic>
+        <velocity>
+          <mean>0</mean>
+          <min>0</min>
+          <max>5</max>
+          <mu>0.0</mu>
+          <noiseAmp>0.0</noiseAmp>
+        </velocity>
+
+        <horizontal_angle>
+          <mean>0</mean>
+          <min>-3.141592653589793238</min>
+          <max>3.141592653589793238</max>
+          <mu>0.0</mu>
+          <noiseAmp>0.0</noiseAmp>
+        </horizontal_angle>
+
+        <vertical_angle>
+          <mean>0</mean>
+          <min>-3.141592653589793238</min>
+          <max>3.141592653589793238</max>
+          <mu>0.0</mu>
+          <noiseAmp>0.0</noiseAmp>
+        </vertical_angle>
+      </constant_current>
+    </plugin>
+
+    <plugin name="sc_interface" filename="libuuv_sc_ros_interface_plugin.so"/>
+
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose frame=''>0 0 0 0 0 0.5</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
+  </world>
+</sdf>

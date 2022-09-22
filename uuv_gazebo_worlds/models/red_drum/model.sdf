@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<sdf version="1.5">
+  <model name="red_drum">
+    <static>true</static>
+    <link name="link">
+
+      <collision name="drum">
+        <pose>0 0 0.15 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>0.001 0.001 0.001</scale>
+            <uri>model://red_drum/bucket.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+
+
+      <visual name="drum">
+        <cast_shadows>false</cast_shadows>
+        <pose>0 0 0.15 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>0.001 0.001 0.001</scale>
+            <uri>model://red_drum/bucket.stl</uri>
+          </mesh>
+          <scale>0.001 0.001 0.001</scale>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/colors.material</uri>
+            <name>SAUVC/Red</name>
+          </script>
+        </material>
+      </visual>
+
+    </link>
+  </model>
+</sdf>

@@ -1,0 +1,107 @@
+<?xml version="1.0" ?>
+
+<sdf version="1.5">
+  <model name="gate">
+    <static>true</static>
+    <link name="link">
+
+      <collision name="left">
+        <pose>-0.75 0 0.75 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>1.5</length>
+          </cylinder>
+        </geometry>
+      </collision>
+
+      <collision name="right">
+        <pose>0.75 0 0.75 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>1.5</length>
+          </cylinder>
+        </geometry>
+      </collision>
+
+      <collision name="top">
+        <pose>0 0 1.48 0 1.57 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>1.5</length>
+          </cylinder>
+        </geometry>
+      </collision>
+
+      <visual name="left">
+        <cast_shadows>false</cast_shadows>
+        <pose>-0.75 0 0.75 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>1.5</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/colors.material</uri>
+            <name>SAUVC/Red</name>
+          </script>
+        </material>
+      </visual>
+
+      <visual name="right">
+        <cast_shadows>false</cast_shadows>
+        <pose>0.75 0 0.75 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>1.5</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/colors.material</uri>
+            <name>SAUVC/Green</name>
+          </script>
+        </material>
+      </visual>
+
+      <visual name="top">
+        <cast_shadows>false</cast_shadows>
+        <pose>0 0 1.48 0 1.57 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>1.5</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/colors.material</uri>
+            <name>SAUVC/Black</name>
+          </script>
+        </material>
+      </visual>
+
+      <visual name="bottom">
+        <cast_shadows>false</cast_shadows>
+        <pose>0 0 .05 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>1.8 .4 .02</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/colors.material</uri>
+            <name>SAUVC/Yellow</name>
+          </script>
+        </material>
+      </visual>
+
+    </link>
+  </model>
+</sdf>
