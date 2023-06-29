@@ -21,6 +21,7 @@ find_package(tf2_ros REQUIRED)
 find_package(uuv_gazebo_plugins REQUIRED)
 find_package(uuv_gazebo_ros_plugins_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(gazebo_ros REQUIRED)
 
 set(BASE_LIBS  
   ament_cmake 
@@ -34,6 +35,7 @@ set(BASE_LIBS
   uuv_gazebo_plugins 
   uuv_gazebo_ros_plugins_msgs 
   visualization_msgs 
+  gazebo_ros
 )
 
 include_directories(include)

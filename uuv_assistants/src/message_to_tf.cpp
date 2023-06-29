@@ -38,7 +38,7 @@
 
 #include <tf2/LinearMath/Transform.h>
 #include <tf2_ros/transform_broadcaster.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 
 std::string g_odometry_topic;
@@ -72,14 +72,14 @@ void addTransform(std::vector<geometry_msgs::msg::TransformStamped>& transforms,
   transforms.push_back(new_msg);
 }
 
-namespace tf2 
-{
-  //Specialization for Point msg
-  static inline void fromMsg(const geometry_msgs::msg::Point& msgIn, tf2::Vector3& out) 
-  {
-    out = Vector3(msgIn.x, msgIn.y, msgIn.z);
-  }
-}
+// namespace tf2 
+// {
+//   //Specialization for Point msg
+//   static inline void fromMsg(const geometry_msgs::msg::Point& msgIn, tf2::Vector3& out) 
+//   {
+//     out = Vector3(msgIn.x, msgIn.y, msgIn.z);
+//   }
+// }
 
 std::string stripSlash(const std::string & in)
 {

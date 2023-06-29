@@ -1,7 +1,7 @@
+<?xml version="1.0"?>
 <launch>
     <arg name="gui" default="true"/>
     <arg name="paused" default="false"/>
-    <arg name="debug" default="false"/>
     <arg name="set_timeout" default="false"/>
     <arg name="timeout" default="0.0"/>
     <arg name="use_sim_time" default="true"/>
@@ -20,11 +20,10 @@
         <arg name="use_sim_time" value="$(var use_sim_time)"/>
         <arg name="gui" value="$(var gui)"/>
         <arg name="headless" value="false"/>
-        <arg name="debug" value="$(var debug)"/>
+        <arg name="debug" value="false"/>
         <arg name="verbose" value="true"/>
         <!-- TODO Remove force_system in foxy, as it will be loaded by default -->
         <!-- Also investigate why /gazebo ns has a strong bad perf impact-->
-        <arg name="extra_gazebo_args" value="-s libgazebo_ros_force_system.so --ros-args -r gazebo:__ns:=/gazebo"/>
     </include>
 
     <include file="$(find-pkg-share uuv_assistants)/launch/publish_world_ned_frame.launch">
@@ -37,6 +36,14 @@
         output="screen">
         <param from="$(find-pkg-share uuv_gazebo_worlds)/config/ocean_waves.yaml"/>
     </node>
+
+    <!-- <plugin name="gazebo_factory" filename="libgazebo_ros_factory.so"> -->
+      <!-- NB: omitting <ros> element, the namespace is still correctly read,
+       but is it an intended behaviour ?-->
+      <!-- <ros>
+        <namespace>/vehicle</namespace>
+      </ros> -->
+    <!-- </plugin>  -->
 
     <group if="$(var set_timeout)">
         <include file="$(find-pkg-share uuv_assistants)/launch/set_simulation_timer.launch">
