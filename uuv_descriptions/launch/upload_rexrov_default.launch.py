@@ -127,7 +127,10 @@ def launch_setup(context, *args, **kwargs):
         executable='spawn_entity.py',
         output='screen',
         parameters=[{'use_sim_time': res}],
-        arguments=args
+        arguments=args,
+        remappings=[
+            ('/gazebo/spawn_entity', '/spawn_entity')
+        ]
     )
 
     # A joint state publisher plugin already is started with the model, no need to use the default joint state publisher
