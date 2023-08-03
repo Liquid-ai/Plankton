@@ -2,6 +2,7 @@
 <launch>
     <arg name="gui" default="true"/>
     <arg name="paused" default="false"/>
+    <arg name="debug" default="false"/>
     <arg name="set_timeout" default="false"/>
     <arg name="timeout" default="0.0"/>
     <arg name="use_sim_time" default="true"/>
@@ -20,10 +21,8 @@
         <arg name="use_sim_time" value="$(var use_sim_time)"/>
         <arg name="gui" value="$(var gui)"/>
         <arg name="headless" value="false"/>
-        <arg name="debug" value="false"/>
+        <arg name="debug" value="$(var debug)"/>
         <arg name="verbose" value="true"/>
-        <!-- TODO Remove force_system in foxy, as it will be loaded by default -->
-        <!-- Also investigate why /gazebo ns has a strong bad perf impact-->
     </include>
 
     <include file="$(find-pkg-share uuv_assistants)/launch/publish_world_ned_frame.launch">

@@ -18,7 +18,6 @@
     <arg name="headless" value="false"/>
     <arg name="debug" value="false"/>
     <arg name="verbose" value="true" />
-    <!-- TODO Remove force_system in foxy, as it will be loaded by default -->
   </include>
 
    <include file="$(find-pkg-share uuv_assistants)/launch/publish_world_ned_frame.launch">
