@@ -36,14 +36,6 @@
         <param from="$(find-pkg-share uuv_gazebo_worlds)/config/ocean_waves.yaml"/>
     </node>
 
-    <!-- <plugin name="gazebo_factory" filename="libgazebo_ros_factory.so"> -->
-      <!-- NB: omitting <ros> element, the namespace is still correctly read,
-       but is it an intended behaviour ?-->
-      <!-- <ros>
-        <namespace>/vehicle</namespace>
-      </ros> -->
-    <!-- </plugin>  -->
-
     <group if="$(var set_timeout)">
         <include file="$(find-pkg-share uuv_assistants)/launch/set_simulation_timer.launch">
             <arg name="timeout" value="$(var timeout)"/>
