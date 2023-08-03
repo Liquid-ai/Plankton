@@ -36,6 +36,7 @@
 #include <tf2_msgs/msg/tf_message.hpp>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/buffer.h>
 
 #include <geometry_msgs/msg/transform_stamped.hpp>
 

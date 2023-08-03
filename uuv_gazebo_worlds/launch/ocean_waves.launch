@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
     <arg name="gui" default="true"/>
     <arg name="paused" default="false"/>
@@ -22,9 +23,6 @@
         <arg name="headless" value="false"/>
         <arg name="debug" value="$(var debug)"/>
         <arg name="verbose" value="true"/>
-        <!-- TODO Remove force_system in foxy, as it will be loaded by default -->
-        <!-- Also investigate why /gazebo ns has a strong bad perf impact-->
-        <arg name="extra_gazebo_args" value="-s libgazebo_ros_force_system.so --ros-args -r gazebo:__ns:=/gazebo"/>
     </include>
 
     <include file="$(find-pkg-share uuv_assistants)/launch/publish_world_ned_frame.launch">

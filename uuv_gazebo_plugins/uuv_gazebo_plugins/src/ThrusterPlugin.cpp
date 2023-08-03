@@ -20,7 +20,7 @@
 // limitations under the License.
 
 #include <boost/algorithm/string.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <limits>
