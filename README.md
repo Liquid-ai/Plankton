@@ -32,6 +32,8 @@ Before starting hands-on on coding, please check out our issue board to see if w
 # Installation #
 Plankton currently supports:
 
+- **ROS 2 Humble** with **Gazebo 9** or **Gazebo 11** and **Ubuntu 22.04**
+
 - **ROS 2 Galactic** with **Gazebo 9** or **Gazebo 11** and **Ubuntu 20.04**
 
 - **ROS 2 Foxy** with **Gazebo 9** or **Gazebo 11** and **Ubuntu 20.04**
@@ -41,10 +43,13 @@ Plankton currently supports:
 ### 1. Install ROS 2 Foxy or Galactic
 
 If you don’t have ROS 2 Foxy or installed, follow the instructions below and prefer to install the `ros-foxy-desktop` package:
-<https://index.ros.org/doc/ros2/Installation/Foxy/Linux-Install-Debians/>
+<https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html/>
 
 For ROS 2 Galactic the instructions for installing the `ros-galactic-desktop` package can be found here:
-<https://index.ros.org/doc/ros2/Installation/Galactic/Linux-Install-Debians/>
+<https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Debians.html/>
+
+For ROS 2 Humble the instructions for installing the `ros-humble-desktop` package can be found here:
+<https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html/>
 
 ### 2. Install Gazebo 11
 
@@ -71,6 +76,9 @@ For Foxy, write in a terminal:
 For Galactic:
 `sudo apt install ros-galactic-gazebo-ros-pkgs`
 
+For Humble:
+`sudo apt install ros-humble-gazebo-ros-pkgs`
+
 >See <http://gazebosim.org/tutorials?tut=ros2_installing&cat=connect_ros> for more detailed information about gazebo and ROS 2 connection.
 
 ### 4. Build the Plankton plugin
@@ -88,10 +96,8 @@ Now, clone the Plankton repository:
 `git clone https://www.github.com/Liquid-ai/Plankton.git`
 
 At this point, you need to source 2 different files described below to configure ROS 2 and Gazebo environment variables: 
-   - For ROS 2 variables (for Foxy)
-`source /opt/ros/foxy/setup.bash`  
-   - For ROS 2 variables (for Galactic)
-`source /opt/ros/galactic/setup.bash`  
+   - For ROS 2 variables
+`source /opt/ros/<distro>/setup.bash`  
    - For Gazebo   
 `source /usr/share/gazebo/setup.sh`
 
@@ -102,15 +108,15 @@ sudo rosdep init
 rosdep update
 ```
 
+If using an end-of-life ROS 2 distribution (e.g. ROS galactic) run:
+```
+rosdep update --include-eol-distros
+```
+
 Browse to the root of your workspace and check for missing dependencies:  
 ```
 cd ~/ros2_ws/
-rosdep install -i --from-path src --rosdistro foxy -y
-```
-If using Galactic, run instead:
-```
-cd ~/ros2_ws/
-rosdep install -i --from-path src --rosdistro galactic -y
+rosdep install -i --from-path src --rosdistro <ros distro> -y
 ```
 
 Install Colcon, the build tool system:  
@@ -129,10 +135,8 @@ If everything went well, you should be able to run example cases.
 
 Note: Every time you open a new terminal, you need to source 3 different files described below to configure ROS 2 and Gazebo environment variables. Write the following each time you start a new terminal to deal with ROS 2 / Gazebo stuff, or prefer to add them at the end of your .bashrc file with `gedit ~/.bashrc`. For the latter, don’t forget to source your .bashrc to enforce the update after saving these changes, or open a fresh terminal.  
 
-   - For ROS 2 variables (for Foxy)
-`source /opt/ros/foxy/setup.bash`  
-   - For ROS 2 variables (for Galactic)
-`source /opt/ros/galactic/setup.bash`  
+   - For ROS 2 variables
+`source /opt/ros/<distro>/setup.bash`  
    - For your installation workspace (change the path accordingly)  
 `source $HOME/ros2_ws/install/setup.bash`  
    - For Gazebo   
@@ -143,7 +147,7 @@ Open a new terminal (don’t forget to source ROS 2 / Gazebo files if necessary)
 `ros2 launch uuv_gazebo_worlds ocean_waves.launch`
 
 Open again a new terminal (don't forget to source ROS 2 / Gazebo files if necessary), and spawn the rexrov robot:  
-`ros2 launch uuv_descriptions upload_rexrov.launch mode:=default x:=0 y:=0 z:=-20 namespace:=rexrov`
+`ros2 launch uuv_descriptions upload_rexrov_default.launch.py mode:=default x:=0 y:=0 z:=-20 namespace:=rexrov gazebo_namespace:="''"`
 
 Add a joystick node to control it remotely (new terminal needed) :  
 `ros2 launch uuv_control_cascaded_pid joy_velocity.launch uuv_name:=rexrov model_name:=rexrov joy_id:=0`
