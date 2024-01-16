@@ -17,6 +17,7 @@ find_package(gazebo_dev REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(gazebo_ros REQUIRED)
 
 set(LIBS
   uuv_world_plugins
@@ -26,6 +27,7 @@ set(LIBS
   ament_cmake
   geometry_msgs
   rclcpp
+  gazebo_ros
 )
 
 include_directories(include)

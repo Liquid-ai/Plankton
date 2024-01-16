@@ -25,8 +25,6 @@ Underwater environment with the ODE physics engine configured for vehicles using
         <arg name="headless" value="false"/>
         <arg name="debug" value="false"/>
         <arg name="verbose" value="true"/>
-        <!-- TODO Remove force_system in foxy, as it will be loaded by default -->
-        <arg name="extra_gazebo_args" value="-s libgazebo_ros_force_system.so --ros-args -r gazebo:__ns:=/gazebo"/>
     </include>
 
     <include file="$(find-pkg-share uuv_assistants)/launch/publish_world_ned_frame.launch">

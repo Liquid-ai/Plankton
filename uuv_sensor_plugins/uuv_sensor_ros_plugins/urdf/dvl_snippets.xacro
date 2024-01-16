@@ -51,7 +51,7 @@
     <xacro:default_dvl_macro
       namespace="${namespace}"
       parent_link="${parent_link}"
-      reference_frame="world">
+      inertial_reference_frame="world">
       <xacro:insert_block name="origin" />
     </xacro:default_dvl_macro>
   </xacro:macro>
@@ -60,7 +60,7 @@
     <xacro:default_dvl_macro
       namespace="${namespace}"
       parent_link="${parent_link}"
-      reference_frame="world_ned">
+      inertial_reference_frame="world_ned">
       <xacro:insert_block name="origin" />
     </xacro:default_dvl_macro>
   </xacro:macro>
@@ -81,7 +81,7 @@
     </xacro:dvl_plugin_macro>
   </xacro:macro>
 
-  <xacro:macro name="dvl_single_sonar" params="namespace suffix index pitch yaw update_rate">
+  <xacro:macro name="dvl_single_sonar" params="namespace suffix index pitch yaw update_rate topic">
     <link name="${namespace}/dvl${suffix}_sonar${index}_link">
       <inertial>
         <mass value="0.001" />  <!-- [kg] -->
@@ -133,6 +133,7 @@
 
         <plugin filename="libgazebo_ros_ray_sensor.so" name="dvl${suffix}_sonar${index}">
           <ros>
+            <namespace>${namespace}</namespace>
             <remapping>~/out:=${topic}_sonar${index}</remapping>
           </ros>
           <!-- <gaussianNoise>0.005</gaussianNoise> -->
@@ -179,22 +180,22 @@
 
     <xacro:dvl_single_sonar
       namespace="${namespace}" suffix=""
-      index="0" pitch="-0.52" yaw="0.0" update_rate="${update_rate}">
+      index="0" pitch="-0.52" yaw="0.0" update_rate="${update_rate}" topic="${topic}">
     </xacro:dvl_single_sonar>
 
     <xacro:dvl_single_sonar
       namespace="${namespace}" suffix=""
-      index="1" pitch="0" yaw="0.52" update_rate="${update_rate}">
+      index="1" pitch="0" yaw="0.52" update_rate="${update_rate}" topic="${topic}">
     </xacro:dvl_single_sonar>
 
     <xacro:dvl_single_sonar
       namespace="${namespace}" suffix=""
-      index="2" pitch="0.52" yaw="0.0" update_rate="${update_rate}">
+      index="2" pitch="0.52" yaw="0.0" update_rate="${update_rate}" topic="${topic}">
     </xacro:dvl_single_sonar>
 
     <xacro:dvl_single_sonar
       namespace="${namespace}" suffix=""
-      index="3" pitch="0.0" yaw="-0.52" update_rate="${update_rate}">
+      index="3" pitch="0.0" yaw="-0.52" update_rate="${update_rate}" topic="${topic}">
     </xacro:dvl_single_sonar>
 
     <gazebo>

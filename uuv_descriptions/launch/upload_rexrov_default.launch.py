@@ -56,6 +56,7 @@ def launch_setup(context, *args, **kwargs):
     # use_sim_time = Lc('use_sim_time').perform(context)
     use_world_ned = Lc('use_ned_frame').perform(context)
     is_write_on_disk = Lc('write_file_on_disk').perform(context)
+    gazebo_namespace = Lc('gazebo_namespace').perform(context)
 
     # Request sim time value to the global node
     res = is_sim_time(return_param=False, use_subprocess=True)
@@ -105,9 +106,17 @@ def launch_setup(context, *args, **kwargs):
             file_out.write(doc)
     
     # URDF spawner
-    args=('-gazebo_namespace /gazebo '
-        '-x %s -y %s -z %s -R %s -P %s -Y %s -entity %s -topic robot_description' 
-        %(x, y, z, roll, pitch, yaw, namespace)).split()
+
+    # Example: calling the launch file using an empty gazebo_namespace
+    #   ros2 launch <package> <launch_file> gazebo_namespace:="''" 
+    if not gazebo_namespace or gazebo_namespace == "''":
+      args=('-x %s -y %s -z %s -R %s -P %s -Y %s -entity %s -topic robot_description' 
+          %(x, y, z, roll, pitch, yaw, namespace)).split()
+    else:
+      args=('-gazebo_namespace /%s '
+          '-x %s -y %s -z %s -R %s -P %s -Y %s -entity %s -topic robot_description' 
+          %(gazebo_namespace, x, y, z, roll, pitch, yaw, namespace)).split()
+
 
     # Urdf spawner. NB: node namespace does not prefix the spawning service, 
     # as using a leading /
@@ -179,6 +188,7 @@ def generate_launch_description():
         DeclareLaunchArgument('namespace', default_value='rexrov'),
         DeclareLaunchArgument('use_ned_frame', default_value='false'),
         DeclareLaunchArgument('write_file_on_disk', default_value='false'),
+        DeclareLaunchArgument('gazebo_namespace', default_value='gazebo'),
 
         # DeclareLaunchArgument('use_sim_time', default_value='true'),
         OpaqueFunction(function = launch_setup)
